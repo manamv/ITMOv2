@@ -7,7 +7,7 @@
       "name": "VseLLM",
       "options": {
         "baseURL": "https://litellm.data-light.ru",
-        "apiKey": "sk-41ufG0lQ7vzDuW3UtrXY6Q"
+        "apiKey": ""
       },
       "models": {
         "openai/gpt-5": {
