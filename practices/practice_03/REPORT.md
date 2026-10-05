@@ -21,8 +21,10 @@ Ollama или LM Studio / OpenCode / Python, версии:
 
 | Разработчик / модель | Задача | Параметры / формат | Лицензия | Язык / tools | Источник |
 |---|---|---|---|---|---|
-| | | | | | |
-| | | | | | |
+| Alibaba Cloud / Qwen2.5 7B Instruct | Код, диалог, рассуждения | 7.6B / GGUF Q4_K_M | Apache-2.0 | Отличный русский, Python/JS, tools | Ollama library (`qwen2.5:7b-instruct-q4_k_m`) |
+| Meta / Llama 3.1 8B Instruct | Общий ассистент, рассуждения | 8.0B / GGUF Q4_K_M | Llama 3.1 Community | Хороший английский, базовый русский, tools | Ollama library (`llama3.1:8b-instruct-q4_k_m`) |
+| Mistral AI / Mistral 7B Instruct v0.3 | Код, диалог, function calling | 7.2B / GGUF Q4_K_M | Apache-2.0 | Средний русский, function calling | Ollama library (`mistral:7b-instruct-q4_k_m`) |
+| DeepSeek / DeepSeek-Coder-V2 Lite | Специализированная кодогенерация | 16B (2.4B active MoE) / GGUF | DeepSeek License | Английский/Китайский, сильный код | HuggingFace / GGUF |
 
 ## Воспроизведение
 
