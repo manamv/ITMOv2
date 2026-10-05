@@ -126,6 +126,42 @@ def search_products(
 
     return results
 
+def search_live_vkusvill(query: str, limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Поиск продуктов напрямую через официальный MCP-сервер ВкусВилл (https://mcp.vkusvill.ru/mcp).
+    Нормализует формат товаров для отображения в каталоге и добавления в корзину.
+    """
+    if not query or len(query.strip()) == 0:
+        raise ServiceError("EMPTY_QUERY", "Поисковый запрос не может быть пустым.")
+
+    from mcp_server.vkusvill_client import search_vkusvill_products
+    remote_res = search_vkusvill_products(q=query.strip(), limit=limit)
+    if not remote_res.get("ok"):
+        err = remote_res.get("error", {})
+        msg = err.get("message", "Ошибка поиска во ВкусВилл") if isinstance(err, dict) else str(err)
+        raise ServiceError("VKUSVILL_MCP_ERROR", msg)
+
+    raw_items = remote_res.get("items", [])
+    normalized = []
+    for item in raw_items:
+        price_obj = item.get("price", {})
+        price_val = float(price_obj.get("current", 0)) if isinstance(price_obj, dict) else 0.0
+        normalized.append({
+            "id": f"vv-{item.get('id', item.get('xml_id'))}",
+            "name": item.get("name", "").replace("&nbsp;", " "),
+            "category": "vkusvill_live",
+            "price": price_val,
+            "calories": 150, # Базовое значение калорийности
+            "protein": 5.0,
+            "fat": 5.0,
+            "carbs": 15.0,
+            "weight": item.get("weight", "1 шт"),
+            "tags": ["vkusvill_official", "live_mcp"],
+            "allergens": [],
+            "description": f"Товар из официального каталога сети ВкусВилл (ID: {item.get('id')}). Источник: https://mcp.vkusvill.ru/mcp"
+        })
+    return normalized
+
 def get_theme_bundles(
     theme_id: Optional[str] = None,
     max_budget: Optional[float] = None,
@@ -221,7 +257,25 @@ def calculate_cart_nutrition(
             continue
         p = PRODUCTS_BY_ID.get(pid)
         if not p:
-            raise ServiceError("PRODUCT_NOT_FOUND", f"Товар с id '{pid}' не найден в каталоге.")
+            if pid.startswith("vv-"):
+                # Товар добавлен из живого каталога ВкусВилл MCP
+                name = item.get("name", "Товар ВкусВилл")
+                price = float(item.get("price", 150.0))
+                cals = int(item.get("calories", 120))
+                p = Product(
+                    id=pid,
+                    name=name,
+                    category="vkusvill_live",
+                    price=price,
+                    calories=cals,
+                    protein=4.0,
+                    fat=4.0,
+                    carbs=15.0,
+                    weight="1 шт",
+                    tags=["vkusvill_official"]
+                )
+            else:
+                raise ServiceError("PRODUCT_NOT_FOUND", f"Товар с id '{pid}' не найден в каталоге.")
 
         line_price = p.price * qty
         subtotal += line_price

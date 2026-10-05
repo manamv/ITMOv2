@@ -187,6 +187,7 @@ function setupEventListeners() {
     const cat = document.getElementById("categoryFilter")?.value || undefined;
     const maxP = parseFloat(document.getElementById("maxPriceInput")?.value) || undefined;
     const checkedAllergens = Array.from(document.querySelectorAll('input[name="catalogAllergen"]:checked')).map(cb => cb.value);
+    const source = document.querySelector('input[name="searchSource"]:checked')?.value || "vkusvill_mcp";
 
     try {
       const res = await fetch("/api/search", {
@@ -196,12 +197,14 @@ function setupEventListeners() {
           query: q,
           category: cat,
           max_price: maxP,
-          exclude_allergens: checkedAllergens.length > 0 ? checkedAllergens : undefined
+          exclude_allergens: checkedAllergens.length > 0 ? checkedAllergens : undefined,
+          source: source
         })
       });
       const data = await res.json();
       if (res.ok) {
         renderProducts(data.products || []);
+        showToast(source === "vkusvill_mcp" ? "Найдено через официальный ВкусВилл MCP!" : "Найдено в каталоге!");
       } else {
         alert("Ошибка поиска: " + (data.message || "Неверные параметры"));
       }

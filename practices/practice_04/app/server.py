@@ -78,14 +78,19 @@ class VkusMartHTTPHandler(BaseHTTPRequestHandler):
 
         if parsed.path == "/api/search":
             try:
-                results = search_products(
-                    query=payload.get("query"),
-                    category=payload.get("category"),
-                    max_price=payload.get("max_price"),
-                    max_calories=payload.get("max_calories"),
-                    exclude_allergens=payload.get("exclude_allergens")
-                )
-                self.send_json({"products": results, "count": len(results)})
+                source = payload.get("source", "catalog")
+                if source == "vkusvill_mcp" and payload.get("query"):
+                    from app.services import search_live_vkusvill
+                    results = search_live_vkusvill(query=payload.get("query"), limit=10)
+                else:
+                    results = search_products(
+                        query=payload.get("query"),
+                        category=payload.get("category"),
+                        max_price=payload.get("max_price"),
+                        max_calories=payload.get("max_calories"),
+                        exclude_allergens=payload.get("exclude_allergens")
+                    )
+                self.send_json({"products": results, "count": len(results), "source": source})
             except ServiceError as se:
                 self.send_json(se.to_dict(), status=400)
 
