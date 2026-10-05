@@ -1,7 +1,8 @@
 """
-Сервисный слой приложения VkusMart.
+Сервисный слой приложения VkusMart (Feature B enhanced).
 Реализует бизнес-логику поиска, фильтрации по диетическим требованиям,
-формирования тематических подборок и расчета корзины с БЖУ и скидками.
+формирования тематических подборок, расчета корзины со ступенчатыми скидками,
+анализом баланса макронутриентов и механизмом Graceful Fallback.
 """
 
 from typing import List, Dict, Any, Optional
@@ -32,10 +33,11 @@ def search_products(
     max_price: Optional[float] = None,
     max_calories: Optional[int] = None,
     exclude_allergens: Optional[List[str]] = None,
-    tags: Optional[List[str]] = None
+    tags: Optional[List[str]] = None,
+    allow_fallback: bool = False
 ) -> List[Dict[str, Any]]:
     """
-    Поиск товаров по каталогу с валидацией и строгой фильтрацией.
+    Поиск товаров по каталогу с валидацией, фильтрацией и поддержкой Graceful Fallback (Фича B).
     """
     if query is not None:
         query_clean = query.strip()
@@ -70,7 +72,6 @@ def search_products(
         if q_lower:
             words = [w for w in q_lower.split() if len(w) >= 2]
             text = f"{p.name} {p.description}".lower()
-            # Проверяем, что каждое слово запроса (или его основа от 4 символов) найдено в тексте товара
             match_all = True
             for w in words:
                 stem = w[:-1] if len(w) > 4 else w
@@ -103,6 +104,26 @@ def search_products(
 
         results.append(p.to_dict())
 
+    # Graceful Fallback (Фича B): если точных совпадений нет, но разрешен fallback
+    if len(results) == 0 and allow_fallback:
+        # Попробуем ослабить лимит цены на 30% или убрать ограничение по калориям
+        fallback_results = []
+        relaxed_price = (max_price * 1.3) if max_price else None
+
+        for p in PRODUCTS:
+            if category and p.category != category:
+                continue
+            if relaxed_price is not None and p.price > relaxed_price:
+                continue
+            # Аллергены НЕ ослабляем из соображений безопасности здоровья
+            if forbidden_allergens and set(p.allergens).intersection(forbidden_allergens):
+                continue
+            fallback_item = p.to_dict()
+            fallback_item["_fallback_match"] = True
+            fallback_results.append(fallback_item)
+
+        return fallback_results
+
     return results
 
 def get_theme_bundles(
@@ -126,7 +147,6 @@ def get_theme_bundles(
             p = PRODUCTS_BY_ID.get(pid)
             if not p:
                 continue
-            # Исключаем аллергены
             if forbidden_allergens and set(p.allergens).intersection(forbidden_allergens):
                 continue
             matched_products.append(p.to_dict())
@@ -137,7 +157,6 @@ def get_theme_bundles(
         total_fat = round(sum(item["fat"] for item in matched_products), 1)
         total_carbs = round(sum(item["carbs"] for item in matched_products), 1)
 
-        # Проверка бюджета
         is_within_budget = True
         if max_budget is not None and total_price > max_budget:
             is_within_budget = False
@@ -167,19 +186,22 @@ def calculate_cart_nutrition(
     apply_discount_feature_b: bool = True
 ) -> Dict[str, Any]:
     """
-    Расчет корзины: итоговая цена, скидка, суммарные КБЖУ и аллергены.
-    items: список словарей вида [{"product_id": "prod-1", "quantity": 1}, ...]
+    Расчет корзины: итоговая цена, динамическая ступенчатая скидка,
+    расчет баланса макронутриентов и предупреждения (Фича B).
     """
     if not items:
         return {
             "total_items": 0,
             "subtotal": 0.0,
+            "discount_percent": 0.0,
             "discount_rub": 0.0,
             "final_price": 0.0,
             "total_calories": 0,
             "protein": 0.0,
             "fat": 0.0,
             "carbs": 0.0,
+            "macro_percentages": {"protein": 0.0, "fat": 0.0, "carbs": 0.0},
+            "nutrition_alerts": [],
             "allergens": [],
             "items_detail": []
         }
@@ -219,8 +241,11 @@ def calculate_cart_nutrition(
             "allergens": list(p.allergens)
         })
 
-    # Расчет скидки (Фича B):
-    # от 1500 ₽ -> 7%, от 2500 ₽ -> 12%
+    # Расчет динамической скидки (Фича B):
+    # Пороговые значения:
+    # subtotal >= 2500.0 -> 12%
+    # subtotal >= 1500.0 -> 7%
+    # subtotal < 1500.0 -> 0%
     discount_pct = 0.0
     if apply_discount_feature_b:
         if subtotal >= 2500.0:
@@ -230,6 +255,21 @@ def calculate_cart_nutrition(
 
     discount_rub = round(subtotal * (discount_pct / 100.0), 2)
     final_price = round(subtotal - discount_rub, 2)
+
+    # Расчет процентного баланса макронутриентов (Фича B)
+    macro_cals = (protein * 4) + (fat * 9) + (carbs * 4)
+    if macro_cals > 0:
+        protein_pct = round((protein * 4 / macro_cals) * 100, 1)
+        fat_pct = round((fat * 9 / macro_cals) * 100, 1)
+        carbs_pct = round((carbs * 4 / macro_cals) * 100, 1)
+    else:
+        protein_pct = fat_pct = carbs_pct = 0.0
+
+    nutrition_alerts = []
+    if carbs_pct > 65.0:
+        nutrition_alerts.append("Высокая доля углеводов (> 65%). Рекомендуется добавить источник белка.")
+    if fat_pct > 70.0 and protein_pct < 15.0:
+        nutrition_alerts.append("Высокая доля жиров при низком белке. Проверьте баланс рациона.")
 
     return {
         "total_items": sum(i["quantity"] for i in items_detail),
@@ -241,6 +281,12 @@ def calculate_cart_nutrition(
         "protein": round(protein, 1),
         "fat": round(fat, 1),
         "carbs": round(carbs, 1),
+        "macro_percentages": {
+            "protein": protein_pct,
+            "fat": fat_pct,
+            "carbs": carbs_pct
+        },
+        "nutrition_alerts": nutrition_alerts,
         "allergens": sorted(list(all_allergens)),
         "items_detail": items_detail
     }
