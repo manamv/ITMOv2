@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VkusMart — Защита Практики 4 (Среда агента, Skill и MCP)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #065f46;
+      --primary-light: #ecfdf5;
+      --accent: #3b82f6;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --code-bg: #090d16;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+    .container { max-width: 1150px; margin: 0 auto; padding: 0 24px; }
+    
+    header {
+      background: #0b1120;
+      border-bottom: 1px solid var(--card-border);
+      padding: 24px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #34d399;
+      letter-spacing: -0.5px;
+    }
+    .title-block p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .grade-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #34d399;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* Navigation tabs */
+    .nav-bar {
+      margin: 28px 0;
+      display: flex;
+      gap: 10px;
+      background: var(--card-bg);
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      overflow-x: auto;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover { color: #ffffff; background: rgba(255,255,255,0.05); }
+    .nav-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+    }
+
+    .slide { display: none; }
+    .slide.active { display: block; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    h2 { font-size: 22px; color: #ffffff; margin-bottom: 12px; }
+    h3 { font-size: 17px; color: #38bdf8; margin: 20px 0 10px 0; }
+    p { margin-bottom: 12px; color: #cbd5e1; font-size: 15px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .info-box {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 10px;
+    }
+
+    .deeplink {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #38bdf8;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      text-decoration: none;
+      margin: 4px 0;
+      transition: all 0.2s;
+    }
+    .deeplink:hover {
+      background: #334155;
+      border-color: #38bdf8;
+      color: #7dd3fc;
+    }
+
+    pre code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      display: block;
+      background: var(--code-bg);
+      padding: 16px;
+      border-radius: 10px;
+      color: #a5f3fc;
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+      margin: 10px 0;
+      line-height: 1.45;
+    }
+
+    .metric-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .badge-pass { background: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
+    .badge-error { background: #450a0a; color: #fca5a5; border: 1px solid #dc2626; }
+
+    .demo-frame {
+      width: 100%;
+      height: 600px;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      background: #ffffff;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-flex">
+      <div class="title-block">
+        <h1>VkusMart — Презентация Практики 4</h1>
+        <p>Среда агента, собственный Skill, MCP сервер и изолированное ветвление</p>
+      </div>
+      <div class="grade-badge">Целевой балл: 10 / 10</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="nav-bar">
+      <button class="nav-btn active" data-slide="slide-overview">📋 Обзор & Архитектура</button>
+      <button class="nav-btn" data-slide="slide-env">⚙️ 1. Настроенная среда (5 б)</button>
+      <button class="nav-btn" data-slide="slide-skill">🧠 2. Навык и автоматизация (2 б)</button>
+      <button class="nav-btn" data-slide="slide-mcp">🔌 3. Собственный MCP (2 б)</button>
+      <button class="nav-btn" data-slide="slide-features">🔀 4. Фичи A & B (Worktree & QA)</button>
+      <button class="nav-btn" data-slide="slide-reflection">📝 5. Рефлексия (1 б)</button>
+      <button class="nav-btn" data-slide="slide-demo">🚀 Живое Web-демо</button>
+    </nav>
+
+    <!-- Слайд: Обзор -->
+    <section id="slide-overview" class="slide active">
+      <div class="card">
+        <h2>О проекте VkusMart</h2>
+        <p>Интеллектуальная система формирования тематических продуктовых подборок и рационов на основе каталога продуктов ВкусВилл. В проекте развернута полноценная среда AI-агента с жестким контролем целостности кода и интеграцией по протоколу MCP.</p>
+
+        <div class="grid-2">
+          <div class="info-box">
+            <h3>Ключевые ссылки на локальные файлы:</h3>
+            <p><a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/AGENTS.md">📄 AGENTS.md</a> — правила проекта</p>
+            <p><a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/opencode.json">⚙️ opencode.json</a> — конфигурация MCP</p>
+            <p><a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/.opencode/skills/thematic-grocery-curator/SKILL.md">🧠 SKILL.md</a> — навык кураторства</p>
+            <p><a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/mcp_server/server.py">🔌 mcp_server/server.py</a> — MCP сервер</p>
+            <p><a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/scripts/check.py">⚡ scripts/check.py</a> — единый runner</p>
+            <p><a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/reflection.md">📝 reflection.md</a> — рефлексия разработчика</p>
+          </div>
+          <div class="info-box">
+            <h3>Метрики верификации:</h3>
+            <p>• Автоматические тесты: <span class="metric-badge badge-pass">25 из 25 пройдены (100%)</span></p>
+            <p>• Время полного прогона: <strong>0.04 секунды</strong></p>
+            <p>• Модули проверки: <strong>Синтаксис, Каталог, Фича A, Фича B, MCP сервер</strong></p>
+            <p>• Поддержка ОС: <strong>Windows, macOS, Linux (кроссплатформенный runner)</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Слайд 1: Настроенная среда -->
+    <section id="slide-env" class="slide">
+      <div class="card">
+        <h2>1. Настроенная среда (5 баллов)</h2>
+        <p>Каждое подключение в проекте обосновано и выполняет конкретную задачу в цикле разработки.</p>
+        
+        <div class="grid-2">
+          <div class="info-box">
+            <h3>Обоснование подключений:</h3>
+            <p><strong>1. AGENTS.md</strong> — предотвращает деградацию контрактов и запрещает ослабление проверок runner ради галочки.</p>
+            <p><strong>2. Hook check-after-edit.js</strong> — перехватывает сохранение файлов (`execute.after`) и сразу запускает доверенный runner, не позволяя агенту накапливать скрытые синтаксические или логические ошибки.</p>
+            <p><strong>3. opencode.json</strong> — объявляет локальный MCP сервер `vkusmart-mcp` (stdio) и удаленный `context7` для документации библиотек.</p>
+            <p><strong>4. Runner scripts/check.py</strong> — единый авторитет качества кода. Завершается с кодом 0 только если синтаксис, структура каталога и все 25 тестов зеленые.</p>
+          </div>
+          <div>
+            <h3>Код Hook: .opencode/plugins/check-after-edit.js</h3>
+            <pre><code>ctx.tool.hook("execute.after", async (event) => {
+  const editTools = ["write_file", "edit_file", "replace_file_content"];
+  if (editTools.some(t => event.tool?.name?.includes(t))) {
+    const res = spawnSync(pythonBin, ["scripts/check.py"]);
+    event.result.autoCheckStatus = res.status === 0 ? "PASS" : "FAIL";
+  }
+});</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Слайд 2: Навык и автоматизация -->
+    <section id="slide-skill" class="slide">
+      <div class="card">
+        <h2>2. Навык и содержательная автоматизация (2 балла)</h2>
+        <p>Разработан специализированный навык <code>.opencode/skills/thematic-grocery-curator/</code>.</p>
+        
+        <div class="grid-2">
+          <div class="info-box">
+            <h3>Устройство навыка:</h3>
+            <p>• <strong>SKILL.md</strong>: Триггеры, системные правила составления корзин, пропорции БЖУ и чеклист безопасности по аллергенам.</p>
+            <p>• <strong>rules/nutrition-guidelines.md</strong>: Стандарты здорового питания (ВОЗ) и целевые коридоры для тем: «Здоровый баланс», «Студент», «Кето», «Без сахара».</p>
+            <p>• <strong>scripts/validate_bundle.py</strong>: Содержательный скрипт автоматизации. Проверяет соотношение калорий, вычисляет долю белков/жиров/углеводов и выдает оценку сбалансированности Health Score (0-100%).</p>
+          </div>
+          <div>
+            <h3>Результат выполнения автоматизации:</h3>
+            <pre><code>$ python .opencode/skills/thematic-grocery-curator/scripts/validate_bundle.py
+{
+  "status": "VALID",
+  "health_score": 100,
+  "summary": {
+    "total_price": 355.0,
+    "total_calories": 556,
+    "macro_breakdown": {
+      "protein_pct": 18.5,
+      "fat_pct": 22.4,
+      "carbs_pct": 59.1
+    },
+    "detected_allergens": []
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Слайд 3: Собственный MCP -->
+    <section id="slide-mcp" class="slide">
+      <div class="card">
+        <h2>3. Собственный / выбранный MCP сервер (2 балла)</h2>
+        <p>Сервер <code>mcp_server/server.py</code> реализует стандарт Model Context Protocol (JSON-RPC 2.0 stdio) и предоставляет 3 полезных инструмента.</p>
+        
+        <div class="grid-2">
+          <div class="info-box">
+            <h3>Реализованные инструменты (Tools):</h3>
+            <p>1. <code>get_theme_bundles</code>: получение подборок с фильтрами по бюджету и аллергенам.</p>
+            <p>2. <code>search_products</code>: поиск по названию, категории, калориям и тегам.</p>
+            <p>3. <code>calculate_cart_nutrition</code>: расчет корзины, динамических скидок и полного баланса КБЖУ.</p>
+          </div>
+          <div class="info-box">
+            <h3>Успешный вызов (200 OK):</h3>
+            <pre><code>// Request: get_theme_bundles { theme_id: "theme-student" }
+{
+  "isError": false,
+  "content": [{
+    "text": "{\n  \"bundles\": [{\n    \"id\": \"theme-student\",\n    \"title\": \"Студенческий ужин до 500 ₽\",\n    \"actual_price\": 385.0,\n    \"is_within_budget\": true\n  }]\n}"
+  }]
+}</code></pre>
+          </div>
+        </div>
+
+        <h3>Обработка ошибочного входа (Handled Error):</h3>
+        <div class="grid-2">
+          <div>
+            <p><strong>Сценарий: Пустой поисковый запрос</strong></p>
+            <pre><code>// Request: search_products { query: "   " }
+{
+  "isError": true,
+  "content": [{
+    "text": "{\n  \"error\": true,\n  \"code\": \"EMPTY_QUERY\",\n  \"message\": \"Поисковый запрос не может быть пустым.\"\n}"
+  }]
+}</code></pre>
+          </div>
+          <div>
+            <p><strong>Сценарий: Отрицательный бюджет</strong></p>
+            <pre><code>// Request: get_theme_bundles { max_budget: -100 }
+{
+  "isError": true,
+  "content": [{
+    "text": "{\n  \"error\": true,\n  \"code\": \"INVALID_BUDGET\",\n  \"message\": \"Бюджет должен быть строго положительным числом, получено: -100\"\n}"
+  }]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Слайд 4: Фичи A и B -->
+    <section id="slide-features" class="slide">
+      <div class="card">
+        <h2>4. Реализация фич A и B (TDD, Worktree & QA Subagent)</h2>
+        
+        <div class="grid-2">
+          <div class="info-box">
+            <h3>Фича A (Входная валидация & Аллергены)</h3>
+            <p>• Реализована по TDD в основной ветке `practice_4`.</p>
+            <p>• Жесткое исключение аллергенов (`lactose`, `gluten`, `nuts`, `seafood`).</p>
+            <p>• Валидация диапазонов цен, калорий и существующих категорий.</p>
+            <p>• Фиксация контекста в <a class="deeplink" href="file:///D:/3sem/vibecoding/ITMOv2/practices/practice_04/docs/HANDOFF.md">docs/HANDOFF.md</a>.</p>
+          </div>
+          <div class="info-box">
+            <h3>Фича B (Скидки, БЖУ & Graceful Fallback)</h3>
+            <p>• Реализована в отдельном <strong>git worktree</strong> (`practice-04-b`).</p>
+            <p>• Ступенчатые скидки: 1500 ₽ -> 7%, 2500 ₽ -> 12%.</p>
+            <p>• Graceful Fallback: мягкое расширение диапазона при 0 совпадений без нарушения фильтра аллергенов.</p>
+            <p>• Проведена независимым субагентом <strong>@tester</strong> (25 тестов PASS).</p>
+            <p>• Слияние: <code>git merge --ff-only practice-04-b</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Слайд 5: Рефлексия -->
+    <section id="slide-reflection" class="slide">
+      <div class="card">
+        <h2>5. Инженерная рефлексия (reflection.md)</h2>
+        <div class="info-box">
+          <h3>Ключевые выводы:</h3>
+          <p><strong>1. Что помогло:</strong> Строгий контрактный подход (`AGENTS.md` + `style-guide.md`) и автоматический хук проверок после сохранения файлов. Любая ошибка в коде выявлялась за миллисекунды.</p>
+          <p><strong>2. Что мешало:</strong> Ограничения LSP в текущей версии OpenCode 2.0.20 (компенсировано внешним runner) и то, что `git worktree` не копирует `.venv` (компенсировано поиском интерпретатора в `check.py`).</p>
+          <p><strong>3. Где потребовалось вмешательство человека:</strong> Реализация стемминга русских слов при поиске («индейка» vs «индейки»), запрет ослабления фильтра аллергенов в fallback из соображений безопасности и создание интерактивной MCP Console для защиты.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Слайд 6: Живое демо -->
+    <section id="slide-demo" class="slide">
+      <div class="card">
+        <h2>Интерактивное веб-приложение VkusMart</h2>
+        <p>Веб-сервис запущен локально на <strong>http://127.0.0.1:8000</strong>. Ниже встроен живой фрейм приложения с возможностью добавления наборов, расчета корзины и живого вызова MCP инструментов.</p>
+        <iframe src="http://127.0.0.1:8000" class="demo-frame"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const slides = document.querySelectorAll('.slide');
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        navBtns.forEach(b => b.classList.remove('active'));
+        slides.forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        const targetId = btn.getAttribute('data-slide');
+        document.getElementById(targetId)?.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
