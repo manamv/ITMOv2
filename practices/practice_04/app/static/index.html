@@ -185,28 +185,29 @@
           <p class="section-desc">Демонстрация вызова инструментов нашего MCP сервера в реальном времени. Можно протестировать как успешные вызовы, так и обработку ошибок (валидация параметров).</p>
           
           <div class="quick-presets">
-            <span>Готовые пресеты для демонстрации:</span>
+            <span>Пресеты официального MCP ВкусВилл (https://mcp.vkusvill.ru/mcp):</span>
             <div class="presets-buttons">
-              <button class="preset-btn" data-preset="success_theme">✅ Успех: Набор «Студент»</button>
-              <button class="preset-btn" data-preset="success_search">✅ Успех: Поиск «индейка»</button>
-              <button class="preset-btn" data-preset="error_empty_query">❌ Ошибка: Пустой запрос</button>
-              <button class="preset-btn" data-preset="error_invalid_budget">❌ Ошибка: Отрицательный бюджет</button>
-              <button class="preset-btn" data-preset="error_unknown_category">❌ Ошибка: Несуществующая категория</button>
+              <button class="preset-btn" data-preset="vv_search_grechka">🟢 ВкусВилл: Поиск «гречка»</button>
+              <button class="preset-btn" data-preset="vv_recipes_syrniki">🟢 ВкусВилл: Рецепт «сырники»</button>
+              <button class="preset-btn" data-preset="vv_discount_search">🟢 ВкусВилл: Скидки и акции</button>
+              <button class="preset-btn" data-preset="vv_error_empty">🔴 ВкусВилл Ошибка: пустой запрос</button>
             </div>
           </div>
 
           <div class="mcp-form">
             <div class="form-group">
-              <label for="mcpToolSelect">Выбор инструмента:</label>
+              <label for="mcpToolSelect">Выбор инструмента (MCP Remote https://mcp.vkusvill.ru/mcp):</label>
               <select id="mcpToolSelect" class="select-input">
-                <option value="get_theme_bundles">get_theme_bundles (Тематические подборки)</option>
-                <option value="search_products">search_products (Поиск и фильтры)</option>
-                <option value="calculate_cart_nutrition">calculate_cart_nutrition (Расчет корзины)</option>
+                <option value="vkusvill_products_search">vkusvill_products_search (Поиск реальных товаров ВкусВилл)</option>
+                <option value="vkusvill_recipes">vkusvill_recipes (Поиск официальных рецептов ВкусВилл)</option>
+                <option value="vkusvill_products_discount">vkusvill_products_discount (Акции и скидки ВкусВилл)</option>
+                <option value="get_theme_bundles">get_theme_bundles (Тематические подборки VkusMart)</option>
+                <option value="calculate_cart_nutrition">calculate_cart_nutrition (Расчет КБЖУ корзины)</option>
               </select>
             </div>
             <div class="form-group">
               <label for="mcpArgsInput">Аргументы (JSON):</label>
-              <textarea id="mcpArgsInput" class="code-textarea" rows="6">{\n  "theme_id": "theme-student",\n  "max_budget": 500\n}</textarea>
+              <textarea id="mcpArgsInput" class="code-textarea" rows="6">{\n  "q": "гречка",\n  "limit": 5\n}</textarea>
             </div>
             <button id="mcpExecuteBtn" class="btn btn-primary">Вызвать инструмент через MCP</button>
           </div>

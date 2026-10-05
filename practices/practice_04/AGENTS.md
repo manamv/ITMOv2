@@ -21,7 +21,7 @@
 - После любого изменения файлов обязательно запускайте проверку. Код возврата `0` — обязателен.
 
 ## 3. Среда, Skills и MCP
-- **Подключенный MCP:** В `opencode.json` настроен сервер `vkusmart-mcp` (запуск `python -m mcp_server.server`), реализующий инструменты `get_theme_bundles`, `search_products`, `calculate_cart_nutrition`.
+- **Подключенный MCP:** В `opencode.json` подключен официальный сервер ВкусВилл `https://mcp.vkusvill.ru/mcp` (инструменты `vkusvill_products_search`, `vkusvill_products_discount`, `vkusvill_recipes`, `vkusvill_cart_link_create`), а также локальный сервер `mcp_server.server` (`get_theme_bundles`, `search_products`, `calculate_cart_nutrition`). Клиент: `mcp_server/vkusvill_client.py`.
 - **Активный Skill:** `.opencode/skills/thematic-grocery-curator/` — куратор тематических наборов продуктов с автоматической проверкой пищевой ценности и бюджета.
 - **Hook автопроверки:** `.opencode/plugins/check-after-edit.js` автоматически триггерит runner после правок исходного кода.
 

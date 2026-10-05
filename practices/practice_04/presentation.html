@@ -292,47 +292,57 @@
     <!-- Слайд 3: Собственный MCP -->
     <section id="slide-mcp" class="slide">
       <div class="card">
-        <h2>3. Собственный / выбранный MCP сервер (2 балла)</h2>
-        <p>Сервер <code>mcp_server/server.py</code> реализует стандарт Model Context Protocol (JSON-RPC 2.0 stdio) и предоставляет 3 полезных инструмента.</p>
+        <h2>3. Подключение и работа с MCP сервером ВкусВилл (2 балла)</h2>
+        <p>В проекте настроена прямая интеграция с официальным удаленным сервером <code>https://mcp.vkusvill.ru/mcp</code>, а также локальным сервисом подборок.</p>
         
         <div class="grid-2">
           <div class="info-box">
-            <h3>Реализованные инструменты (Tools):</h3>
-            <p>1. <code>get_theme_bundles</code>: получение подборок с фильтрами по бюджету и аллергенам.</p>
-            <p>2. <code>search_products</code>: поиск по названию, категории, калориям и тегам.</p>
-            <p>3. <code>calculate_cart_nutrition</code>: расчет корзины, динамических скидок и полного баланса КБЖУ.</p>
+            <h3>Инструменты официального MCP ВкусВилл:</h3>
+            <p>1. <code>vkusvill_products_search</code>: поиск реальных товаров каталога ВкусВилл (параметры: `q`, `limit`, `page`).</p>
+            <p>2. <code>vkusvill_products_discount</code>: актуальные скидки и акции розничной сети ВкусВилл.</p>
+            <p>3. <code>vkusvill_recipes</code>: база проверенных кулинарных рецептов ВкусВилл с ингредиентами.</p>
+            <p>4. <code>vkusvill_cart_link_create</code>: генерация прямой ссылки на корзину с товарами.</p>
           </div>
           <div class="info-box">
-            <h3>Успешный вызов (200 OK):</h3>
-            <pre><code>// Request: get_theme_bundles { theme_id: "theme-student" }
+            <h3>Успешный вызов ВкусВилл MCP (200 OK):</h3>
+            <pre><code>// POST https://mcp.vkusvill.ru/mcp
+// Tool: vkusvill_products_search, args: { "q": "гречка", "limit": 5 }
 {
-  "isError": false,
-  "content": [{
-    "text": "{\n  \"bundles\": [{\n    \"id\": \"theme-student\",\n    \"title\": \"Студенческий ужин до 500 ₽\",\n    \"actual_price\": 385.0,\n    \"is_within_budget\": true\n  }]\n}"
-  }]
+  "ok": true,
+  "data": {
+    "items": [
+      {
+        "id": 17699,
+        "name": "Крупа гречневая ядрица, 900 г",
+        "price": { "current": 85, "currency": "RUB" }
+      }
+    ]
+  }
 }</code></pre>
           </div>
         </div>
 
-        <h3>Обработка ошибочного входа (Handled Error):</h3>
+        <h3>Обработка ошибочного входа (ВкусВилл MCP Handled Error):</h3>
         <div class="grid-2">
           <div>
-            <p><strong>Сценарий: Пустой поисковый запрос</strong></p>
-            <pre><code>// Request: search_products { query: "   " }
+            <p><strong>Сценарий: Пустой поисковый запрос (q: "")</strong></p>
+            <pre><code>// Tool: vkusvill_products_search, args: { "q": "" }
 {
-  "isError": true,
-  "content": [{
-    "text": "{\n  \"error\": true,\n  \"code\": \"EMPTY_QUERY\",\n  \"message\": \"Поисковый запрос не может быть пустым.\"\n}"
-  }]
+  "jsonrpc": "2.0",
+  "id": 100,
+  "error": {
+    "code": -32602,
+    "message": "Invalid parameters for tool 'vkusvill_products_search': String is too short (0 chars), minimum 1"
+  }
 }</code></pre>
           </div>
           <div>
-            <p><strong>Сценарий: Отрицательный бюджет</strong></p>
-            <pre><code>// Request: get_theme_bundles { max_budget: -100 }
+            <p><strong>Сценарий: Отрицательный бюджет в подборках</strong></p>
+            <pre><code>// Tool: get_theme_bundles, args: { "max_budget": -100 }
 {
   "isError": true,
   "content": [{
-    "text": "{\n  \"error\": true,\n  \"code\": \"INVALID_BUDGET\",\n  \"message\": \"Бюджет должен быть строго положительным числом, получено: -100\"\n}"
+    "text": "{\n  \"error\": true,\n  \"code\": \"INVALID_BUDGET\",\n  \"message\": \"Бюджет должен быть строго больше 0\"\n}"
   }]
 }</code></pre>
           </div>

@@ -9,25 +9,25 @@ let state = {
 
 // Пресеты для быстрой демонстрации ревьюверу
 const MCP_PRESETS = {
+  vv_search_grechka: {
+    tool: "vkusvill_products_search",
+    args: { "q": "гречка", "limit": 5 }
+  },
+  vv_recipes_syrniki: {
+    tool: "vkusvill_recipes",
+    args: { "q": "сырники" }
+  },
+  vv_discount_search: {
+    tool: "vkusvill_products_discount",
+    args: { "q": "молоко", "limit": 5 }
+  },
+  vv_error_empty: {
+    tool: "vkusvill_products_search",
+    args: { "q": "" }
+  },
   success_theme: {
     tool: "get_theme_bundles",
     args: { "theme_id": "theme-student", "max_budget": 500 }
-  },
-  success_search: {
-    tool: "search_products",
-    args: { "query": "индейка", "exclude_allergens": ["lactose"] }
-  },
-  error_empty_query: {
-    tool: "search_products",
-    args: { "query": "   " }
-  },
-  error_invalid_budget: {
-    tool: "get_theme_bundles",
-    args: { "max_budget": -150 }
-  },
-  error_unknown_category: {
-    tool: "search_products",
-    args: { "category": "non_existing_category_xyz" }
   }
 };
 

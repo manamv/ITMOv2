@@ -100,8 +100,22 @@ class VkusMartHTTPHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/mcp/call":
             tool_name = payload.get("name")
             arguments = payload.get("arguments", {})
-            mcp_res = handle_call_tool(tool_name, arguments)
-            self.send_json(mcp_res)
+            
+            # Если инструмент из официального ВкусВилл MCP
+            if tool_name and tool_name.startswith("vkusvill_"):
+                from mcp_server.vkusvill_client import call_vkusvill_remote_tool
+                remote_res = call_vkusvill_remote_tool(tool_name, arguments)
+                self.send_json(remote_res.get("raw_jsonrpc", remote_res))
+            else:
+                mcp_res = handle_call_tool(tool_name, arguments)
+                self.send_json(mcp_res)
+
+        elif parsed.path == "/api/vkusvill/search":
+            query_params = parse_qs(parsed.query)
+            q = query_params.get("q", [""])[0]
+            from mcp_server.vkusvill_client import search_vkusvill_products
+            res = search_vkusvill_products(q)
+            self.send_json(res)
 
         else:
             self.send_error(404, "Unknown POST endpoint")

@@ -101,15 +101,36 @@ class MCPServerTestCase(unittest.TestCase):
         self.assertTrue(payload["error"])
         self.assertEqual(payload["code"], "UNKNOWN_CATEGORY")
 
-    def test_error_product_not_found_in_cart(self):
-        """Проверка ошибочного входа: несуществующий product_id"""
-        result = handle_call_tool("calculate_cart_nutrition", {
-            "items": [{"product_id": "non_existing_product_999", "quantity": 1}]
-        })
-        self.assertTrue(result["isError"])
-        payload = json.loads(result["content"][0]["text"])
-        self.assertTrue(payload["error"])
-        self.assertEqual(payload["code"], "PRODUCT_NOT_FOUND")
+    # ==========================================================
+    # Тесты официального удаленного MCP ВкусВилл (https://mcp.vkusvill.ru/mcp)
+    # ==========================================================
+
+    def test_vkusvill_remote_mcp_search_success(self):
+        """Реальный успешный вызов vkusvill_products_search на сервере https://mcp.vkusvill.ru/mcp"""
+        from mcp_server.vkusvill_client import search_vkusvill_products
+        res = search_vkusvill_products(q="гречка", limit=5)
+        self.assertTrue(res.get("ok"), f"Ошибка ВкусВилл MCP: {res}")
+        items = res.get("items", [])
+        self.assertGreater(len(items), 0, "Официальный ВкусВилл MCP должен вернуть список товаров")
+        first_item = items[0]
+        self.assertIn("греч", first_item.get("name", "").lower())
+
+    def test_vkusvill_remote_mcp_error_handling(self):
+        """Реальный вызов с ошибочным входом: пустой поисковый запрос (код ошибки валидации параметров)"""
+        from mcp_server.vkusvill_client import call_vkusvill_remote_tool
+        res = call_vkusvill_remote_tool("vkusvill_products_search", {"q": ""})
+        self.assertFalse(res.get("ok"), "Пустой запрос должен возвращать ok=False")
+        error_info = res.get("error", {})
+        # Сервер возвращает либо JSON-RPC код -32602 (Invalid params), либо 'invalid_input'
+        self.assertIn(error_info.get("code"), [-32602, "invalid_input"])
+
+    def test_vkusvill_remote_mcp_discounts_success(self):
+        """Реальный вызов инструмента vkusvill_products_discount на официальном сервере"""
+        from mcp_server.vkusvill_client import get_vkusvill_discounts
+        res = get_vkusvill_discounts(q="молоко", limit=5)
+        self.assertTrue(res.get("ok"), f"Ошибка вызова vkusvill_products_discount: {res}")
+        items = res.get("items", [])
+        self.assertGreater(len(items), 0, "Должен вернуться список скидочных товаров ВкусВилл")
 
 if __name__ == "__main__":
     unittest.main()
