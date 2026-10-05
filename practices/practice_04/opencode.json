@@ -1,0 +1,21 @@
+{
+  "$schema": "https://opencode.dev/schema.json",
+  "mcp": {
+    "servers": {
+      "vkusmart-mcp": {
+        "type": "local",
+        "command": "python",
+        "args": ["-m", "mcp_server.server"],
+        "disabled": false,
+        "description": "Smart Thematic Grocery & Meal Prep MCP Server (каталог ВкусВилл, подборки по темам, расчет КБЖУ, фильтрация аллергенов)"
+      },
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": false,
+        "codemode": false,
+        "description": "Справочный MCP для документации библиотек и фреймворков"
+      }
+    }
+  }
+}
