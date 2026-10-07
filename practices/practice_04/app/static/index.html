@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VkusMart — Умные продуктовые подборки & MCP</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo-area">
+        <span class="logo-icon">🌿</span>
+        <div>
+          <h1 class="logo-title">VkusMart</h1>
+          <p class="logo-subtitle">Smart Thematic Grocery & Meal Prep</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-mcp"><span class="pulse-dot"></span> MCP Active</span>
+        <span class="badge badge-opencode">OpenCode 2.0.20</span>
+        <button id="cartBtn" class="cart-button">
+          🛒 Корзина <span id="cartCountBadge" class="cart-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <div class="container tabs-container">
+      <button class="tab-btn active" data-tab="themesTab">🥗 Тематические наборы</button>
+      <button class="tab-btn" data-tab="catalogTab">🔍 Поиск и фильтры</button>
+      <button class="tab-btn" data-tab="cartTab">🛒 Корзина & КБЖУ</button>
+      <button class="tab-btn" data-tab="mcpTab">🔌 MCP Live Console</button>
+    </div>
+  </nav>
+
+  <main class="container main-content">
+    <!-- Вкладка 1: Тематические наборы -->
+    <section id="themesTab" class="tab-pane active">
+      <div class="section-header">
+        <div>
+          <h2>Тематические продуктовые подборки</h2>
+          <p class="section-desc">Сбалансированные рационы, оптимизированные по бюджету, КБЖУ и аллергенам.</p>
+        </div>
+        <div class="theme-filters">
+          <label>Исключить аллергены:
+            <select id="themeAllergenFilter" class="select-input">
+              <option value="">Все продукты</option>
+              <option value="lactose">Без лактозы</option>
+              <option value="gluten">Без глютена</option>
+              <option value="nuts">Без орехов</option>
+              <option value="seafood">Без морепродуктов</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="themesGrid" class="themes-grid">
+        <div class="loading-spinner">Загрузка наборов...</div>
+      </div>
+    </section>
+
+    <!-- Вкладка 2: Каталог и поиск -->
+    <section id="catalogTab" class="tab-pane">
+      <div class="catalog-layout">
+        <aside class="filters-sidebar">
+          <h3>Поиск и фильтры</h3>
+          <div class="filter-group">
+            <label>Источник данных:</label>
+            <div style="display:flex;flex-direction:column;gap:6px;background:#f0fdf4;padding:10px;border-radius:8px;border:1px solid #bbf7d0;font-size:13px;">
+              <label style="font-weight:600;color:#166534;cursor:pointer;">
+                <input type="radio" name="searchSource" value="vkusvill_mcp" checked> 🟢 ВкусВилл MCP (Live API)
+              </label>
+              <label style="font-weight:600;color:#374151;cursor:pointer;">
+                <input type="radio" name="searchSource" value="catalog"> 🥗 Локальный каталог (КБЖУ)
+              </label>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label for="searchInput">Поисковый запрос:</label>
+            <input type="text" id="searchInput" class="text-input" placeholder="Например: манго, сырники, гречка...">
+          </div>
+          <div class="filter-group">
+            <label for="categoryFilter">Категория:</label>
+            <select id="categoryFilter" class="select-input">
+              <option value="">Все категории</option>
+              <option value="meat_poultry">Мясо и птица</option>
+              <option value="dairy_eggs">Молочное и яйца</option>
+              <option value="grains_cereals">Крупы и злаки</option>
+              <option value="fish_seafood">Рыба и морепродукты</option>
+              <option value="vegetables_greens">Овощи и зелень</option>
+              <option value="nuts_snacks">Орехи и снеки</option>
+              <option value="bakery_bread">Хлеб и выпечка</option>
+              <option value="desserts_sugarfree">Десерты без сахара</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="maxPriceInput">Макс. цена (₽):</label>
+            <input type="number" id="maxPriceInput" class="text-input" placeholder="До 500" min="50">
+          </div>
+          <div class="filter-group">
+            <label>Исключить аллергены:</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="catalogAllergen" value="lactose"> Без лактозы</label>
+              <label><input type="checkbox" name="catalogAllergen" value="gluten"> Без глютена</label>
+              <label><input type="checkbox" name="catalogAllergen" value="nuts"> Без орехов</label>
+              <label><input type="checkbox" name="catalogAllergen" value="seafood"> Без морепродуктов</label>
+            </div>
+          </div>
+          <button id="applyFiltersBtn" class="btn btn-primary full-width">Применить фильтры</button>
+          <button id="resetFiltersBtn" class="btn btn-secondary full-width mt-2">Сбросить</button>
+        </aside>
+
+        <div class="catalog-products-area">
+          <div class="results-header">
+            <span id="productsCountText">Найдено: 0 товаров</span>
+          </div>
+          <div id="productsGrid" class="products-grid">
+            <div class="loading-spinner">Загрузка товаров...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Вкладка 3: Корзина & КБЖУ -->
+    <section id="cartTab" class="tab-pane">
+      <div class="cart-layout">
+        <div class="cart-items-card">
+          <h2>Товары в корзине</h2>
+          <div id="cartEmptyState" class="empty-state">
+            <span class="empty-icon">🛒</span>
+            <p>Ваша корзина пуста. Добавьте готовый набор или отдельные продукты из каталога.</p>
+          </div>
+          <div id="cartItemsList" class="cart-items-list"></div>
+        </div>
+
+        <div class="cart-summary-card">
+          <h2>Итог и баланс питания</h2>
+          <div class="summary-line">
+            <span>Товаров:</span>
+            <strong id="summaryCount">0 шт</strong>
+          </div>
+          <div class="summary-line">
+            <span>Сумма:</span>
+            <span id="summarySubtotal">0.00 ₽</span>
+          </div>
+          <div id="discountRow" class="summary-line discount-line hidden">
+            <span>Скидка (Фича B):</span>
+            <strong id="summaryDiscount">-0.00 ₽</strong>
+          </div>
+          <div class="summary-line total-line">
+            <span>К оплате:</span>
+            <strong id="summaryFinalPrice" class="total-price">0.00 ₽</strong>
+          </div>
+
+          <div class="nutrition-card">
+            <h3>Пищевая ценность (КБЖУ):</h3>
+            <div class="calories-badge">
+              <span id="summaryCalories">0</span> ккал
+            </div>
+            <div class="macros-grid">
+              <div class="macro-item">
+                <span class="macro-label">Белки</span>
+                <span id="summaryProtein" class="macro-val">0.0 г</span>
+                <div class="macro-bar"><div id="barProtein" class="bar-fill protein"></div></div>
+              </div>
+              <div class="macro-item">
+                <span class="macro-label">Жиры</span>
+                <span id="summaryFat" class="macro-val">0.0 г</span>
+                <div class="macro-bar"><div id="barFat" class="bar-fill fat"></div></div>
+              </div>
+              <div class="macro-item">
+                <span class="macro-label">Углеводы</span>
+                <span id="summaryCarbs" class="macro-val">0.0 г</span>
+                <div class="macro-bar"><div id="barCarbs" class="bar-fill carbs"></div></div>
+              </div>
+            </div>
+            <div id="cartAllergensNotice" class="allergens-notice">
+              <span>Содержит аллергены:</span> <strong id="cartAllergensList">нет</strong>
+            </div>
+          </div>
+
+          <button id="clearCartBtn" class="btn btn-secondary full-width mt-3">Очистить корзину</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Вкладка 4: MCP Live Console -->
+    <section id="mcpTab" class="tab-pane">
+      <div class="mcp-console-layout">
+        <div class="mcp-control-panel">
+          <h2>Живой вызов MCP Tool (JSON-RPC)</h2>
+          <p class="section-desc">Демонстрация вызова инструментов нашего MCP сервера в реальном времени. Можно протестировать как успешные вызовы, так и обработку ошибок (валидация параметров).</p>
+          
+          <div class="quick-presets">
+            <span>Пресеты официального MCP ВкусВилл (https://mcp.vkusvill.ru/mcp):</span>
+            <div class="presets-buttons">
+              <button class="preset-btn" data-preset="vv_search_grechka">🟢 ВкусВилл: Поиск «гречка»</button>
+              <button class="preset-btn" data-preset="vv_recipes_syrniki">🟢 ВкусВилл: Рецепт «сырники»</button>
+              <button class="preset-btn" data-preset="vv_discount_search">🟢 ВкусВилл: Скидки и акции</button>
+              <button class="preset-btn" data-preset="vv_error_empty">🔴 ВкусВилл Ошибка: пустой запрос</button>
+            </div>
+          </div>
+
+          <div class="mcp-form">
+            <div class="form-group">
+              <label for="mcpToolSelect">Выбор инструмента (MCP Remote https://mcp.vkusvill.ru/mcp):</label>
+              <select id="mcpToolSelect" class="select-input">
+                <option value="vkusvill_products_search">vkusvill_products_search (Поиск реальных товаров ВкусВилл)</option>
+                <option value="vkusvill_recipes">vkusvill_recipes (Поиск официальных рецептов ВкусВилл)</option>
+                <option value="vkusvill_products_discount">vkusvill_products_discount (Акции и скидки ВкусВилл)</option>
+                <option value="get_theme_bundles">get_theme_bundles (Тематические подборки VkusMart)</option>
+                <option value="calculate_cart_nutrition">calculate_cart_nutrition (Расчет КБЖУ корзины)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="mcpArgsInput">Аргументы (JSON):</label>
+              <textarea id="mcpArgsInput" class="code-textarea" rows="6">{\n  "q": "гречка",\n  "limit": 5\n}</textarea>
+            </div>
+            <button id="mcpExecuteBtn" class="btn btn-primary">Вызвать инструмент через MCP</button>
+          </div>
+        </div>
+
+        <div class="mcp-output-panel">
+          <div class="panel-header">
+            <h3>Результат вызова MCP (JSON-RPC response):</h3>
+            <span id="mcpStatusBadge" class="status-badge badge-idle">Ожидание</span>
+          </div>
+          <pre id="mcpOutputPre" class="code-output">Нажмите кнопку вызова или выберите один из готовых пресетов выше.</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-container">
+      <p>VkusMart &copy; 2026. Практика 4: Среда агента, Skill и собственный MCP.</p>
+      <div class="footer-links">
+        <a href="/presentation.html" target="_blank">📄 HTML-презентация проекта</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
