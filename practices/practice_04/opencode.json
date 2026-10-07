@@ -2,6 +2,13 @@
   "$schema": "https://opencode.dev/schema.json",
   "mcp": {
     "servers": {
+      "vkusmart-mcp": {
+        "type": "local",
+        "command": "python",
+        "args": ["-m", "mcp_server.server"],
+        "disabled": false,
+        "description": "Собственный MCP сервер VkusMart (get_theme_bundles, search_products, calculate_cart_nutrition)"
+      },
       "vkusvill": {
         "type": "remote",
         "url": "https://mcp.vkusvill.ru/mcp",
