@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.dev/schema.json",
+  "mcp": {
+    "servers": {
+      "vkusmart-mcp": {
+        "type": "local",
+        "command": "python",
+        "args": ["-m", "mcp_server.server"],
+        "disabled": false,
+        "description": "Собственный MCP сервер VkusMart (get_theme_bundles, search_products, calculate_cart_nutrition)"
+      },
+      "vkusvill": {
+        "type": "remote",
+        "url": "https://mcp.vkusvill.ru/mcp",
+        "disabled": false,
+        "description": "Официальный MCP сервер ВкусВилл (поиск товаров vkusvill_products_search, рецепты vkusvill_recipes, ссылка на корзину vkusvill_cart_link_create, скидки vkusvill_products_discount)"
+      },
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": false,
+        "codemode": false,
+        "description": "Справочный MCP сервер документации библиотек и фреймворков"
+      }
+    }
+  }
+}
