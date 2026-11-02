@@ -14,6 +14,11 @@ from urllib.parse import urlparse, parse_qs
 from pathlib import Path
 from typing import Any
 
+# Ensure practice_05 root is in sys.path for direct execution
+PRACTICE_ROOT = Path(__file__).resolve().parent.parent
+if str(PRACTICE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PRACTICE_ROOT))
+
 from app.catalog import PRODUCTS, THEMES, PRODUCTS_BY_ID, THEMES_BY_ID, CATEGORIES, ALLERGENS_LIST
 from app.services import (
     search_products,
