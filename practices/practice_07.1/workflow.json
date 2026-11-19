@@ -1,0 +1,459 @@
+{
+  "name": "PR AI Reviewer (HW 7.1 - with Star)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "github-pr-review",
+        "responseMode": "onReceived",
+        "responseData": "OK",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "GitHub Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "github-pr-review"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.body?.comment?.body }}",
+              "rightValue": "/make_",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-2",
+              "leftValue": "={{ Boolean($json.body?.issue?.pull_request) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-filter-cmd",
+      "name": "Is PR Review Command?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getMany",
+        "dataTableId": "reviewed_prs",
+        "filters": {
+          "conditions": [
+            {
+              "field": "pr_id",
+              "operator": "equal",
+              "value": "={{ $('GitHub Webhook').item.json.body.issue.number }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-check-db",
+      "name": "Check Data Table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        640,
+        280
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const comment = $('GitHub Webhook').first().json.body.comment.body;\nconst currentPr = Number($('GitHub Webhook').first().json.body.issue.number);\nconst tableRows = $('Check Data Table').all();\n\nconst requestedModel = comment.includes('/make_other_ai_review') ? 'gpt-5-security' : 'gpt-5';\n\nconst isAlreadyReviewed = tableRows.some(row => \n  Number(row.json.pr_id) === currentPr && row.json.model === requestedModel\n);\n\nif (isAlreadyReviewed) {\n  return [];\n}\n\nreturn [{ json: { pr_id: currentPr, model: requestedModel } }];"
+      },
+      "id": "node-dedup",
+      "name": "Deduplication Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{ $('GitHub Webhook').item.json.body.repository.full_name }}/pulls/{{ $('GitHub Webhook').item.json.body.issue.number }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-get-pr-details",
+      "name": "Get PR Details (Commit SHA)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{ $('GitHub Webhook').item.json.body.repository.full_name }}/pulls/{{ $('GitHub Webhook').item.json.body.issue.number }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3.diff"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "node-get-diff",
+      "name": "Get PR Diff",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const diffText = $('Get PR Diff').item.json.data || '';\nconst commitId = $('Get PR Details (Commit SHA)').item.json.head.sha;\nconst repoFullName = $('GitHub Webhook').item.json.body.repository.full_name;\nconst prNumber = $('GitHub Webhook').item.json.body.issue.number;\n\nconst blocks = [];\nconst lines = diffText.split('\\n');\nlet currentFile = '';\nlet currentHunk = [];\nlet targetLine = null;\nlet currentNewLine = 0;\n\nfunction pushBlock() {\n  if (currentFile && currentHunk.length > 0 && targetLine !== null) {\n    blocks.push({\n      json: {\n        path: currentFile,\n        line: targetLine,\n        code: currentHunk.join('\\n'),\n        commit_id: commitId,\n        repo: repoFullName,\n        pr_number: prNumber\n      }\n    });\n  }\n  currentHunk = [];\n  targetLine = null;\n}\n\nfor (let i = 0; i < lines.length; i++) {\n  const line = lines[i];\n\n  if (line.startsWith('diff --git ')) {\n    pushBlock();\n    const match = line.match(/b\\/(.+)$/);\n    currentFile = match ? match[1].trim() : '';\n  } else if (line.startsWith('@@ ')) {\n    pushBlock();\n    const match = line.match(/@@ -\\d+(?:,\\d+)? \\+(\\d+)(?:,\\d+)? @@/);\n    if (match) {\n      currentNewLine = parseInt(match[1], 10);\n    }\n    currentHunk.push(line);\n  } else if (currentHunk.length > 0) {\n    currentHunk.push(line);\n    if (line.startsWith('+') && !line.startsWith('+++')) {\n      targetLine = currentNewLine;\n      currentNewLine++;\n    } else if (!line.startsWith('-')) {\n      currentNewLine++;\n    }\n  }\n}\npushBlock();\n\nif (blocks.length === 0) {\n  return [{\n    json: {\n      path: '',\n      line: 0,\n      code: diffText,\n      commit_id: commitId,\n      repo: repoFullName,\n      pr_number: prNumber,\n      is_fallback: true\n    }\n  }];\n}\n\nreturn blocks;"
+      },
+      "id": "node-split-diff",
+      "name": "Split Diff Into Blocks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-model2",
+              "leftValue": "={{ $('GitHub Webhook').item.json.body.comment.body }}",
+              "rightValue": "/make_other_ai_review",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-switch-model",
+      "name": "Choose Model (1 or 2)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1740,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://litellm.data-light.ru/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sk-41ufG0lQ7vzDuW3UtrXY6Q"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'openai/gpt-5',\n  messages: [\n    { role: 'system', content: 'Ты старший ревьюер кода. Проведи точечное ревью блока кода из файла ' + $json.path + ' (строка ' + $json.line + '). Опиши кратко суть изменений, найди возможные риски и дай рекомендацию. Ответ дай лаконично на русском языке (2-4 предложения).' },\n    { role: 'user', content: 'Вот фрагмент diff блока кода:\\n\\n' + $json.code }\n  ],\n  temperature: 0.2\n}) }}",
+        "options": {}
+      },
+      "id": "node-llm-1",
+      "name": "Model 1: openai/gpt-5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://litellm.data-light.ru/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sk-41ufG0lQ7vzDuW3UtrXY6Q"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'openai/gpt-5',\n  messages: [\n    { role: 'system', content: 'Ты ведущий Security & Reliability Auditor. Проведи точечный аудит безопасности блока кода из файла ' + $json.path + ' (строка ' + $json.line + '). Сфокусируйся на валидации, уязвимостях и надежности. Ответ дай кратко на русском языке (2-4 предложения).' },\n    { role: 'user', content: 'Вот фрагмент diff блока кода:\\n\\n' + $json.code }\n  ],\n  temperature: 0.7\n}) }}",
+        "options": {}
+      },
+      "id": "node-llm-2",
+      "name": "Model 2: Security Auditor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $('Split Diff Into Blocks').item.json.repo }}/pulls/{{ $('Split Diff Into Blocks').item.json.pr_number }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  body: '🤖 **' + ($('GitHub Webhook').item.json.body.comment.body.includes('/make_other_ai_review') ? 'Модель 2 (Security Audit)' : 'Основная модель (GPT-5)') + ' ревью блока:**\\n\\n' + $json.choices[0].message.content,\n  commit_id: $('Split Diff Into Blocks').item.json.commit_id,\n  path: $('Split Diff Into Blocks').item.json.path,\n  line: $('Split Diff Into Blocks').item.json.line,\n  side: 'RIGHT'\n}) }}",
+        "options": {}
+      },
+      "id": "node-post-inline",
+      "name": "Post Inline Review Comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2240,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": "reviewed_prs",
+        "fields": {
+          "values": [
+            {
+              "field": "pr_id",
+              "value": "={{ $('GitHub Webhook').item.json.body.issue.number }}"
+            },
+            {
+              "field": "model",
+              "value": "={{ $('GitHub Webhook').item.json.body.comment.body.includes('/make_other_ai_review') ? 'gpt-5-security' : 'gpt-5' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-save-db",
+      "name": "Save to Data Table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        280
+      ]
+    }
+  ],
+  "connections": {
+    "GitHub Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is PR Review Command?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is PR Review Command?": {
+      "main": [
+        [
+          {
+            "node": "Check Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Data Table": {
+      "main": [
+        [
+          {
+            "node": "Deduplication Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplication Check": {
+      "main": [
+        [
+          {
+            "node": "Get PR Details (Commit SHA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PR Details (Commit SHA)": {
+      "main": [
+        [
+          {
+            "node": "Get PR Diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PR Diff": {
+      "main": [
+        [
+          {
+            "node": "Split Diff Into Blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Diff Into Blocks": {
+      "main": [
+        [
+          {
+            "node": "Choose Model (1 or 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose Model (1 or 2)": {
+      "main": [
+        [
+          {
+            "node": "Model 2: Security Auditor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Model 1: openai/gpt-5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model 1: openai/gpt-5": {
+      "main": [
+        [
+          {
+            "node": "Post Inline Review Comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model 2: Security Auditor": {
+      "main": [
+        [
+          {
+            "node": "Post Inline Review Comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Inline Review Comment": {
+      "main": [
+        [
+          {
+            "node": "Save to Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
