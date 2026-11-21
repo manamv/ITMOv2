@@ -13,6 +13,16 @@
 
 ---
 
+## 📐 Spec-Driven Development (SDD / Spec-Kit)
+
+Разработка велась строго по методологии **Spec-Driven Development** (преемственность с Практикой 5):
+* 📋 **[spec-kit.config.yaml](file:///d:/3sem/vibecoding/ITMOv2/practices/practice_08/specs/spec-kit.config.yaml)** — конфигурация SDD и команд (UI & Logic).
+* 🤝 **[contract.md](file:///d:/3sem/vibecoding/ITMOv2/practices/practice_08/specs/contract.md)** — согласованный контракт взаимодействия, Negotiation Log, OpenAPI 3.1 спецификация.
+* 🖥️ **[ui-spec.md](file:///d:/3sem/vibecoding/ITMOv2/practices/practice_08/specs/ui-spec.md)** — спецификация компонентов, состояний интерфейса, доступности a11y и 8 зон пальцев.
+* ⚙️ **[logic-spec.md](file:///d:/3sem/vibecoding/ITMOv2/practices/practice_08/specs/logic-spec.md)** — формулы WPM и точности, алгоритм трекинга слабых букв, Web Speech TTS пайплайн.
+
+---
+
 ## 🎯 О проекте
 
 **LinguaType** — интеллектуальный веб-сервис для одновременного развития навыков **слепой десятипальцевой печати** и закрепления **грамматических конструкций английского языка** (уровни A1–C2).
