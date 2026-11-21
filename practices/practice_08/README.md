@@ -53,7 +53,29 @@
 
 ## 🚀 Быстрый старт и запуск
 
-### 1. Запуск бэкенда (C# ASP.NET Core Minimal API)
+### Вариант А: Запуск в Docker (рекомендуемый, всё одной командой)
+
+> Для сборки и запуска приложения и бэкенда в изолированных контейнерах без установки SDK:
+
+```bash
+cd practices/practice_08
+
+# Запуск бэкенда (C#) и фронтенда (Nginx + React)
+docker compose up --build
+```
+* **Веб-приложение:** `http://localhost:8080`
+* **API бэкенда:** `http://localhost:5000` (проксируется автоматически)
+
+```bash
+# Запуск всех 15 тестов в изолированном Linux-контейнере:
+docker compose run --rm tests
+```
+
+---
+
+### Вариант Б: Локальный запуск без Docker
+
+#### 1. Запуск бэкенда (C# ASP.NET Core Minimal API)
 ```bash
 cd backend
 dotnet run
