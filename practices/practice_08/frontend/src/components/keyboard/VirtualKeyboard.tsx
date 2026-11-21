@@ -11,22 +11,24 @@ interface VirtualKeyboardProps {
 export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = (props) => {
   const [mode, setMode] = useState<'blindtyping' | 'isometric'>('blindtyping')
 
+  const toggleMode = () => setMode(m => m === 'blindtyping' ? 'isometric' : 'blindtyping')
+
   return (
     <div className="w-full relative">
-      <div className="flex justify-end mb-1">
-        <button
-          onClick={() => setMode(m => m === 'blindtyping' ? 'isometric' : 'blindtyping')}
-          className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/60 transition cursor-pointer"
-          title="Сменить режим визуализации рук"
-        >
-          {mode === 'blindtyping' ? '🖐 Режим: Силуэтные руки' : '🧊 Режим: Изометрия 3D'}
-        </button>
-      </div>
-
       {mode === 'blindtyping' ? (
-        <BlindTypingKeyboard {...props} />
+        <BlindTypingKeyboard {...props} mode={mode} onToggleMode={toggleMode} />
       ) : (
-        <Keyboard3D {...props} />
+        <div className="w-full">
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={toggleMode}
+              className="text-[11px] font-mono px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
+            >
+              🖐 Вернуться к силуэтным рукам
+            </button>
+          </div>
+          <Keyboard3D {...props} />
+        </div>
       )}
     </div>
   )

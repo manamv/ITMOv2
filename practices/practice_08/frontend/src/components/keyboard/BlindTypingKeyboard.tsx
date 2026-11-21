@@ -5,6 +5,8 @@ interface BlindTypingKeyboardProps {
   activeChar?: string
   heatmapMode?: boolean
   heatmapData?: Record<string, number>
+  mode?: 'blindtyping' | 'isometric'
+  onToggleMode?: () => void
 }
 
 interface KeyModel {
@@ -27,7 +29,9 @@ const GAP = 6
 export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
   activeChar,
   heatmapMode = false,
-  heatmapData = {}
+  heatmapData = {},
+  mode,
+  onToggleMode
 }) => {
   const normalizedActive = (activeChar || '').toLowerCase()
 
@@ -353,12 +357,24 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center select-none" data-testid="virtual-keyboard">
+    <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none" data-testid="virtual-keyboard">
       {/* Header Guidance Banner */}
-      <div className="w-full flex items-center justify-between mb-3 text-xs font-mono text-slate-400 px-2">
-        <div className="flex items-center space-x-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="text-slate-300 font-semibold">Слепая печать (Blind Typing)</span>
+      <div className="w-full flex items-center justify-between mb-2 text-xs font-mono text-slate-400 px-1">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-slate-200 font-semibold text-xs sm:text-sm">Слепая печать (Blind Typing)</span>
+          </div>
+
+          {onToggleMode && (
+            <button
+              onClick={onToggleMode}
+              className="text-[11px] font-mono px-2.5 py-0.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition cursor-pointer flex items-center space-x-1"
+              title="Переключить в 3D режим"
+            >
+              <span>{mode === 'blindtyping' ? '🖐 Силуэты рук' : '🧊 Режим 3D'}</span>
+            </button>
+          )}
         </div>
 
         {targetFinger && (
@@ -375,10 +391,10 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
       </div>
 
       {/* SVG Blind Typing Keyboard with Anatomical Hand Silhouette Overlay */}
-      <div className="relative w-full overflow-hidden rounded-2xl bg-[#07090e] border border-slate-800/80 shadow-2xl p-2 sm:p-2.5 flex justify-center">
+      <div className="relative w-full overflow-hidden rounded-2xl bg-[#07090e] border border-slate-800/80 shadow-2xl p-2 sm:p-4 flex justify-center">
         <svg
           viewBox="0 0 780 320"
-          className="w-full h-auto max-h-[280px] drop-shadow-2xl"
+          className="w-full h-auto max-h-[380px] drop-shadow-2xl"
         >
           <defs>
             {/* Glow filter for active illuminated key */}

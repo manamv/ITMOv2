@@ -146,12 +146,12 @@ var musicLessons = new List<MusicLesson>
         "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
         "Present Perfect vs Past Simple, gerunds and colloquial contractions",
         [
-            new(1, 0.0, 4.5, "i have paid my dues time after time", "я платил по счетам снова и снова"),
-            new(2, 4.5, 9.0, "i did my sentence but committed no crime", "я отбыл свой срок но не совершал преступления"),
-            new(3, 9.0, 14.0, "and bad mistakes i have made a few", "и тяжких ошибок я совершил немного"),
-            new(4, 14.0, 19.5, "i have had my share of sand kicked in my face but i have come through", "мне тоже швыряли песок в лицо но я выстоял"),
-            new(5, 19.5, 25.0, "we are the champions my friends and we will keep on fighting till the end", "мы чемпионы друзья мои и мы продолжим бороться до конца"),
-            new(6, 25.0, 31.0, "we are the champions no time for losers because we are the champions of the world", "мы чемпионы не время для проигравших потому что мы чемпионы мира")
+            new(1, 8.5, 14.0, "i have paid my dues time after time", "я платил по счетам снова и снова"),
+            new(2, 14.0, 19.5, "i did my sentence but committed no crime", "я отбыл свой срок но не совершал преступления"),
+            new(3, 19.5, 25.0, "and bad mistakes i have made a few", "и тяжких ошибок я совершил немного"),
+            new(4, 25.0, 37.0, "i have had my share of sand kicked in my face but i have come through", "мне тоже швыряли песок в лицо но я выстоял"),
+            new(5, 37.0, 50.0, "we are the champions my friends and we will keep on fighting till the end", "мы чемпионы друзья мои и мы продолжим бороться до конца"),
+            new(6, 50.0, 64.0, "we are the champions no time for losers because we are the champions of the world", "мы чемпионы не время для проигравших потому что мы чемпионы мира")
         ],
         [
             new("Present Perfect for Life Experience", "i have paid my dues time after time", "have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.", "present-perfect"),
@@ -175,11 +175,11 @@ var musicLessons = new List<MusicLesson>
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
         "Infinitive of purpose, modal verbs and expressions of regret",
         [
-            new(1, 0.0, 5.0, "come up to meet you tell you i am sorry", "прийти чтобы встретиться с тобой сказать что мне жаль"),
-            new(2, 5.0, 10.0, "you do not know how lovely you are", "ты даже не знаешь насколько ты прекрасна"),
-            new(3, 10.0, 15.0, "i had to find you tell you i need you", "я должен был найти тебя сказать что ты мне нужна"),
-            new(4, 15.0, 21.0, "tell you i set you apart", "сказать что ты для меня особенная"),
-            new(5, 21.0, 27.0, "nobody said it was easy it is such a shame for us to part", "никто не говорил что будет легко так жаль что нам пришлось расстаться")
+            new(1, 15.5, 23.0, "come up to meet you tell you i am sorry", "прийти чтобы встретиться с тобой сказать что мне жаль"),
+            new(2, 23.0, 31.0, "you do not know how lovely you are", "ты даже не знаешь насколько ты прекрасна"),
+            new(3, 31.0, 39.0, "i had to find you tell you i need you", "я должен был найти тебя сказать что ты мне нужна"),
+            new(4, 39.0, 47.0, "tell you i set you apart", "сказать что ты для меня особенная"),
+            new(5, 47.0, 56.0, "nobody said it was easy it is such a shame for us to part", "никто не говорил что будет легко так жаль что нам пришлось расстаться")
         ],
         [
             new("Infinitive of Purpose", "come up to meet you tell you i am sorry", "Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.", "infinitive"),

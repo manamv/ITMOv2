@@ -97,6 +97,22 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
   const subtitlesScrollContainerRef = useRef<HTMLDivElement>(null)
   const ytPlayerRef = useRef<any>(null)
 
+  // Direct postMessage command to YouTube iframe
+  const sendYtCommand = (func: string, args: any[] = []) => {
+    if (typeof window === 'undefined') return
+    const iframe = document.getElementById('youtube-karaoke-iframe') as HTMLIFrameElement | null
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          event: 'command',
+          func: func,
+          args: args
+        }),
+        '*'
+      )
+    }
+  }
+
   // Dynamically load YouTube IFrame API script once
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -112,16 +128,57 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     }
   }, [])
 
-  // Initialize YouTube Player attached to the iframe
+  // Listen to real-time YouTube postMessage playback notifications
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const initPlayer = () => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        if (!event.data) return
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+        if (data && data.event === 'infoDelivery' && data.info) {
+          if (typeof data.info.currentTime === 'number') {
+            const ytTime = data.info.currentTime
+            setPlaybackTime(ytTime)
+            if (currentSong) {
+              const match = currentSong.subtitles.find(s => ytTime >= s.startSeconds && ytTime <= s.endSeconds)
+              if (match) setActiveSubtitleId(match.id)
+            }
+          }
+          if (data.info.playerState === 1) {
+            setIsKaraokePlaying(true)
+          } else if (data.info.playerState === 2 || data.info.playerState === 0) {
+            setIsKaraokePlaying(false)
+          }
+        }
+      } catch {
+        // ignore non-json messages
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [currentSong])
+
+  // Attach YouTube Player as soon as currentSong and iframe are rendered
+  useEffect(() => {
+    if (typeof window === 'undefined' || !currentSong) return
+
+    let cancelled = false
+
+    const tryInitPlayer = () => {
+      if (cancelled) return
       if (!window.YT || !window.YT.Player) return
+      const iframeEl = document.getElementById('youtube-karaoke-iframe')
+      if (!iframeEl) return
+
       try {
         if (!ytPlayerRef.current) {
           ytPlayerRef.current = new window.YT.Player('youtube-karaoke-iframe', {
             events: {
+              onReady: () => {
+                sendYtCommand('listening')
+              },
               onStateChange: (event: any) => {
                 // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
                 if (event.data === 1) {
@@ -134,16 +191,22 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
           })
         }
       } catch {
-        // Safe fallback for test environments
+        // safe fallback
       }
     }
 
     if (window.YT && window.YT.Player) {
-      initPlayer()
+      tryInitPlayer()
     } else {
-      window.onYouTubeIframeAPIReady = initPlayer
+      window.onYouTubeIframeAPIReady = tryInitPlayer
     }
-  }, [])
+
+    const timer = setTimeout(tryInitPlayer, 400)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [currentSong?.id])
 
   // Load songs list on mount
   useEffect(() => {
@@ -254,21 +317,19 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
 
   // Toggle video playback and karaoke synchronization simultaneously
   const handleToggleKaraoke = () => {
-    if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-      try {
-        if (isKaraokePlaying) {
-          ytPlayerRef.current.pauseVideo()
-          setIsKaraokePlaying(false)
-        } else {
-          ytPlayerRef.current.playVideo()
-          setIsKaraokePlaying(true)
-        }
-        return
-      } catch {
-        // Fallback below
+    if (isKaraokePlaying) {
+      sendYtCommand('pauseVideo')
+      if (ytPlayerRef.current?.pauseVideo) {
+        try { ytPlayerRef.current.pauseVideo() } catch {}
       }
+      setIsKaraokePlaying(false)
+    } else {
+      sendYtCommand('playVideo')
+      if (ytPlayerRef.current?.playVideo) {
+        try { ytPlayerRef.current.playVideo() } catch {}
+      }
+      setIsKaraokePlaying(true)
     }
-    setIsKaraokePlaying(p => !p)
   }
 
   // Jump to subtitle line and start video playback from that second
@@ -276,28 +337,27 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     setActiveSubtitleId(id)
     setPlaybackTime(startSec)
 
-    if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+    sendYtCommand('seekTo', [startSec, true])
+    sendYtCommand('playVideo')
+    if (ytPlayerRef.current?.seekTo) {
       try {
         ytPlayerRef.current.seekTo(startSec, true)
         ytPlayerRef.current.playVideo()
-        setIsKaraokePlaying(true)
-        return
-      } catch {
-        // Fallback
-      }
+      } catch {}
     }
+    setIsKaraokePlaying(true)
     soundService.speakText(text, 1.0)
   }
 
   // Reset video and karaoke to beginning
   const handleResetToStart = () => {
-    if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+    sendYtCommand('seekTo', [0, true])
+    sendYtCommand('pauseVideo')
+    if (ytPlayerRef.current?.seekTo) {
       try {
         ytPlayerRef.current.seekTo(0, true)
         ytPlayerRef.current.pauseVideo()
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
     setPlaybackTime(0)
     setIsKaraokePlaying(false)

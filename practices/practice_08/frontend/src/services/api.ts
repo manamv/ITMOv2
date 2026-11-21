@@ -123,12 +123,12 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Present Perfect vs Past Simple, gerunds and colloquial contractions',
     subtitles: [
-      { id: 1, startSeconds: 0.0, endSeconds: 4.5, textEn: 'i have paid my dues time after time', textRu: 'я платил по счетам снова и снова' },
-      { id: 2, startSeconds: 4.5, endSeconds: 9.0, textEn: 'i did my sentence but committed no crime', textRu: 'я отбыл свой срок но не совершал преступления' },
-      { id: 3, startSeconds: 9.0, endSeconds: 14.0, textEn: 'and bad mistakes i have made a few', textRu: 'и тяжких ошибок я совершил немного' },
-      { id: 4, startSeconds: 14.0, endSeconds: 19.5, textEn: 'i have had my share of sand kicked in my face but i have come through', textRu: 'мне тоже швыряли песок в лицо но я выстоял' },
-      { id: 5, startSeconds: 19.5, endSeconds: 25.0, textEn: 'we are the champions my friends and we will keep on fighting till the end', textRu: 'мы чемпионы друзья мои и мы продолжим бороться до конца' },
-      { id: 6, startSeconds: 25.0, endSeconds: 31.0, textEn: 'we are the champions no time for losers because we are the champions of the world', textRu: 'мы чемпионы не время для проигравших потому что мы чемпионы мира' }
+      { id: 1, startSeconds: 8.5, endSeconds: 14.0, textEn: 'i have paid my dues time after time', textRu: 'я платил по счетам снова и снова' },
+      { id: 2, startSeconds: 14.0, endSeconds: 19.5, textEn: 'i did my sentence but committed no crime', textRu: 'я отбыл свой срок но не совершал преступления' },
+      { id: 3, startSeconds: 19.5, endSeconds: 25.0, textEn: 'and bad mistakes i have made a few', textRu: 'и тяжких ошибок я совершил немного' },
+      { id: 4, startSeconds: 25.0, endSeconds: 37.0, textEn: 'i have had my share of sand kicked in my face but i have come through', textRu: 'мне тоже швыряли песок в лицо но я выстоял' },
+      { id: 5, startSeconds: 37.0, endSeconds: 50.0, textEn: 'we are the champions my friends and we will keep on fighting till the end', textRu: 'мы чемпионы друзья мои и мы продолжим бороться до конца' },
+      { id: 6, startSeconds: 50.0, endSeconds: 64.0, textEn: 'we are the champions no time for losers because we are the champions of the world', textRu: 'мы чемпионы не время для проигравших потому что мы чемпионы мира' }
     ],
     grammarBreakdown: [
       { ruleTitle: 'Present Perfect for Life Experience', lyricQuote: 'i have paid my dues time after time', explanation: 'have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.', grammarTag: 'present-perfect' },
@@ -152,10 +152,10 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Infinitive of purpose, modal verbs and expressions of regret',
     subtitles: [
-      { id: 1, startSeconds: 0.0, endSeconds: 5.0, textEn: 'come up to meet you tell you i am sorry', textRu: 'прийти чтобы встретиться с тобой сказать что мне жаль' },
-      { id: 2, startSeconds: 5.0, endSeconds: 10.0, textEn: 'you do not know how lovely you are', textRu: 'ты даже не знаешь насколько ты прекрасна' },
-      { id: 3, startSeconds: 10.0, endSeconds: 15.0, textEn: 'i had to find you tell you i need you', textRu: 'я должен был найти тебя сказать что ты мне нужна' },
-      { id: 4, startSeconds: 15.0, endSeconds: 21.0, textEn: 'tell you i set you apart', textRu: 'сказать что ты для меня особенная' }
+      { id: 1, startSeconds: 15.5, endSeconds: 23.0, textEn: 'come up to meet you tell you i am sorry', textRu: 'прийти чтобы встретиться с тобой сказать что мне жаль' },
+      { id: 2, startSeconds: 23.0, endSeconds: 31.0, textEn: 'you do not know how lovely you are', textRu: 'ты даже не знаешь насколько ты прекрасна' },
+      { id: 3, startSeconds: 31.0, endSeconds: 39.0, textEn: 'i had to find you tell you i need you', textRu: 'я должен был найти тебя сказать что ты мне нужна' },
+      { id: 4, startSeconds: 39.0, endSeconds: 47.0, textEn: 'tell you i set you apart', textRu: 'сказать что ты для меня особенная' }
     ],
     grammarBreakdown: [
       { ruleTitle: 'Infinitive of Purpose', lyricQuote: 'come up to meet you tell you i am sorry', explanation: 'Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.', grammarTag: 'infinitive' },
