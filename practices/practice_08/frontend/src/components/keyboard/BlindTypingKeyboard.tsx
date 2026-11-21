@@ -425,14 +425,14 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
       <div className="w-full flex items-center justify-between mb-2 text-xs font-mono text-slate-400 px-1">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"></span>
             <span className="text-slate-100 font-semibold text-xs sm:text-sm">Слепая печать (Blind Typing)</span>
           </div>
 
           {onToggleMode && (
             <button
               onClick={onToggleMode}
-              className="text-[11px] font-mono px-2.5 py-0.5 rounded-lg bg-[#0d1527] hover:bg-slate-700 text-sky-300 hover:text-white border border-sky-500/25 transition cursor-pointer flex items-center space-x-1"
+              className="text-[11px] font-mono px-2.5 py-1 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer flex items-center space-x-1"
               title="Переключить в 3D режим"
             >
               <span>{mode === 'blindtyping' ? '🖐 Силуэты рук' : '🧊 Режим 3D'}</span>
@@ -441,7 +441,7 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
         </div>
 
         {targetFinger && (
-          <div className="flex items-center space-x-2 bg-[#0d1527]/90 px-3 py-1 rounded-xl border border-sky-500/20 shadow-sm">
+          <div className="flex items-center space-x-2 bg-white/[0.03] px-3 py-1 rounded-xl border border-white/[0.08] shadow-sm">
             <span className="text-slate-400">Клавиша:</span>
             <span
               className="font-bold text-slate-950 bg-white px-2 py-0.5 rounded shadow text-xs border"
@@ -460,7 +460,7 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
       </div>
 
       {/* SVG Blind Typing Keyboard with Anatomical Hand Silhouette Overlay */}
-      <div className="relative w-full overflow-hidden rounded-3xl bg-[#060a14] border border-sky-500/20 shadow-2xl shadow-black/80 ring-1 ring-sky-500/10 p-2 sm:p-4 flex justify-center">
+      <div className="relative w-full overflow-hidden rounded-3xl bg-[#060911] border border-white/[0.08] shadow-2xl shadow-black/80 p-2 sm:p-4 flex justify-center">
         <svg
           viewBox="0 0 780 320"
           className="w-full h-auto max-h-[380px] drop-shadow-2xl"

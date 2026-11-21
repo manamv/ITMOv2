@@ -40,6 +40,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   // Double-submit prevention ref
   const submitLockRef = useRef(false)
   const rateMenuRef = useRef<HTMLDivElement>(null)
+  const typedCharsRef = useRef(typedChars)
+  typedCharsRef.current = typedChars
 
   // Close rate dropdown menu on click outside
   useEffect(() => {
@@ -155,11 +157,14 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       // Backspace handler: delete character and allow manual correction
       if (e.key === 'Backspace') {
         e.preventDefault()
+        let next = ''
         if (e.ctrlKey) {
-          setTypedChars(prev => prev.replace(/\s*\S*$/, ''))
+          next = typedCharsRef.current.replace(/\s*\S*$/, '')
         } else {
-          setTypedChars(prev => prev.slice(0, -1))
+          next = typedCharsRef.current.slice(0, -1)
         }
+        typedCharsRef.current = next
+        setTypedChars(next)
         return
       }
 
@@ -177,9 +182,11 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           }
         }
 
+        const currentTyped = typedCharsRef.current
+
         // Advance typing if within sentence length
-        if (typedChars.length < targetText.length) {
-          const expected = targetText[typedChars.length]
+        if (currentTyped.length < targetText.length) {
+          const expected = targetText[currentTyped.length]
           const isCorrect = typedKey === expected
 
           if (isCorrect) {
@@ -193,7 +200,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             setSessionWeakKeys(prev => new Set(prev).add(expected))
           }
 
-          const newTyped = typedChars + typedKey
+          const newTyped = currentTyped + typedKey
+          typedCharsRef.current = newTyped
           setTypedChars(newTyped)
 
           // Word-by-word anticipatory speech: when word completes with a space, pronounce the NEXT word
@@ -212,6 +220,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
               // Advance to next sentence
               const nextIndex = currentSentenceIndex + 1
               setCurrentSentenceIndex(nextIndex)
+              typedCharsRef.current = ''
               setTypedChars('')
               setSelectedWord(null)
               setSentenceStartTime(null)
@@ -269,7 +278,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       data-testid="typing-engine"
     >
       {/* 1. Metrics & Control Bar (Compact, 1 Row) */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#0d1527]/90 backdrop-blur p-2.5 rounded-2xl border border-sky-500/20 shadow-lg shadow-black/40 shrink-0">
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#090d16]/85 backdrop-blur-2xl p-2.5 rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/80 shrink-0">
         <div className="flex items-center space-x-2">
           <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold border border-sky-500/25">
             {lesson.level} • {lesson.title}
@@ -305,7 +314,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           {/* Full Sentence Pronounce */}
           <button
             onClick={handlePronounce}
-            className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-sky-400 transition cursor-pointer border border-sky-500/15"
+            className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-sky-400 transition cursor-pointer border border-white/[0.08]"
             title="Озвучить все предложение"
             aria-label="Озвучить предложение"
             data-testid="audio-pronounce-btn"
@@ -317,7 +326,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowRateMenu(m => !m)}
-              className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-emerald-400 border border-slate-700/60 transition cursor-pointer flex items-center space-x-1"
+              className="px-2.5 py-1 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-mono text-sky-300 border border-white/[0.08] transition cursor-pointer flex items-center space-x-1"
               title="Скорость озвучки"
               data-testid="speech-rate-btn"
             >
@@ -327,9 +336,9 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             {showRateMenu && (
               <div
                 ref={rateMenuRef}
-                className="absolute top-full mt-2 right-0 bg-slate-950 border border-emerald-500/40 rounded-xl p-1.5 shadow-2xl shadow-black ring-1 ring-emerald-500/30 z-50 flex flex-col gap-1 min-w-[150px] font-sans animate-fade-in"
+                className="absolute top-full mt-2 right-0 bg-[#090d16] border border-white/[0.12] rounded-xl p-1.5 shadow-2xl shadow-black ring-1 ring-sky-500/20 z-50 flex flex-col gap-1 min-w-[150px] font-sans animate-fade-in"
               >
-                <div className="px-2 py-0.5 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800/80 mb-0.5">
+                <div className="px-2 py-0.5 text-[10px] uppercase font-bold text-slate-400 border-b border-white/[0.06] mb-0.5">
                   Скорость озвучки
                 </div>
                 {[0.75, 1.0, 1.25, 1.5].map(rate => (
@@ -342,8 +351,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
                     }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-mono text-left transition cursor-pointer flex items-center justify-between ${
                       speechRate === rate
-                        ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm shadow-emerald-500/30'
-                        : 'text-slate-200 hover:bg-slate-800 hover:text-white'
+                        ? 'bg-sky-500/20 text-sky-300 font-bold'
+                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
                     }`}
                   >
                     <span>{rate}x</span>
@@ -427,11 +436,11 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       </div>
 
       {/* 2. Main Text Display Box (Selection-based Word Translation, No-Scroll) */}
-      <div className="relative p-4 sm:p-5 rounded-2xl bg-[#09101f]/95 border border-sky-500/20 shadow-2xl shadow-sky-950/40 shrink-0 space-y-2">
+      <div className="relative p-4 sm:p-5 rounded-2xl bg-[#090d16]/95 border border-white/[0.08] shadow-2xl shrink-0 space-y-2">
         {/* Pause Overlay with Resume button and instructions */}
         {isPaused && (
           <div
-            className="absolute inset-0 bg-[#070b14]/90 backdrop-blur-sm rounded-2xl z-20 flex flex-col items-center justify-center space-y-3 p-4 animate-fade-in"
+            className="absolute inset-0 bg-[#060911]/90 backdrop-blur-md rounded-2xl z-20 flex flex-col items-center justify-center space-y-3 p-4 animate-fade-in"
             data-testid="pause-overlay"
           >
             <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/10">
@@ -440,12 +449,12 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             <div className="text-center space-y-1">
               <h3 className="text-base font-bold text-white">Тренировка на паузе</h3>
               <p className="text-xs text-slate-400">
-                Нажмите клавишу <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 font-mono text-[11px]">Esc</kbd> или кнопку ниже, чтобы продолжить печать
+                Нажмите клавишу <kbd className="px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.1] text-slate-200 font-mono text-[11px]">Esc</kbd> или кнопку ниже, чтобы продолжить печать
               </p>
             </div>
             <button
               onClick={() => setIsPaused(false)}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600 hover:from-sky-300 hover:to-indigo-500 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/25 transition cursor-pointer flex items-center space-x-2"
+              className="px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/25 transition cursor-pointer flex items-center space-x-2 active:scale-[0.98]"
               data-testid="resume-btn"
             >
               <Play className="w-4 h-4 fill-slate-950" />

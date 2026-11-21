@@ -15,6 +15,7 @@ import { LoadingState } from './components/states/LoadingState'
 import { EmptyState } from './components/states/EmptyState'
 import { ErrorState } from './components/states/ErrorState'
 import { SuccessResult } from './components/states/SuccessResult'
+import { Logo } from './components/ui/Logo'
 
 type ActiveTab = 'PRACTICE' | 'VOCABULARY' | 'STATS' | 'LEADERBOARD' | 'MUSIC'
 type PracticeMode = 'TOPICS' | 'TYPING' | 'QUIZ' | 'RESULT'
@@ -172,7 +173,7 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#070b14] bg-[radial-gradient(ellipse_80%_60%_at_50%_-15%,rgba(56,189,248,0.12),rgba(7,11,20,0))] text-slate-100">
       {/* Top Navbar */}
-      <header className="border-b border-sky-500/15 bg-[#0a0f1d]/85 backdrop-blur-xl sticky top-0 z-40 px-6 py-2.5 shrink-0 shadow-lg shadow-black/40">
+      <header className="border-b border-white/[0.07] bg-[#060911]/85 backdrop-blur-2xl sticky top-0 z-40 px-6 py-2.5 shrink-0 shadow-2xl shadow-black/80">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo & Product Name */}
           <div 
@@ -180,81 +181,78 @@ export function App() {
               setActiveTab('PRACTICE')
               setPracticeMode('TOPICS')
             }}
-            className="flex items-center space-x-3 cursor-pointer select-none"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-400 via-indigo-500 to-cyan-400 flex items-center justify-center font-mono font-black text-slate-950 text-base shadow-lg shadow-sky-500/25 ring-1 ring-white/20">
-              LT
-            </div>
-            <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white via-sky-100 to-indigo-200 bg-clip-text text-transparent">
-                LinguaType
-              </span>
-            </div>
+            <Logo size="md" />
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="flex items-center bg-[#091020]/90 p-1 rounded-2xl border border-sky-500/15 text-xs font-medium" aria-label="Основная навигация">
+          <nav className="flex items-center bg-white/[0.03] p-1 rounded-2xl border border-white/[0.06] text-xs font-medium backdrop-blur-md" aria-label="Основная навигация">
             <button
               onClick={() => {
                 setActiveTab('PRACTICE')
                 if (practiceMode === 'RESULT') setPracticeMode('TOPICS')
               }}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'PRACTICE'
-                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
-                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
+                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
+              {activeTab === 'PRACTICE' && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />}
               <Keyboard className="w-3.5 h-3.5" />
               <span>Тренировка</span>
             </button>
 
             <button
               onClick={() => setActiveTab('VOCABULARY')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'VOCABULARY'
-                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
-                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
+                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
+              {activeTab === 'VOCABULARY' && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />}
               <BookOpen className="w-3.5 h-3.5" />
               <span>Словарь ({vocabulary.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('STATS')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'STATS'
-                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
-                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
+                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
             >
+              {activeTab === 'STATS' && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />}
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Статистика</span>
             </button>
 
             <button
               onClick={() => setActiveTab('LEADERBOARD')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'LEADERBOARD'
-                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
-                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
+                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
               data-testid="tab-leaderboard"
             >
+              {activeTab === 'LEADERBOARD' && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />}
               <Trophy className="w-3.5 h-3.5" />
               <span>Лидерборд</span>
             </button>
 
             <button
               onClick={() => setActiveTab('MUSIC')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'MUSIC'
-                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
-                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
+                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.12]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
               data-testid="tab-music"
             >
+              {activeTab === 'MUSIC' && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />}
               <Music className="w-3.5 h-3.5" />
               <span>Клипы & Песни</span>
             </button>
@@ -264,7 +262,7 @@ export function App() {
           <div className="flex items-center space-x-3 text-xs font-mono">
             <button
               onClick={() => setIsAchievementsOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-500/[0.08] hover:bg-amber-500/[0.15] text-amber-300 border border-amber-500/25 transition cursor-pointer shadow-sm"
               title="Список достижений"
               data-testid="achievements-btn"
             >
@@ -272,7 +270,7 @@ export function App() {
               <span>Награды ({achievementsService.getUnlockedCount()}/10)</span>
             </button>
 
-            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-[#0d1527] border border-sky-500/20 text-sky-400 shadow-sm">
+            <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-sky-400 shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{statsSummary.avgWpm} WPM</span>
             </div>

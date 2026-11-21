@@ -48,8 +48,8 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
               onClick={() => setSelectedLevel(level)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 isCurrent
-                  ? 'bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25'
-                  : 'bg-[#0d1527] border border-[#1e2c4a] text-slate-400 hover:text-white hover:border-sky-500/40'
+                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.15]'
+                  : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.06]'
               }`}
             >
               {level === 'ALL' ? 'Все уровни' : `${level}`}
@@ -59,7 +59,7 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
       </div>
 
       {/* Recommended Adaptive Card (Weak Keys) */}
-      <Card variant="active" className="relative overflow-hidden bg-gradient-to-r from-[#0d1527] via-[#0f1b33] to-[#16254a] border border-sky-500/30">
+      <Card variant="active" className="relative overflow-hidden bg-[#090d16]/90 border border-white/[0.08]">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
@@ -94,7 +94,7 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
             key={topic.id}
             variant="interactive"
             onClick={() => onSelectTopic(topic.id)}
-            className="flex flex-col justify-between group hover:border-sky-500/50"
+            className="flex flex-col justify-between group hover:border-white/[0.18]"
             data-testid={`topic-card-${topic.id}`}
           >
             <div className="space-y-3">
@@ -114,7 +114,7 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
               </p>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-[#1e2c4a] flex items-center justify-between text-xs text-sky-400 font-medium group-hover:translate-x-1 transition-transform">
+            <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-sky-400 font-medium group-hover:translate-x-1 transition-transform">
               <span>Начать тренировку</span>
               <ArrowRight className="w-4 h-4" />
             </div>

@@ -25,11 +25,11 @@ export const Button: React.FC<ButtonProps> = ({
   }[size]
 
   const variantStyles = {
-    primary: 'bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600 hover:from-sky-300 hover:to-indigo-500 text-slate-950 font-bold shadow-lg shadow-sky-500/20 focus-visible:ring-sky-400 active:scale-[0.98]',
-    secondary: 'bg-[#101828] hover:bg-[#16233d] text-slate-200 border border-[#223558] focus-visible:ring-sky-400 active:scale-[0.98]',
-    outline: 'border border-[#223558] hover:border-sky-500/50 text-slate-300 hover:text-white bg-[#0a0f1d]/60 focus-visible:ring-sky-400',
+    primary: 'bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold shadow-lg shadow-sky-500/25 focus-visible:ring-sky-400 active:scale-[0.98]',
+    secondary: 'bg-white/[0.05] hover:bg-white/[0.09] text-slate-200 border border-white/[0.08] focus-visible:ring-sky-400 active:scale-[0.98]',
+    outline: 'border border-white/[0.1] hover:border-white/[0.2] text-slate-300 hover:text-white bg-white/[0.02] focus-visible:ring-sky-400',
     danger: 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 focus-visible:ring-rose-400',
-    ghost: 'text-slate-400 hover:text-slate-100 hover:bg-[#131f38]/60 focus-visible:ring-sky-400'
+    ghost: 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.05] focus-visible:ring-sky-400'
   }[variant]
 
   return (
