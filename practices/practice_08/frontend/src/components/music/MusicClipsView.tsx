@@ -672,17 +672,23 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
                   </div>
 
                   {/* Metaphor Breakdown */}
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-300">
-                      Скрытый подтекст ключевых метафор:
-                    </span>
-                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                  <div className="space-y-2.5">
+                    <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-200">
+                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                      <span>Скрытый подтекст ключевых метафор:</span>
+                    </div>
+                    <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1.5">
                       {aiAnalysis.metaphors.map((m, idx) => (
-                        <div key={idx} className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1">
-                          <div className="text-xs font-mono font-semibold text-amber-300">
-                            «{m.quote}»
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1.5 hover:border-amber-500/40 transition-all shadow-md"
+                        >
+                          <div className="text-xs font-mono font-semibold text-amber-300 flex items-center space-x-1.5">
+                            <span className="text-amber-500/60 font-serif text-sm">“</span>
+                            <span>{m.quote}</span>
+                            <span className="text-amber-500/60 font-serif text-sm">”</span>
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-relaxed">
+                          <div className="text-xs text-slate-300/90 leading-relaxed pl-1">
                             {m.meaning}
                           </div>
                         </div>

@@ -189,9 +189,6 @@ export function App() {
               <span className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
                 LinguaType
               </span>
-              <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                AI Grammar + Touch Typing
-              </span>
             </div>
           </div>
 

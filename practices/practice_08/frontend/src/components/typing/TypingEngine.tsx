@@ -88,13 +88,10 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     return Math.round(acc * 10) / 10
   }
 
-  // Check if there are unfixed red mistakes in typed text
-  const hasUnfixedErrors = typedChars.split('').some((char, idx) => char !== targetText[idx])
-
   // Determine current active character for keyboard guidance
   const currentChar = typedChars.length < targetText.length
     ? targetText[typedChars.length]
-    : (hasUnfixedErrors ? 'backspace' : '')
+    : ''
 
   // Handle lesson finish with strict double-submit guard
   const handleCompleteLesson = useCallback(async () => {
@@ -192,8 +189,9 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             }
           }
 
-          // Completed sentence: all characters typed and all errors corrected!
-          if (newTyped.length === targetText.length && newTyped === targetText) {
+          // Completed sentence: all characters typed!
+          // Text with mistakes is also counted as completed, advancing without blocking
+          if (newTyped.length >= targetText.length) {
             if (currentSentenceIndex + 1 < lesson.sentences.length) {
               // Advance to next sentence
               const nextIndex = currentSentenceIndex + 1
@@ -481,17 +479,6 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             )
           })}
         </div>
-
-        {/* Unfixed errors notice at the end */}
-        {hasUnfixedErrors && typedChars.length >= targetText.length && (
-          <div
-            className="flex items-center space-x-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1 rounded-xl animate-fade-in"
-            data-testid="error-backspace-hint"
-          >
-            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
-            <span>В тексте есть ошибки! Нажмите <strong>Backspace ⌫</strong>, чтобы стереть и исправить красные буквы.</span>
-          </div>
-        )}
 
         {/* Grammar Tip Bar (Without redundant bottom word pills) */}
         <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">

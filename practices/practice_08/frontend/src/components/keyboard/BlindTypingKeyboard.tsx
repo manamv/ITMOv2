@@ -26,6 +26,69 @@ const KEY_W = 48
 const KEY_H = 48
 const GAP = 6
 
+// Dedicated ergonomic color scheme for the 8 touch-typing finger zones + thumbs
+const FINGER_ZONE_COLORS: Record<FingerType, {
+  border: string
+  bg: string
+  text: string
+  glow: string
+}> = {
+  'pinky-l': {
+    border: 'rgba(244, 63, 94, 0.45)',
+    bg: 'rgba(244, 63, 94, 0.12)',
+    text: '#fda4af',
+    glow: '#f43f5e'
+  },
+  'ring-l': {
+    border: 'rgba(249, 115, 22, 0.45)',
+    bg: 'rgba(249, 115, 22, 0.12)',
+    text: '#fdba74',
+    glow: '#f97316'
+  },
+  'mid-l': {
+    border: 'rgba(234, 179, 8, 0.45)',
+    bg: 'rgba(234, 179, 8, 0.12)',
+    text: '#fde047',
+    glow: '#eab308'
+  },
+  'index-l': {
+    border: 'rgba(16, 185, 129, 0.45)',
+    bg: 'rgba(16, 185, 129, 0.12)',
+    text: '#6ee7b7',
+    glow: '#10b981'
+  },
+  'thumb': {
+    border: 'rgba(56, 189, 248, 0.35)',
+    bg: 'rgba(56, 189, 248, 0.08)',
+    text: '#7dd3fc',
+    glow: '#38bdf8'
+  },
+  'index-r': {
+    border: 'rgba(6, 182, 212, 0.45)',
+    bg: 'rgba(6, 182, 212, 0.12)',
+    text: '#67e8f9',
+    glow: '#06b6d4'
+  },
+  'mid-r': {
+    border: 'rgba(59, 130, 246, 0.45)',
+    bg: 'rgba(59, 130, 246, 0.12)',
+    text: '#93c5fd',
+    glow: '#3b82f6'
+  },
+  'ring-r': {
+    border: 'rgba(168, 85, 247, 0.45)',
+    bg: 'rgba(168, 85, 247, 0.12)',
+    text: '#d8b4fe',
+    glow: '#a855f7'
+  },
+  'pinky-r': {
+    border: 'rgba(236, 72, 153, 0.45)',
+    bg: 'rgba(236, 72, 153, 0.12)',
+    text: '#f9a8d4',
+    glow: '#ec4899'
+  }
+}
+
 export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
   activeChar,
   heatmapMode = false,
@@ -380,10 +443,16 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
         {targetFinger && (
           <div className="flex items-center space-x-2 bg-slate-900/90 px-3 py-1 rounded-xl border border-slate-700/80">
             <span className="text-slate-400">Клавиша:</span>
-            <span className="font-bold text-slate-950 bg-white px-2 py-0.5 rounded shadow text-xs">
+            <span
+              className="font-bold text-slate-950 bg-white px-2 py-0.5 rounded shadow text-xs border"
+              style={{ borderColor: FINGER_ZONE_COLORS[targetFinger].glow }}
+            >
               {normalizedActive === ' ' ? '␣ SPACE' : normalizedActive.toUpperCase()}
             </span>
-            <span className="text-emerald-400 font-medium">
+            <span
+              className="font-medium text-xs"
+              style={{ color: FINGER_ZONE_COLORS[targetFinger].glow }}
+            >
               ← {fingerNamesRu[targetFinger]}
             </span>
           </div>
@@ -399,8 +468,8 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
           <defs>
             {/* Glow filter for active illuminated key */}
             <filter id="activeKeyGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ffffff" floodOpacity="0.75" />
-              <feDropShadow dx="0" dy="2" stdDeviation="12" floodColor="#38bdf8" floodOpacity="0.45" />
+              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ffffff" floodOpacity="0.85" />
+              <feDropShadow dx="0" dy="2" stdDeviation="12" floodColor="#38bdf8" floodOpacity="0.55" />
             </filter>
 
             {/* Active finger aura glow */}
@@ -427,10 +496,11 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
             {keys.map(k => {
               const isMatch = normalizedActive === k.id.toLowerCase()
               const errRate = heatmapData[k.id.toLowerCase()]
+              const zone = FINGER_ZONE_COLORS[k.finger]
 
-              let fill = 'rgba(15, 23, 42, 0.75)'
-              let stroke = 'rgba(255, 255, 255, 0.16)'
-              let textFill = '#94a3b8'
+              let fill = zone.bg
+              let stroke = zone.border
+              let textFill = zone.text
               let strokeWidth = 1.2
               let filter = undefined
 
@@ -450,9 +520,9 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
                 }
               } else if (isMatch) {
                 fill = '#ffffff'
-                stroke = '#ffffff'
+                stroke = zone.glow
                 textFill = '#0f172a'
-                strokeWidth = 2
+                strokeWidth = 2.5
                 filter = 'url(#activeKeyGlow)'
               }
 

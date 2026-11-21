@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { VirtualKeyboard } from '../components/keyboard/VirtualKeyboard'
 import { BlindTypingKeyboard } from '../components/keyboard/BlindTypingKeyboard'
 import { TopicSelector } from '../components/grammar/TopicSelector'
@@ -153,6 +153,38 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     // 5. User retypes correct 'e'
     fireEvent.keyDown(window, { key: 'e' })
     expect(screen.queryByTestId('error-char')).not.toBeInTheDocument()
+  })
+
+  it('TypingEngine: non-blocking typing with errors completes sentence without requiring Backspace', async () => {
+    const dummyLesson = {
+      id: 'test-topic-errors',
+      title: 'test topic errors',
+      level: 'A1',
+      description: 'test description',
+      sentences: [
+        {
+          id: 's-err',
+          english: 'cat',
+          russian: 'кот',
+          grammarTip: 'без знаков препинания'
+        }
+      ]
+    }
+
+    const onFinish = vi.fn()
+    render(<TypingEngine lesson={dummyLesson} onFinish={onFinish} />)
+
+    // Type with mistakes: 'c', 'x' (wrong!), 't'
+    fireEvent.keyDown(window, { key: 'c' })
+    fireEvent.keyDown(window, { key: 'x' }) // mistake instead of 'a'
+    fireEvent.keyDown(window, { key: 't' })
+
+    // Must automatically complete the lesson even with mistake
+    await waitFor(() => {
+      expect(onFinish).toHaveBeenCalledTimes(1)
+    })
+    const stats = onFinish.mock.calls[0][0]
+    expect(stats.errors).toBe(1)
   })
 
   it('HandsVisualizer: renders Left and Right hands, highlighting active finger and target key', () => {
