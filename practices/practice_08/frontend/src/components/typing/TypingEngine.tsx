@@ -289,9 +289,9 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           <span>Перевод: «{currentSentence.russian}»</span>
         </div>
 
-        {/* 3-line height sentence box */}
+        {/* 3-line height sentence box with generous line-height and descender clearance */}
         <div
-          className="font-mono text-xl sm:text-2xl tracking-wide select-none leading-relaxed min-h-[5.5rem] max-h-[6.5rem] overflow-hidden break-words content-start"
+          className="font-mono text-xl sm:text-2xl tracking-wide select-none leading-[2.6rem] min-h-[8.4rem] max-h-[8.8rem] overflow-hidden break-words content-start pb-2"
           data-testid="typing-text-display"
         >
           {targetText.split('').map((char, idx) => {

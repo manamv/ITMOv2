@@ -76,6 +76,17 @@ var vocabularyList = new List<VocabularyWord>
     new("v4", "confidential", "конфиденциальный, секретный", "/ˌkɒn.fɪˈden.ʃəl/", "adjective", 0, "https://api.dictionaryapi.dev/media/pronunciations/en/confidential-uk.mp3")
 };
 
+var leaderboard = new List<LeaderboardEntry>
+{
+    new("lb-1", "alex_speed", 104, 99.4, "present perfect vs past simple", "B1", DateTime.UtcNow.AddHours(-2)),
+    new("lb-2", "elena_code", 96, 98.8, "second and third conditionals", "B2", DateTime.UtcNow.AddHours(-5)),
+    new("lb-3", "cyber_typer", 88, 97.5, "passive voice in tech contexts", "B1", DateTime.UtcNow.AddDays(-1)),
+    new("lb-4", "dev_master", 82, 99.0, "present simple and daily routines", "A1", DateTime.UtcNow.AddDays(-2)),
+    new("lb-5", "ninja_keys", 78, 96.2, "defining and non defining relative clauses", "B2", DateTime.UtcNow.AddDays(-3)),
+    new("lb-6", "swift_finger", 74, 98.1, "present perfect vs past simple", "B1", DateTime.UtcNow.AddDays(-4)),
+    new("lb-7", "touch_pro", 70, 95.9, "present simple and daily routines", "A1", DateTime.UtcNow.AddDays(-5))
+};
+
 // ----------------- API ENDPOINTS -----------------
 
 // 1. Get all topics or filter by CEFR level
@@ -287,6 +298,44 @@ app.MapPost("/api/check-translation", (CheckTranslationRequest request) =>
     });
 });
 
+// 10. Get leaderboard
+app.MapGet("/api/leaderboard", (string? level) =>
+{
+    var query = string.IsNullOrWhiteSpace(level) || level.Equals("all", StringComparison.OrdinalIgnoreCase)
+        ? leaderboard
+        : leaderboard.Where(e => e.Level.Equals(level, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    var sorted = query.OrderByDescending(e => e.Wpm).ThenByDescending(e => e.Accuracy).ToList();
+    return Results.Ok(sorted);
+});
+
+// 11. Submit entry to leaderboard
+app.MapPost("/api/leaderboard", (LeaderboardRequest request) =>
+{
+    if (string.IsNullOrWhiteSpace(request.UserName) || request.UserName.Trim().Length < 2)
+    {
+        return Results.BadRequest(new { error = "Имя пользователя должно содержать не менее 2 символов." });
+    }
+
+    if (request.Wpm <= 0 || request.Accuracy < 0 || request.Accuracy > 100)
+    {
+        return Results.BadRequest(new { error = "Некорректные параметры скорости или точности." });
+    }
+
+    var entry = new LeaderboardEntry(
+        Guid.NewGuid().ToString("N")[..8],
+        request.UserName.Trim(),
+        request.Wpm,
+        request.Accuracy,
+        string.IsNullOrWhiteSpace(request.TopicTitle) ? "тренировка" : request.TopicTitle,
+        string.IsNullOrWhiteSpace(request.Level) ? "B1" : request.Level,
+        DateTime.UtcNow
+    );
+
+    leaderboard.Add(entry);
+    return Results.Created($"/api/leaderboard/{entry.Id}", entry);
+});
+
 app.Run();
 
 // Helper Levenshtein distance
@@ -374,4 +423,22 @@ public record CheckTranslationRequest(
     string ExpectedText, 
     string UserText, 
     string? GrammarTip
+);
+
+public record LeaderboardEntry(
+    string Id,
+    string UserName,
+    double Wpm,
+    double Accuracy,
+    string TopicTitle,
+    string Level,
+    DateTime Timestamp
+);
+
+public record LeaderboardRequest(
+    string UserName,
+    double Wpm,
+    double Accuracy,
+    string TopicTitle,
+    string Level
 );

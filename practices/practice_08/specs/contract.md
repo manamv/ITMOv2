@@ -112,3 +112,10 @@
 * **`GET /api/vocabulary`** $\rightarrow$ список сохраненных слов с транскрипцией и аудио.
 * **`POST /api/vocabulary`** $\rightarrow$ добавление слова (валидация: слово и перевод обязательны).
 * **`DELETE /api/vocabulary/{id}`** $\rightarrow$ удаление слова из словаря (`204 No Content`).
+
+### 2.6. Лидерборд скоропечатания
+* **`GET /api/leaderboard?level={level}`** $\rightarrow$ получение топа результатов, отсортированных по WPM и точности.
+* **`POST /api/leaderboard`** $\rightarrow$ публикация рекорда:
+  * Тело: `{ "userName": "string", "wpm": number, "accuracy": number, "topicTitle": "string", "level": "string" }`
+  * Валидация: `userName` $\ge 2$ символов, $WPM > 0, 0 \le Accuracy \le 100$.
+  * Ответ `201 Created` с объектом `LeaderboardEntry`.

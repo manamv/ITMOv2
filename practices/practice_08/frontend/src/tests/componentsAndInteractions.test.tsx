@@ -5,6 +5,8 @@ import { TopicSelector } from '../components/grammar/TopicSelector'
 import { Modal } from '../components/ui/Modal'
 import { WordPopover } from '../components/typing/WordPopover'
 import { TypingEngine } from '../components/typing/TypingEngine'
+import { HandsVisualizer } from '../components/keyboard/HandsVisualizer'
+import { LeaderboardView } from '../components/leaderboard/LeaderboardView'
 
 describe('Criterion 8: Component Rendering and User Interactions', () => {
   it('renders Virtual Keyboard with finger zones and highlights active character', () => {
@@ -146,5 +148,38 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     // 5. User retypes correct 'e'
     fireEvent.keyDown(window, { key: 'e' })
     expect(screen.queryByTestId('error-char')).not.toBeInTheDocument()
+  })
+
+  it('HandsVisualizer: renders Left and Right hands, highlighting active finger and target key', () => {
+    // Render HandsVisualizer with activeChar 'r' (Left Index finger)
+    render(<HandsVisualizer activeChar="r" activeFinger="index-l" />)
+
+    expect(screen.getByTestId('hands-visualizer')).toBeInTheDocument()
+    expect(screen.getAllByText(/Левая рука/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Правая рука/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Указательный/i).length).toBeGreaterThan(0)
+
+    // Left index finger must be in the document
+    const leftIndexFingers = screen.getAllByTestId('finger-index-l')
+    expect(leftIndexFingers.length).toBeGreaterThan(0)
+  })
+
+  it('LeaderboardView: renders leaderboard table, podium and opens submit record modal', async () => {
+    render(<LeaderboardView lastSessionStats={{ wpm: 85, accuracy: 99.1, topicTitle: 'present perfect', level: 'B1' }} />)
+
+    expect(screen.getByTestId('leaderboard-view')).toBeInTheDocument()
+    expect(screen.getByText('Лидерборд скоропечатания')).toBeInTheDocument()
+
+    // Wait for leaderboard table to load
+    const table = await screen.findByTestId('leaderboard-table')
+    expect(table).toBeInTheDocument()
+
+    // Click "Добавить рекорд" button
+    const addBtn = screen.getByTestId('add-score-btn')
+    fireEvent.click(addBtn)
+
+    // Modal opens
+    expect(screen.getByText('Сохранить свой результат в Лидерборд')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Ваш никнейм/i)).toBeInTheDocument()
   })
 })

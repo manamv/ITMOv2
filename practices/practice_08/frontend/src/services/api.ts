@@ -1,6 +1,14 @@
-import type { GrammarTopic, LessonData, SessionStats, UserStatsSummary, VocabularyWord } from '../types'
+import type { GrammarTopic, LeaderboardEntry, LessonData, SessionStats, UserStatsSummary, VocabularyWord } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+
+const FALLBACK_LEADERBOARD: LeaderboardEntry[] = [
+  { id: 'lb-1', userName: 'alex_speed', wpm: 104, accuracy: 99.4, topicTitle: 'present perfect vs past simple', level: 'B1', timestamp: new Date().toISOString() },
+  { id: 'lb-2', userName: 'elena_code', wpm: 96, accuracy: 98.8, topicTitle: 'second and third conditionals', level: 'B2', timestamp: new Date().toISOString() },
+  { id: 'lb-3', userName: 'cyber_typer', wpm: 88, accuracy: 97.5, topicTitle: 'passive voice in tech contexts', level: 'B1', timestamp: new Date().toISOString() },
+  { id: 'lb-4', userName: 'dev_master', wpm: 82, accuracy: 99.0, topicTitle: 'present simple and daily routines', level: 'A1', timestamp: new Date().toISOString() },
+  { id: 'lb-5', userName: 'ninja_keys', wpm: 78, accuracy: 96.2, topicTitle: 'defining and non defining relative clauses', level: 'B2', timestamp: new Date().toISOString() }
+]
 
 // Fallback data for offline/standalone execution
 const FALLBACK_TOPICS: GrammarTopic[] = [
@@ -198,5 +206,32 @@ export const api = {
 
   async deleteVocabularyWord(id: string): Promise<void> {
     await fetch(`${API_BASE}/vocabulary/${id}`, { method: 'DELETE' })
+  },
+
+  async getLeaderboard(level?: string): Promise<LeaderboardEntry[]> {
+    try {
+      const url = level && level !== 'all' ? `${API_BASE}/leaderboard?level=${encodeURIComponent(level)}` : `${API_BASE}/leaderboard`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`Failed to load leaderboard: ${res.status}`)
+      return await res.json()
+    } catch {
+      if (level && level !== 'all') {
+        return FALLBACK_LEADERBOARD.filter(e => e.level.toLowerCase() === level.toLowerCase())
+      }
+      return FALLBACK_LEADERBOARD
+    }
+  },
+
+  async submitToLeaderboard(entry: { userName: string; wpm: number; accuracy: number; topicTitle: string; level: string }): Promise<LeaderboardEntry> {
+    const res = await fetch(`${API_BASE}/leaderboard`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || 'Ошибка при отправке в лидерборд')
+    }
+    return await res.json()
   }
 }

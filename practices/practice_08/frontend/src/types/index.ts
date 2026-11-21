@@ -48,6 +48,16 @@ export interface VocabularyWord {
   audioUrl?: string
 }
 
+export interface LeaderboardEntry {
+  id: string
+  userName: string
+  wpm: number
+  accuracy: number
+  topicTitle: string
+  level: string
+  timestamp: string
+}
+
 export type FingerType = 
   | 'pinky-l' 
   | 'ring-l' 

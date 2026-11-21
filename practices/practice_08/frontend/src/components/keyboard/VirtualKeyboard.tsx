@@ -1,5 +1,6 @@
 import React from 'react'
 import type { FingerType } from '../../types'
+import { HandsVisualizer } from './HandsVisualizer'
 
 interface KeyDef {
   key: string
@@ -199,6 +200,9 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Interactive Hands & Fingers Visualizer (Blind Typing Mode) */}
+      <HandsVisualizer activeChar={activeChar} activeFinger={targetFinger} />
     </div>
   )
 }

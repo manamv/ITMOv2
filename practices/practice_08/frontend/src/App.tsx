@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Keyboard, BookOpen, BarChart3, Sparkles } from 'lucide-react'
+import { Keyboard, BookOpen, BarChart3, Sparkles, Trophy } from 'lucide-react'
 import type { GrammarTopic, LessonData, SessionStats, UserStatsSummary, VocabularyWord } from './types'
 import { api } from './services/api'
 import { TopicSelector } from './components/grammar/TopicSelector'
 import { TypingEngine } from './components/typing/TypingEngine'
 import { VocabularyView } from './components/vocabulary/VocabularyView'
 import { StatsView } from './components/stats/StatsView'
+import { LeaderboardView } from './components/leaderboard/LeaderboardView'
 import { LoadingState } from './components/states/LoadingState'
 import { EmptyState } from './components/states/EmptyState'
 import { ErrorState } from './components/states/ErrorState'
 import { SuccessResult } from './components/states/SuccessResult'
 
-type ActiveTab = 'PRACTICE' | 'VOCABULARY' | 'STATS'
+type ActiveTab = 'PRACTICE' | 'VOCABULARY' | 'STATS' | 'LEADERBOARD'
 type PracticeMode = 'TOPICS' | 'TYPING' | 'RESULT'
 
 export function App() {
@@ -204,6 +205,19 @@ export function App() {
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Статистика</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('LEADERBOARD')}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === 'LEADERBOARD'
+                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              data-testid="tab-leaderboard"
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span>Лидерборд</span>
+            </button>
           </nav>
 
           {/* User Score Badge */}
@@ -263,6 +277,7 @@ export function App() {
                     stats={lastStats}
                     onRepeat={() => setPracticeMode('TYPING')}
                     onNext={() => setPracticeMode('TOPICS')}
+                    onOpenLeaderboard={() => setActiveTab('LEADERBOARD')}
                   />
                 )}
               </>
@@ -291,6 +306,22 @@ export function App() {
                     weakKeysFrequency: {}
                   })
                 }}
+              />
+            )}
+
+            {/* TAB 4: LEADERBOARD */}
+            {activeTab === 'LEADERBOARD' && (
+              <LeaderboardView
+                lastSessionStats={
+                  lastStats
+                    ? {
+                        wpm: lastStats.wpm,
+                        accuracy: lastStats.accuracy,
+                        topicTitle: currentLesson?.title || 'тренировка',
+                        level: currentLesson?.level || 'B1'
+                      }
+                    : null
+                }
               />
             )}
           </>

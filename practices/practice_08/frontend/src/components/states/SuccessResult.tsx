@@ -8,12 +8,14 @@ export interface SuccessResultProps {
   stats: SessionStats
   onRepeat: () => void
   onNext: () => Promise<void> | void
+  onOpenLeaderboard?: () => void
 }
 
 export const SuccessResult: React.FC<SuccessResultProps> = ({
   stats,
   onRepeat,
-  onNext
+  onNext,
+  onOpenLeaderboard
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -102,7 +104,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
       )}
 
       {/* Actions (Double-submit prevented) */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           onClick={onRepeat}
           variant="secondary"
@@ -113,6 +115,20 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
           <RotateCcw className="w-4 h-4" />
           <span>Повторить урок</span>
         </Button>
+
+        {onOpenLeaderboard && (
+          <Button
+            onClick={onOpenLeaderboard}
+            variant="outline"
+            size="lg"
+            className="flex-1 text-amber-400 border-amber-500/40 hover:bg-amber-500/10"
+            disabled={isSubmitting}
+            data-testid="view-leaderboard-btn"
+          >
+            <Trophy className="w-4 h-4 text-amber-400" />
+            <span>Лидерборд</span>
+          </Button>
+        )}
 
         <Button
           onClick={handleNextClick}
