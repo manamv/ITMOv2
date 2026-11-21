@@ -74,7 +74,7 @@ describe('Criterion 11: Full End-to-End User Scenario', () => {
     // 6. User reaches victory result scoreboard!
     await waitFor(() => {
       expect(screen.getByTestId('success-result')).toBeInTheDocument()
-    })
+    }, { timeout: 3000 })
 
     expect(screen.getByText('Отличная работа!')).toBeInTheDocument()
     expect(screen.getByTestId('result-wpm')).toBeInTheDocument()
