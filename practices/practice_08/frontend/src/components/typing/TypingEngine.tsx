@@ -123,7 +123,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     }
   }, [startTime, lesson.id, errorsCount, sessionWeakKeys, isSubmitting, onFinish])
 
-  // Keyboard listener
+  // Global keydown handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isPaused || isSubmitting) return
@@ -237,62 +237,73 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     handleCompleteLesson
   ])
 
-  // Split sentence into words for interactive translation popovers
-  const words = targetText.split(' ').filter(Boolean)
+  // Handle word selection directly inside the main text box
+  const handleSelectionTranslate = () => {
+    if (typeof window === 'undefined') return
+    const sel = window.getSelection()
+    if (!sel || sel.isCollapsed) return
+    const raw = sel.toString().trim().toLowerCase()
+    const cleaned = raw.replace(/[^a-zA-Z'-]/g, '')
+    if (cleaned.length >= 2) {
+      setSelectedWord(cleaned)
+    }
+  }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto w-full animate-fade-in" data-testid="typing-engine">
-      {/* Metrics & Control Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/80 backdrop-blur p-4 rounded-2xl border border-slate-800">
-        <div className="flex items-center space-x-3">
-          <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
+    <div
+      className="h-[calc(100vh-5.5rem)] max-h-[calc(100vh-5.5rem)] flex flex-col justify-between overflow-hidden max-w-5xl mx-auto w-full px-2 sm:px-4 py-1 select-none animate-fade-in"
+      data-testid="typing-engine"
+    >
+      {/* 1. Metrics & Control Bar (Compact, 1 Row) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 backdrop-blur p-2.5 rounded-2xl border border-slate-800 shrink-0">
+        <div className="flex items-center space-x-2">
+          <span className="text-[11px] px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
             {lesson.level} • {lesson.title}
           </span>
-          <span className="text-xs text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-400 font-mono">
             {currentSentenceIndex + 1} / {lesson.sentences.length}
           </span>
         </div>
 
-        {/* Live Metrics: WPM, Accuracy, Errors, Stopwatch */}
-        <div className="flex items-center space-x-6 font-mono text-sm">
-          {/* Stopwatch */}
-          <div className="flex items-center space-x-1.5" data-testid="metric-stopwatch">
-            <Timer className="w-4 h-4 text-amber-400" />
-            <span className="text-slate-500 text-xs">СЕКУНДОМЕР</span>
-            <span className="text-amber-400 font-bold text-lg">{formatStopwatch(sentenceElapsedTime)}</span>
+        {/* Live Metrics: Stopwatch, WPM, Accuracy, Errors */}
+        <div className="flex items-center space-x-4 font-mono text-xs">
+          <div className="flex items-center space-x-1" data-testid="metric-stopwatch">
+            <Timer className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-slate-500 text-[10px]">ВРЕМЯ</span>
+            <span className="text-amber-400 font-bold">{formatStopwatch(sentenceElapsedTime)}</span>
           </div>
-          <div className="flex items-center space-x-1.5" data-testid="metric-wpm">
-            <span className="text-slate-500 text-xs">WPM</span>
-            <span className="text-emerald-400 font-bold text-lg">{calculateWpm()}</span>
+          <div className="flex items-center space-x-1" data-testid="metric-wpm">
+            <span className="text-slate-500 text-[10px]">WPM</span>
+            <span className="text-emerald-400 font-bold text-sm">{calculateWpm()}</span>
           </div>
-          <div className="flex items-center space-x-1.5" data-testid="metric-accuracy">
-            <span className="text-slate-500 text-xs">ТОЧНОСТЬ</span>
-            <span className="text-cyan-400 font-bold text-lg">{calculateAccuracy()}%</span>
+          <div className="flex items-center space-x-1" data-testid="metric-accuracy">
+            <span className="text-slate-500 text-[10px]">ТОЧНОСТЬ</span>
+            <span className="text-cyan-400 font-bold text-sm">{calculateAccuracy()}%</span>
           </div>
-          <div className="flex items-center space-x-1.5" data-testid="metric-errors">
-            <span className="text-slate-500 text-xs">ОШИБКИ</span>
-            <span className="text-rose-400 font-bold text-lg">{errorsCount}</span>
+          <div className="flex items-center space-x-1" data-testid="metric-errors">
+            <span className="text-slate-500 text-[10px]">ОШИБКИ</span>
+            <span className="text-rose-400 font-bold text-sm">{errorsCount}</span>
           </div>
         </div>
 
-        {/* Controls: Audio, Speech Rate, Word-by-Word Mode, Pause, Reset */}
-        <div className="flex items-center space-x-2">
+        {/* Controls: Audio, Speech Rate, Word-by-Word, Hide Text, Pause, Reset */}
+        <div className="flex items-center space-x-1.5">
           {/* Full Sentence Pronounce */}
           <button
             onClick={handlePronounce}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition cursor-pointer"
             title="Озвучить все предложение"
             aria-label="Озвучить предложение"
             data-testid="audio-pronounce-btn"
           >
-            <Volume2 className="w-4 h-4" />
+            <Volume2 className="w-3.5 h-3.5" />
           </button>
 
           {/* Speech Rate Selector */}
           <div className="relative">
             <button
               onClick={() => setShowRateMenu(m => !m)}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-emerald-400 border border-slate-700/60 transition cursor-pointer flex items-center space-x-1"
+              className="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-emerald-400 border border-slate-700/60 transition cursor-pointer flex items-center space-x-1"
               title="Скорость озвучки"
               data-testid="speech-rate-btn"
             >
@@ -300,7 +311,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             </button>
 
             {showRateMenu && (
-              <div className="absolute top-10 right-0 bg-slate-900 border border-slate-700 rounded-xl p-1 shadow-2xl z-50 flex flex-col gap-1 min-w-[130px] font-sans">
+              <div className="absolute top-8 right-0 bg-slate-900 border border-slate-700 rounded-xl p-1 shadow-2xl z-50 flex flex-col gap-1 min-w-[120px] font-sans">
                 {[0.75, 1.0, 1.25, 1.5].map(rate => (
                   <button
                     key={rate}
@@ -308,7 +319,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
                       setSpeechRate(rate)
                       setShowRateMenu(false)
                     }}
-                    className={`px-3 py-1 rounded-lg text-xs font-mono text-left transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono text-left transition cursor-pointer ${
                       speechRate === rate
                         ? 'bg-emerald-500 text-slate-950 font-bold'
                         : 'text-slate-300 hover:bg-slate-800'
@@ -330,7 +341,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
                 soundService.speakWord(targetWords[0], speechRate)
               }
             }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer flex items-center space-x-1.5 ${
+            className={`px-2 py-1 rounded-xl text-xs font-medium border transition cursor-pointer flex items-center space-x-1 ${
               wordByWordMode
                 ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/20 font-semibold'
                 : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
@@ -338,7 +349,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             title="Озвучивать каждое следующее слово после набора предыдущего"
             data-testid="word-by-word-toggle"
           >
-            <Headphones className="w-3.5 h-3.5" />
+            <Headphones className="w-3 h-3" />
             <span className="hidden sm:inline">По словам:</span>
             <span>{wordByWordMode ? 'ВКЛ' : 'ВЫКЛ'}</span>
           </button>
@@ -346,7 +357,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           {/* Text Hiding Toggle (Blind Audio Dictation Mode) */}
           <button
             onClick={() => setIsTextHidden(h => !h)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer flex items-center space-x-1.5 ${
+            className={`px-2 py-1 rounded-xl text-xs font-medium border transition cursor-pointer flex items-center space-x-1 ${
               isTextHidden
                 ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/20 font-semibold'
                 : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
@@ -354,7 +365,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             title="Скрыть текст (слепой ввод на слух / диктант)"
             data-testid="hide-text-toggle"
           >
-            {isTextHidden ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5" />}
+            {isTextHidden ? <EyeOff className="w-3 h-3 text-amber-400" /> : <Eye className="w-3 h-3" />}
             <span className="hidden sm:inline">Текст:</span>
             <span>{isTextHidden ? 'СКРЫТ' : 'ВИДЕН'}</span>
           </button>
@@ -362,11 +373,11 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           {/* Pause */}
           <button
             onClick={() => setIsPaused(p => !p)}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
             title="Пауза (Esc)"
             aria-label="Пауза"
           >
-            <Pause className="w-4 h-4" />
+            <Pause className="w-3.5 h-3.5" />
           </button>
 
           {/* Reset */}
@@ -377,18 +388,18 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
               setSentenceStartTime(null)
               setSentenceElapsedTime(0)
             }}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
             title="Сбросить предложение"
             aria-label="Сбросить предложение"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Text Display Box */}
-      <div className="relative p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl">
-        {/* Word Popover for Translation */}
+      {/* 2. Main Text Display Box (Selection-based Word Translation, No-Scroll) */}
+      <div className="relative p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl shrink-0 space-y-2">
+        {/* Word Popover for Selected Word Translation */}
         {selectedWord && (
           <WordPopover
             word={selectedWord}
@@ -396,26 +407,34 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           />
         )}
 
-        {/* Context / Translation Hint */}
-        <div className="text-xs font-medium text-slate-400 mb-3 flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
-          <span>Перевод: «{currentSentence.russian}»</span>
+        {/* Russian Translation / Context */}
+        <div className="text-xs font-medium text-slate-400 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+            <span>Перевод: «{currentSentence.russian}»</span>
+          </div>
+
+          <span className="text-[11px] text-slate-500 font-mono hidden md:inline">
+            💡 Выделите любое слово курсором мыши для перевода
+          </span>
         </div>
 
         {/* Hidden text banner for audio dictation mode */}
         {isTextHidden && (
           <div
-            className="mb-3 flex items-center space-x-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/25 px-3 py-1.5 rounded-xl animate-fade-in"
+            className="py-1 px-2.5 flex items-center space-x-2 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/25 rounded-xl animate-fade-in"
             data-testid="hidden-text-banner"
           >
-            <Headphones className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>Режим слепого набора на слух: текст скрыт. Слушайте озвучку слова и угадывайте буквы по памяти!</span>
+            <Headphones className="w-3 h-3 text-amber-400 shrink-0" />
+            <span>Режим слепого набора на слух: буквы замаскированы. Слушайте озвучку слова и печатайте по памяти!</span>
           </div>
         )}
 
-        {/* 3-line height sentence box with generous line-height and descender clearance */}
+        {/* 3-line height sentence box with text selection enabled */}
         <div
-          className="font-mono text-xl sm:text-2xl tracking-wide select-none leading-[2.6rem] min-h-[8.4rem] max-h-[8.8rem] overflow-hidden break-words content-start pb-2"
+          onMouseUp={handleSelectionTranslate}
+          onTouchEnd={handleSelectionTranslate}
+          className="font-mono text-lg sm:text-xl tracking-wide select-text cursor-text leading-[2.1rem] min-h-[6.3rem] max-h-[6.8rem] overflow-hidden break-words content-start pb-1"
           data-testid="typing-text-display"
         >
           {targetText.split('').map((char, idx) => {
@@ -442,7 +461,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             } else {
               if (isTextHidden) {
                 displayChar = char === ' ' ? ' ' : '•'
-                charClass = 'text-slate-600 select-none'
+                charClass = 'text-slate-600'
               }
             }
 
@@ -461,45 +480,36 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
         {/* Unfixed errors notice at the end */}
         {hasUnfixedErrors && typedChars.length >= targetText.length && (
           <div
-            className="mt-3 flex items-center space-x-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 rounded-xl animate-fade-in"
+            className="flex items-center space-x-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1 rounded-xl animate-fade-in"
             data-testid="error-backspace-hint"
           >
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
             <span>В тексте есть ошибки! Нажмите <strong>Backspace ⌫</strong>, чтобы стереть и исправить красные буквы.</span>
           </div>
         )}
 
-        {/* Word click hint & Grammar Tip */}
-        <div className="mt-4 flex flex-wrap items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800/80 gap-2">
+        {/* Grammar Tip Bar (Without redundant bottom word pills) */}
+        <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">
           <div className="flex items-center space-x-1.5 text-slate-400">
             <AlertCircle className="w-3.5 h-3.5 text-emerald-400" />
             <span>Правило: {currentSentence.grammarTip}</span>
           </div>
 
-          {/* Clickable word tokens for translation */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-slate-500 mr-1">Слова:</span>
-            {words.map((w, i) => (
-              <button
-                key={i}
-                onClick={() => setSelectedWord(w)}
-                className="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 transition cursor-pointer"
-                aria-label={`Перевод слова ${w}`}
-              >
-                {w}
-              </button>
-            ))}
-          </div>
+          <span className="text-[11px] text-slate-500 font-mono">
+            Backspace: стирание • Esc: пауза
+          </span>
         </div>
       </div>
 
-      {/* 3D Virtual Keyboard with Hands Pressing Down on Keys */}
-      <VirtualKeyboard activeChar={currentChar} />
+      {/* 3. Anatomical Hands Virtual Keyboard (Compact, No-Scroll) */}
+      <div className="w-full shrink-0">
+        <VirtualKeyboard activeChar={currentChar} />
+      </div>
 
       {/* Double Submit Protection Indicator (when sending to server) */}
       {isSubmitting && (
         <div
-          className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center font-medium animate-pulse"
+          className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center font-medium animate-pulse"
           data-testid="submitting-indicator"
         >
           Сохранение результатов на сервере...

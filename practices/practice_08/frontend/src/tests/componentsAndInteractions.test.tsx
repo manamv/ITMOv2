@@ -10,6 +10,7 @@ import { HandsVisualizer } from '../components/keyboard/HandsVisualizer'
 import { LeaderboardView } from '../components/leaderboard/LeaderboardView'
 import { MusicClipsView } from '../components/music/MusicClipsView'
 import { AchievementsModal } from '../components/achievements/AchievementsModal'
+import { TopicQuizView } from '../components/grammar/TopicQuizView'
 import { achievementsService } from '../services/achievements'
 
 describe('Criterion 8: Component Rendering and User Interactions', () => {
@@ -282,7 +283,7 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     expect(screen.getByText(/Левый указательный/i)).toBeInTheDocument()
   })
 
-  it('MusicClipsView: renders song lessons, subtitles, grammar breakdown, and starts typing lesson', async () => {
+  it('MusicClipsView: renders song lessons, subtitles, grammar breakdown, AI meaning, and starts typing lesson', async () => {
     const handleStartTyping = vi.fn()
     render(<MusicClipsView onStartTyping={handleStartTyping} />)
 
@@ -296,6 +297,12 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     // Subtitles and grammar section are rendered
     expect(await screen.findByText(/Разбор правил песни/i)).toBeInTheDocument()
 
+    // Switch to AI Meaning tab
+    const aiTab = screen.getByTestId('tab-ai-meaning')
+    fireEvent.click(aiTab)
+    expect(await screen.findByTestId('ai-meaning-content')).toBeInTheDocument()
+    expect(screen.getByText(/Главный философский посыл/i)).toBeInTheDocument()
+
     // Click "Начать печать песни" button
     const startBtn = await screen.findByTestId('start-music-typing-btn')
     fireEvent.click(startBtn)
@@ -304,6 +311,87 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     const passedLesson = handleStartTyping.mock.calls[0][0]
     expect(passedLesson.title).toContain('Queen')
     expect(passedLesson.sentences.length).toBeGreaterThan(0)
+  })
+
+  it('TypingEngine: selecting a word in text box triggers inline translation popover', async () => {
+    const lesson = {
+      id: 'pres-perf',
+      title: 'Present Perfect',
+      level: 'B1',
+      description: 'Practice',
+      sentences: [
+        {
+          id: 's1',
+          english: 'she has completed the database report',
+          russian: 'Она завершила отчет по базе данных'
+        }
+      ]
+    }
+
+    render(<TypingEngine lesson={lesson} onFinish={vi.fn()} onBack={vi.fn()} />)
+
+    const textDisplay = screen.getByTestId('typing-text-display')
+    expect(textDisplay).toBeInTheDocument()
+
+    // Mock window.getSelection returning selected word
+    const originalGetSelection = window.getSelection
+    window.getSelection = vi.fn().mockReturnValue({
+      isCollapsed: false,
+      toString: () => 'database'
+    } as unknown as Selection)
+
+    fireEvent.mouseUp(textDisplay)
+
+    // WordPopover appears with translated word
+    expect(await screen.findByTestId('word-popover')).toBeInTheDocument()
+    expect(screen.getByText(/база данных/i)).toBeInTheDocument()
+
+    window.getSelection = originalGetSelection
+  })
+
+  it('TopicQuizView: displays grammar checkpoint questions, selects option, shows explanations, and completes quiz', async () => {
+    const handleComplete = vi.fn()
+    const handleSkip = vi.fn()
+    const lesson = {
+      id: 'pres-perf',
+      title: 'Present Perfect',
+      level: 'B1',
+      description: 'Practice',
+      sentences: [
+        {
+          id: 's1',
+          english: 'she has completed the report',
+          russian: 'Она завершила отчет'
+        }
+      ]
+    }
+
+    render(
+      <TopicQuizView
+        lesson={lesson}
+        onComplete={handleComplete}
+        onSkip={handleSkip}
+      />
+    )
+
+    expect(screen.getByTestId('topic-quiz-view')).toBeInTheDocument()
+    expect(screen.getByText(/Проверочный тест по грамматике/i)).toBeInTheDocument()
+
+    // Select option 0 (has completed - correct answer)
+    const opt0 = screen.getByTestId('quiz-option-0')
+    fireEvent.click(opt0)
+
+    // Rule explanation shows up
+    expect(screen.getByText(/Правило:/i)).toBeInTheDocument()
+
+    // Next question
+    const nextBtn = screen.getByTestId('quiz-next-btn')
+    fireEvent.click(nextBtn)
+
+    // Can skip quiz directly to finish
+    const skipBtn = screen.getByTestId('skip-quiz-btn')
+    fireEvent.click(skipBtn)
+    expect(handleSkip).toHaveBeenCalledTimes(1)
   })
 
   it('AchievementsModal: renders progress bar, categories, and responds to close button', () => {

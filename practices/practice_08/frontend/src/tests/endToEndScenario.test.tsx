@@ -72,7 +72,16 @@ describe('Criterion 11: Full End-to-End User Scenario', () => {
     fireEvent.keyDown(window, { key: 'h' })
     fireEvent.keyDown(window, { key: 'i' })
 
-    // 6. User reaches victory result scoreboard!
+    // 6. User reaches grammar quiz checkpoint!
+    await waitFor(() => {
+      expect(screen.getByTestId('topic-quiz-view')).toBeInTheDocument()
+    }, { timeout: 3000 })
+
+    // Click skip to proceed to victory scoreboard
+    const skipBtn = screen.getByTestId('skip-quiz-btn')
+    fireEvent.click(skipBtn)
+
+    // 7. User reaches victory result scoreboard!
     await waitFor(() => {
       expect(screen.getByTestId('success-result')).toBeInTheDocument()
     }, { timeout: 3000 })
@@ -81,7 +90,7 @@ describe('Criterion 11: Full End-to-End User Scenario', () => {
     expect(screen.getByTestId('result-wpm')).toBeInTheDocument()
     expect(screen.getByTestId('result-accuracy')).toBeInTheDocument()
 
-    // 7. Click button to return to topics
+    // 8. Click button to return to topics
     const backBtn = screen.getByTestId('next-lesson-btn')
     fireEvent.click(backBtn)
 

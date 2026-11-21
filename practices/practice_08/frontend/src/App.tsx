@@ -3,6 +3,7 @@ import { Keyboard, BookOpen, BarChart3, Sparkles, Trophy, Music } from 'lucide-r
 import type { GrammarTopic, LessonData, SessionStats, UserStatsSummary, VocabularyWord } from './types'
 import { api } from './services/api'
 import { TopicSelector } from './components/grammar/TopicSelector'
+import { TopicQuizView } from './components/grammar/TopicQuizView'
 import { TypingEngine } from './components/typing/TypingEngine'
 import { VocabularyView } from './components/vocabulary/VocabularyView'
 import { StatsView } from './components/stats/StatsView'
@@ -16,7 +17,7 @@ import { ErrorState } from './components/states/ErrorState'
 import { SuccessResult } from './components/states/SuccessResult'
 
 type ActiveTab = 'PRACTICE' | 'VOCABULARY' | 'STATS' | 'LEADERBOARD' | 'MUSIC'
-type PracticeMode = 'TOPICS' | 'TYPING' | 'RESULT'
+type PracticeMode = 'TOPICS' | 'TYPING' | 'QUIZ' | 'RESULT'
 
 export function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('PRACTICE')
@@ -126,7 +127,7 @@ export function App() {
       setTimeout(() => setUnlockedToast(null), 5000)
     }
 
-    setPracticeMode('RESULT')
+    setPracticeMode('QUIZ')
   }
 
   // Add word to vocabulary
@@ -321,6 +322,14 @@ export function App() {
                   <TypingEngine
                     lesson={currentLesson}
                     onFinish={handleFinishTyping}
+                  />
+                )}
+
+                {practiceMode === 'QUIZ' && currentLesson && (
+                  <TopicQuizView
+                    lesson={currentLesson}
+                    onComplete={() => setPracticeMode('RESULT')}
+                    onSkip={() => setPracticeMode('RESULT')}
                   />
                 )}
 

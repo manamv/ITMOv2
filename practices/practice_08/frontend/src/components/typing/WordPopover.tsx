@@ -19,6 +19,7 @@ const DICTIONARY_MAP: Record<string, { translation: string; phonetic: string; pa
   this: { translation: 'этот, эта', phonetic: '/ðɪs/', partOfSpeech: 'determiner' },
   difficult: { translation: 'сложный, трудный', phonetic: '/ˈdɪf.ɪ.kəlt/', partOfSpeech: 'adjective' },
   report: { translation: 'отчёт, доклад', phonetic: '/rɪˈpɔːt/', partOfSpeech: 'noun' },
+  database: { translation: 'база данных', phonetic: '/ˈdeɪtəbeɪs/', partOfSpeech: 'noun' },
   on: { translation: 'на, в (предлог)', phonetic: '/ɒn/', partOfSpeech: 'preposition' },
   time: { translation: 'время (on time = вовремя)', phonetic: '/taɪm/', partOfSpeech: 'noun' },
   thoroughly: { translation: 'тщательно, досконально', phonetic: '/ˈθʌr.ə.li/', partOfSpeech: 'adverb' },
