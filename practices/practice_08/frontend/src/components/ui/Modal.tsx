@@ -34,16 +34,16 @@ export const Modal: React.FC<ModalProps> = ({
       aria-labelledby="modal-title"
     >
       <div 
-        className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 text-slate-200 space-y-4"
+        className="w-full max-w-lg rounded-2xl bg-[#0d1527] border border-[#1e2c4a] shadow-2xl p-6 text-slate-200 space-y-4"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1e2c4a]">
           <h2 id="modal-title" className="text-lg font-bold text-white">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#16233d] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 cursor-pointer"
             aria-label="Закрыть диалог"
           >
             <X className="w-5 h-5" />

@@ -2,10 +2,14 @@
 
 @layer base {
   :root {
-    --bg-main: #0b0f17;
-    --bg-card: #131923;
-    --border-card: #202b3c;
-    --accent-emerald: #10b981;
+    --bg-main: #070b14;
+    --bg-canvas: #0a0f1d;
+    --bg-card: #0d1527;
+    --bg-elevated: #152038;
+    --border-card: #1e2c4a;
+    --border-subtle: #17233c;
+    --accent-sky: #38bdf8;
+    --accent-indigo: #6366f1;
     --accent-cyan: #06b6d4;
     --accent-rose: #f43f5e;
     --accent-amber: #f59e0b;
@@ -21,9 +25,30 @@
     overflow-x: hidden;
   }
 
+  ::selection {
+    background-color: rgba(56, 189, 248, 0.35);
+    color: #f8fafc;
+  }
+
   code, pre, .font-mono {
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
+}
+
+/* Custom sleek midnight scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #070b14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2c4a;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #38bdf8;
 }
 
 /* Finger color classes for Touch Typing zones */
@@ -39,9 +64,9 @@
 
 /* Active key neon glow animation */
 .key-pulse-active {
-  box-shadow: 0 0 18px 3px rgba(16, 185, 129, 0.65) !important;
-  border-color: #34d399 !important;
-  background-color: rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 0 20px 4px rgba(56, 189, 248, 0.7) !important;
+  border-color: #38bdf8 !important;
+  background-color: rgba(56, 189, 248, 0.3) !important;
   color: #ffffff !important;
   transform: translateY(-2px);
   transition: all 0.1s ease;

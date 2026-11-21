@@ -269,9 +269,9 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       data-testid="typing-engine"
     >
       {/* 1. Metrics & Control Bar (Compact, 1 Row) */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-2 bg-slate-900/90 backdrop-blur p-2.5 rounded-2xl border border-slate-800 shrink-0">
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#0d1527]/90 backdrop-blur p-2.5 rounded-2xl border border-sky-500/20 shadow-lg shadow-black/40 shrink-0">
         <div className="flex items-center space-x-2">
-          <span className="text-[11px] px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
+          <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold border border-sky-500/25">
             {lesson.level} • {lesson.title}
           </span>
           <span className="text-[11px] text-slate-400 font-mono">
@@ -288,11 +288,11 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           </div>
           <div className="flex items-center space-x-1" data-testid="metric-wpm">
             <span className="text-slate-500 text-[10px]">WPM</span>
-            <span className="text-emerald-400 font-bold text-sm">{calculateWpm()}</span>
+            <span className="text-sky-400 font-bold text-sm">{calculateWpm()}</span>
           </div>
           <div className="flex items-center space-x-1" data-testid="metric-accuracy">
             <span className="text-slate-500 text-[10px]">ТОЧНОСТЬ</span>
-            <span className="text-cyan-400 font-bold text-sm">{calculateAccuracy()}%</span>
+            <span className="text-indigo-400 font-bold text-sm">{calculateAccuracy()}%</span>
           </div>
           <div className="flex items-center space-x-1" data-testid="metric-errors">
             <span className="text-slate-500 text-[10px]">ОШИБКИ</span>
@@ -305,7 +305,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           {/* Full Sentence Pronounce */}
           <button
             onClick={handlePronounce}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-sky-400 transition cursor-pointer border border-sky-500/15"
             title="Озвучить все предложение"
             aria-label="Озвучить предложение"
             data-testid="audio-pronounce-btn"
@@ -427,14 +427,14 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       </div>
 
       {/* 2. Main Text Display Box (Selection-based Word Translation, No-Scroll) */}
-      <div className="relative p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl shrink-0 space-y-2">
+      <div className="relative p-4 sm:p-5 rounded-2xl bg-[#09101f]/95 border border-sky-500/20 shadow-2xl shadow-sky-950/40 shrink-0 space-y-2">
         {/* Pause Overlay with Resume button and instructions */}
         {isPaused && (
           <div
-            className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm rounded-2xl z-20 flex flex-col items-center justify-center space-y-3 p-4 animate-fade-in"
+            className="absolute inset-0 bg-[#070b14]/90 backdrop-blur-sm rounded-2xl z-20 flex flex-col items-center justify-center space-y-3 p-4 animate-fade-in"
             data-testid="pause-overlay"
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10">
+            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/10">
               <Pause className="w-6 h-6" />
             </div>
             <div className="text-center space-y-1">
@@ -445,7 +445,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             </div>
             <button
               onClick={() => setIsPaused(false)}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center space-x-2"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600 hover:from-sky-300 hover:to-indigo-500 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/25 transition cursor-pointer flex items-center space-x-2"
               data-testid="resume-btn"
             >
               <Play className="w-4 h-4 fill-slate-950" />
@@ -464,7 +464,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
 
         {/* Russian Translation / Context */}
         <div className="text-xs font-medium text-slate-400 flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+          <span className="w-2 h-2 rounded-full bg-sky-400"></span>
           <span>Перевод: «{currentSentence.russian}»</span>
         </div>
 
@@ -494,8 +494,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
 
             if (idx < typedChars.length) {
               if (typedChars[idx] === char) {
-                // Correctly typed
-                charClass = 'text-emerald-400 font-medium'
+                // Correctly typed - Linear Electric Sky Blue
+                charClass = 'text-sky-400 font-medium'
                 displayChar = char
               } else {
                 // Mistake: letter lights up in red, user must erase with backspace to complete

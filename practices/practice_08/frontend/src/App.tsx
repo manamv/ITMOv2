@@ -170,9 +170,9 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0f17] text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#070b14] bg-[radial-gradient(ellipse_80%_60%_at_50%_-15%,rgba(56,189,248,0.12),rgba(7,11,20,0))] text-slate-100">
       {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur sticky top-0 z-40 px-6 py-2.5 shrink-0">
+      <header className="border-b border-sky-500/15 bg-[#0a0f1d]/85 backdrop-blur-xl sticky top-0 z-40 px-6 py-2.5 shrink-0 shadow-lg shadow-black/40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo & Product Name */}
           <div 
@@ -182,18 +182,18 @@ export function App() {
             }}
             className="flex items-center space-x-3 cursor-pointer select-none"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-mono font-bold text-slate-950 text-base shadow-lg shadow-emerald-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-400 via-indigo-500 to-cyan-400 flex items-center justify-center font-mono font-black text-slate-950 text-base shadow-lg shadow-sky-500/25 ring-1 ring-white/20">
               LT
             </div>
             <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-white via-sky-100 to-indigo-200 bg-clip-text text-transparent">
                 LinguaType
               </span>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="flex items-center bg-slate-900/90 p-1 rounded-2xl border border-slate-800 text-xs font-medium" aria-label="Основная навигация">
+          <nav className="flex items-center bg-[#091020]/90 p-1 rounded-2xl border border-sky-500/15 text-xs font-medium" aria-label="Основная навигация">
             <button
               onClick={() => {
                 setActiveTab('PRACTICE')
@@ -201,8 +201,8 @@ export function App() {
               }}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'PRACTICE'
-                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
+                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
               }`}
             >
               <Keyboard className="w-3.5 h-3.5" />
@@ -213,8 +213,8 @@ export function App() {
               onClick={() => setActiveTab('VOCABULARY')}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'VOCABULARY'
-                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
+                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -225,8 +225,8 @@ export function App() {
               onClick={() => setActiveTab('STATS')}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'STATS'
-                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
+                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
@@ -237,8 +237,8 @@ export function App() {
               onClick={() => setActiveTab('LEADERBOARD')}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'LEADERBOARD'
-                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
+                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
               }`}
               data-testid="tab-leaderboard"
             >
@@ -250,8 +250,8 @@ export function App() {
               onClick={() => setActiveTab('MUSIC')}
               className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'MUSIC'
-                  ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-sky-400 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25 ring-1 ring-sky-300/30'
+                  : 'text-slate-400 hover:text-sky-300 hover:bg-[#162038]/60'
               }`}
               data-testid="tab-music"
             >
@@ -272,7 +272,7 @@ export function App() {
               <span>Награды ({achievementsService.getUnlockedCount()}/10)</span>
             </button>
 
-            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400">
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-[#0d1527] border border-sky-500/20 text-sky-400 shadow-sm">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{statsSummary.avgWpm} WPM</span>
             </div>

@@ -69,12 +69,19 @@ export type FingerType =
   | 'pinky-r' 
   | 'thumb'
 
+export interface SubtitleWord {
+  word: string
+  start: number
+  end: number
+}
+
 export interface MusicSubtitleLine {
   id: number
   startSeconds: number
   endSeconds: number
   textEn: string
   textRu: string
+  words?: SubtitleWord[]
 }
 
 export interface GrammarBreakdownItem {

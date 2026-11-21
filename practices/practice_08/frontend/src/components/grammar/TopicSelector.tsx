@@ -48,8 +48,8 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
               onClick={() => setSelectedLevel(level)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 isCurrent
-                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                  ? 'bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/25'
+                  : 'bg-[#0d1527] border border-[#1e2c4a] text-slate-400 hover:text-white hover:border-sky-500/40'
               }`}
             >
               {level === 'ALL' ? 'Все уровни' : `${level}`}
@@ -59,18 +59,18 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
       </div>
 
       {/* Recommended Adaptive Card (Weak Keys) */}
-      <Card variant="active" className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/30">
+      <Card variant="active" className="relative overflow-hidden bg-gradient-to-r from-[#0d1527] via-[#0f1b33] to-[#16254a] border border-sky-500/30">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
-              <Badge variant="cyan">Адаптивный алгоритм</Badge>
+              <Badge variant="sky">Адаптивный алгоритм</Badge>
               <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-cyan-400" />
+                <Sparkles className="w-3 h-3 text-sky-400" />
                 Персональная подборка
               </span>
             </div>
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Target className="w-5 h-5 text-emerald-400" />
+              <Target className="w-5 h-5 text-sky-400" />
               Тренировка слабых букв: {weakKeys.length > 0 ? `[${weakKeys.slice(0, 4).map(k => k.toUpperCase()).join(', ')}]` : '[R, T, P]'}
             </h3>
             <p className="text-xs text-slate-400 max-w-xl">
@@ -94,19 +94,19 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
             key={topic.id}
             variant="interactive"
             onClick={() => onSelectTopic(topic.id)}
-            className="flex flex-col justify-between group"
+            className="flex flex-col justify-between group hover:border-sky-500/50"
             data-testid={`topic-card-${topic.id}`}
           >
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <Badge variant={topic.level === 'A1' ? 'emerald' : topic.level === 'B1' ? 'cyan' : 'purple'}>
+                <Badge variant={topic.level === 'A1' ? 'sky' : topic.level === 'B1' ? 'cyan' : 'purple'}>
                   {topic.level}
                 </Badge>
                 <span className="text-slate-500 font-mono text-[11px]">
                   {topic.sentenceCount} предложений
                 </span>
               </div>
-              <h3 className="font-bold text-base text-white group-hover:text-emerald-400 transition">
+              <h3 className="font-bold text-base text-white group-hover:text-sky-300 transition">
                 {topic.title}
               </h3>
               <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
@@ -114,7 +114,7 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
               </p>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-emerald-400 font-medium group-hover:translate-x-1 transition-transform">
+            <div className="pt-4 mt-4 border-t border-[#1e2c4a] flex items-center justify-between text-xs text-sky-400 font-medium group-hover:translate-x-1 transition-transform">
               <span>Начать тренировку</span>
               <ArrowRight className="w-4 h-4" />
             </div>

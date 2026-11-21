@@ -40,11 +40,11 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
       aria-labelledby="achievements-modal-title"
       data-testid="achievements-modal"
     >
-      <div className="relative w-full max-w-3xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-3xl rounded-3xl bg-[#0d1527] border border-[#1e2c4a] shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-[#1e2c4a] pb-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/20">
               <Trophy className="w-5 h-5" />
             </div>
             <div>
@@ -62,7 +62,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+            className="p-2 rounded-xl bg-[#101828] hover:bg-[#16233d] text-slate-400 hover:text-white transition cursor-pointer"
             aria-label="Закрыть достижения"
           >
             <X className="w-4 h-4" />
@@ -70,14 +70,14 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
         </div>
 
         {/* Progress Bar */}
-        <div className="space-y-2 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+        <div className="space-y-2 bg-[#0a0f1d] p-4 rounded-2xl border border-[#1e2c4a]">
           <div className="flex justify-between text-xs font-mono">
             <span className="text-slate-400">Общий прогресс разблокировки</span>
             <span className="text-amber-400 font-bold">{percent}%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-[#101828] overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-amber-500 via-emerald-400 to-cyan-400 rounded-full transition-all duration-500 shadow-lg"
+              className="h-full bg-gradient-to-r from-sky-400 via-indigo-500 to-amber-400 rounded-full transition-all duration-500 shadow-lg"
               style={{ width: `${percent}%` }}
             />
           </div>
@@ -99,8 +99,8 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
               onClick={() => setFilter(tab.id)}
               className={`px-3 py-1.5 rounded-xl border transition cursor-pointer shrink-0 ${
                 filter === tab.id
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-semibold'
-                  : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:text-white'
+                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 font-semibold'
+                  : 'bg-[#101828] text-slate-400 border-[#1e2c4a] hover:text-white'
               }`}
             >
               {tab.label}
@@ -117,8 +117,8 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                 key={ach.id}
                 className={`p-4 rounded-2xl border transition-all flex items-start space-x-3.5 ${
                   ach.unlocked
-                    ? 'bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-900 border-amber-500/30 shadow-md shadow-amber-500/5'
-                    : 'bg-slate-950/60 border-slate-800/60 opacity-60'
+                    ? 'bg-gradient-to-br from-sky-500/10 via-[#0d1527] to-[#121e36] border-sky-500/30 shadow-md shadow-sky-500/5'
+                    : 'bg-[#0a0f1d]/60 border-[#1e2c4a]/60 opacity-60'
                 }`}
               >
                 {/* Icon Badge */}

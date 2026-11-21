@@ -23,7 +23,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-emerald-400" />
+            <BarChart3 className="w-6 h-6 text-sky-400" />
             Аналитика и тепловая карта
           </h2>
           <p className="text-xs text-slate-400 mt-1">
@@ -37,7 +37,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
               weakKeysService.clear()
               onResetStats()
             }}
-            className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 transition cursor-pointer"
+            className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg bg-[#0d1527] border border-[#1e2c4a] hover:border-sky-500/40 transition cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Сбросить историю</span>
@@ -47,23 +47,23 @@ export const StatsView: React.FC<StatsViewProps> = ({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="text-center p-4">
+        <Card className="text-center p-4 bg-[#0d1527] border border-[#1e2c4a]">
           <div className="text-[11px] text-slate-500 font-medium mb-1">СРЕДНЯЯ СКОРОСТЬ</div>
-          <div className="text-3xl font-extrabold text-emerald-400 font-mono" data-testid="stat-avg-wpm">
+          <div className="text-3xl font-extrabold text-sky-400 font-mono" data-testid="stat-avg-wpm">
             {summary.avgWpm} <span className="text-xs font-normal text-slate-400">WPM</span>
           </div>
           <div className="text-[10px] text-slate-500 mt-1">слов в минуту</div>
         </Card>
 
-        <Card className="text-center p-4">
+        <Card className="text-center p-4 bg-[#0d1527] border border-[#1e2c4a]">
           <div className="text-[11px] text-slate-500 font-medium mb-1">ТОЧНОСТЬ</div>
-          <div className="text-3xl font-extrabold text-cyan-400 font-mono" data-testid="stat-avg-acc">
+          <div className="text-3xl font-extrabold text-indigo-400 font-mono" data-testid="stat-avg-acc">
             {summary.avgAccuracy}%
           </div>
           <div className="text-[10px] text-slate-500 mt-1">без опечаток</div>
         </Card>
 
-        <Card className="text-center p-4">
+        <Card className="text-center p-4 bg-[#0d1527] border border-[#1e2c4a]">
           <div className="text-[11px] text-slate-500 font-medium mb-1">СЕССИЙ ПРОЙДЕНО</div>
           <div className="text-3xl font-extrabold text-white font-mono" data-testid="stat-total-sessions">
             {summary.totalSessions}
@@ -71,7 +71,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
           <div className="text-[10px] text-slate-500 mt-1">тренировок</div>
         </Card>
 
-        <Card className="text-center p-4">
+        <Card className="text-center p-4 bg-[#0d1527] border border-[#1e2c4a]">
           <div className="text-[11px] text-slate-500 font-medium mb-1">ВСЕГО ОШИБОК</div>
           <div className="text-3xl font-extrabold text-rose-400 font-mono" data-testid="stat-total-errors">
             {summary.totalErrors}
@@ -81,7 +81,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
       </div>
 
       {/* Weak Keys Alert */}
-      <Card className="bg-slate-900 border border-slate-800 space-y-3">
+      <Card className="bg-[#0d1527] border border-[#1e2c4a] space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-white flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-400" />

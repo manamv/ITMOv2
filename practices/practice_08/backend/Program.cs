@@ -146,12 +146,95 @@ var musicLessons = new List<MusicLesson>
         "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
         "Present Perfect vs Past Simple, gerunds and colloquial contractions",
         [
-            new(1, 8.5, 14.0, "i have paid my dues time after time", "я платил по счетам снова и снова"),
-            new(2, 14.0, 19.5, "i did my sentence but committed no crime", "я отбыл свой срок но не совершал преступления"),
-            new(3, 19.5, 25.0, "and bad mistakes i have made a few", "и тяжких ошибок я совершил немного"),
-            new(4, 25.0, 37.0, "i have had my share of sand kicked in my face but i have come through", "мне тоже швыряли песок в лицо но я выстоял"),
-            new(5, 37.0, 50.0, "we are the champions my friends and we will keep on fighting till the end", "мы чемпионы друзья мои и мы продолжим бороться до конца"),
-            new(6, 50.0, 64.0, "we are the champions no time for losers because we are the champions of the world", "мы чемпионы не время для проигравших потому что мы чемпионы мира")
+            new(1, 8.5, 14.0, "i have paid my dues time after time", "я платил по счетам снова и снова",
+                [
+                    new("i", 8.5, 8.9),
+                    new("have", 8.9, 9.4),
+                    new("paid", 9.4, 10.3),
+                    new("my", 10.3, 10.8),
+                    new("dues", 10.8, 11.9),
+                    new("time", 11.9, 12.5),
+                    new("after", 12.5, 13.1),
+                    new("time", 13.1, 14.0)
+                ]),
+            new(2, 14.0, 19.5, "i did my sentence but committed no crime", "я отбыл свой срок но не совершал преступления",
+                [
+                    new("i", 14.0, 14.4),
+                    new("did", 14.4, 15.0),
+                    new("my", 15.0, 15.4),
+                    new("sentence", 15.4, 16.9),
+                    new("but", 16.9, 17.3),
+                    new("committed", 17.3, 18.4),
+                    new("no", 18.4, 18.8),
+                    new("crime", 18.8, 19.5)
+                ]),
+            new(3, 19.5, 25.0, "and bad mistakes i have made a few", "и тяжких ошибок я совершил немного",
+                [
+                    new("and", 19.5, 20.0),
+                    new("bad", 20.0, 20.7),
+                    new("mistakes", 20.7, 22.0),
+                    new("i", 22.0, 22.3),
+                    new("have", 22.3, 22.7),
+                    new("made", 22.7, 23.4),
+                    new("a", 23.4, 23.8),
+                    new("few", 23.8, 25.0)
+                ]),
+            new(4, 25.0, 37.0, "i have had my share of sand kicked in my face but i have come through", "мне тоже швыряли песок в лицо но я выстоял",
+                [
+                    new("i", 25.0, 25.4),
+                    new("have", 25.4, 25.8),
+                    new("had", 25.8, 26.3),
+                    new("my", 26.3, 26.8),
+                    new("share", 26.8, 28.2),
+                    new("of", 28.2, 28.6),
+                    new("sand", 28.6, 29.8),
+                    new("kicked", 29.8, 30.7),
+                    new("in", 30.7, 31.0),
+                    new("my", 31.0, 31.4),
+                    new("face", 31.4, 33.2),
+                    new("but", 33.2, 33.7),
+                    new("i", 33.7, 34.0),
+                    new("have", 34.0, 34.5),
+                    new("come", 34.5, 35.4),
+                    new("through", 35.4, 37.0)
+                ]),
+            new(5, 37.0, 50.0, "we are the champions my friends and we will keep on fighting till the end", "мы чемпионы друзья мои и мы продолжим бороться до конца",
+                [
+                    new("we", 37.0, 37.9),
+                    new("are", 37.9, 38.6),
+                    new("the", 38.6, 39.2),
+                    new("champions", 39.2, 42.6),
+                    new("my", 42.6, 43.4),
+                    new("friends", 43.4, 45.6),
+                    new("and", 45.6, 46.1),
+                    new("we", 46.1, 46.6),
+                    new("will", 46.6, 47.1),
+                    new("keep", 47.1, 47.7),
+                    new("on", 47.7, 48.2),
+                    new("fighting", 48.2, 49.0),
+                    new("till", 49.0, 49.3),
+                    new("the", 49.3, 49.6),
+                    new("end", 49.6, 50.5)
+                ]),
+            new(6, 50.0, 64.0, "we are the champions no time for losers because we are the champions of the world", "мы чемпионы не время для проигравших потому что мы чемпионы мира",
+                [
+                    new("we", 50.5, 51.3),
+                    new("are", 51.3, 52.0),
+                    new("the", 52.0, 52.5),
+                    new("champions", 52.5, 55.6),
+                    new("no", 55.6, 56.2),
+                    new("time", 56.2, 56.9),
+                    new("for", 56.9, 57.3),
+                    new("losers", 57.3, 58.7),
+                    new("because", 58.7, 59.5),
+                    new("we", 59.5, 60.0),
+                    new("are", 60.0, 60.5),
+                    new("the", 60.5, 61.0),
+                    new("champions", 61.0, 62.8),
+                    new("of", 62.8, 63.1),
+                    new("the", 63.1, 63.4),
+                    new("world", 63.4, 64.5)
+                ])
         ],
         [
             new("Present Perfect for Life Experience", "i have paid my dues time after time", "have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.", "present-perfect"),
@@ -175,11 +258,69 @@ var musicLessons = new List<MusicLesson>
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
         "Infinitive of purpose, modal verbs and expressions of regret",
         [
-            new(1, 15.5, 23.0, "come up to meet you tell you i am sorry", "прийти чтобы встретиться с тобой сказать что мне жаль"),
-            new(2, 23.0, 31.0, "you do not know how lovely you are", "ты даже не знаешь насколько ты прекрасна"),
-            new(3, 31.0, 39.0, "i had to find you tell you i need you", "я должен был найти тебя сказать что ты мне нужна"),
-            new(4, 39.0, 47.0, "tell you i set you apart", "сказать что ты для меня особенная"),
-            new(5, 47.0, 56.0, "nobody said it was easy it is such a shame for us to part", "никто не говорил что будет легко так жаль что нам пришлось расстаться")
+            new(1, 15.5, 23.0, "come up to meet you tell you i am sorry", "прийти чтобы встретиться с тобой сказать что мне жаль",
+                [
+                    new("come", 15.5, 16.3),
+                    new("up", 16.3, 17.0),
+                    new("to", 17.0, 17.5),
+                    new("meet", 17.5, 18.5),
+                    new("you", 18.5, 19.3),
+                    new("tell", 19.3, 20.0),
+                    new("you", 20.0, 20.5),
+                    new("i", 20.5, 21.0),
+                    new("am", 21.0, 21.8),
+                    new("sorry", 21.8, 23.0)
+                ]),
+            new(2, 23.0, 31.0, "you do not know how lovely you are", "ты даже не знаешь насколько ты прекрасна",
+                [
+                    new("you", 23.0, 23.8),
+                    new("do", 23.8, 24.3),
+                    new("not", 24.3, 24.8),
+                    new("know", 24.8, 25.8),
+                    new("how", 25.8, 26.5),
+                    new("lovely", 26.5, 28.0),
+                    new("you", 28.0, 28.8),
+                    new("are", 28.8, 31.0)
+                ]),
+            new(3, 31.0, 39.0, "i had to find you tell you i need you", "я должен был найти тебя сказать что ты мне нужна",
+                [
+                    new("i", 31.0, 31.6),
+                    new("had", 31.6, 32.2),
+                    new("to", 32.2, 32.6),
+                    new("find", 32.6, 33.8),
+                    new("you", 33.8, 34.6),
+                    new("tell", 34.6, 35.3),
+                    new("you", 35.3, 35.8),
+                    new("i", 35.8, 36.3),
+                    new("need", 36.3, 37.5),
+                    new("you", 37.5, 39.0)
+                ]),
+            new(4, 39.0, 47.0, "tell you i set you apart", "сказать что ты для меня особенная",
+                [
+                    new("tell", 39.0, 39.8),
+                    new("you", 39.8, 40.5),
+                    new("i", 40.5, 41.2),
+                    new("set", 41.2, 42.2),
+                    new("you", 42.2, 43.0),
+                    new("apart", 43.0, 47.0)
+                ]),
+            new(5, 47.0, 56.0, "nobody said it was easy it is such a shame for us to part", "никто не говорил что будет легко так жаль что нам пришлось расстаться",
+                [
+                    new("nobody", 47.0, 48.0),
+                    new("said", 48.0, 48.7),
+                    new("it", 48.7, 49.1),
+                    new("was", 49.1, 49.6),
+                    new("easy", 49.6, 51.0),
+                    new("it", 51.0, 51.5),
+                    new("is", 51.5, 52.0),
+                    new("such", 52.0, 52.6),
+                    new("a", 52.6, 52.9),
+                    new("shame", 52.9, 53.8),
+                    new("for", 53.8, 54.2),
+                    new("us", 54.2, 54.7),
+                    new("to", 54.7, 55.1),
+                    new("part", 55.1, 56.5)
+                ])
         ],
         [
             new("Infinitive of Purpose", "come up to meet you tell you i am sorry", "Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.", "infinitive"),
@@ -203,10 +344,60 @@ var musicLessons = new List<MusicLesson>
         "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80",
         "Past Simple, Used to and contrast with present",
         [
-            new(1, 0.0, 5.0, "yesterday all my troubles seemed so far away", "вчера все мои невзгоды казались такими далекими"),
-            new(2, 5.0, 10.0, "now it looks as though they are here to stay", "теперь кажется будто они останутся навсегда"),
-            new(3, 10.0, 16.0, "suddenly i am not half the man i used to be", "вдруг я больше не тот человек кем был раньше"),
-            new(4, 16.0, 22.0, "why she had to go i do not know she would not say", "почему она должна была уйти я не знаю она не сказала")
+            new(1, 0.0, 5.0, "yesterday all my troubles seemed so far away", "вчера все мои невзгоды казались такими далекими",
+                [
+                    new("yesterday", 0.0, 1.4),
+                    new("all", 1.4, 1.8),
+                    new("my", 1.8, 2.2),
+                    new("troubles", 2.2, 3.0),
+                    new("seemed", 3.0, 3.6),
+                    new("so", 3.6, 4.0),
+                    new("far", 4.0, 4.4),
+                    new("away", 4.4, 5.0)
+                ]),
+            new(2, 5.0, 10.0, "now it looks as though they are here to stay", "теперь кажется будто они останутся навсегда",
+                [
+                    new("now", 5.0, 5.7),
+                    new("it", 5.7, 6.1),
+                    new("looks", 6.1, 6.8),
+                    new("as", 6.8, 7.2),
+                    new("though", 7.2, 7.8),
+                    new("they", 7.8, 8.2),
+                    new("are", 8.2, 8.6),
+                    new("here", 8.6, 9.1),
+                    new("to", 9.1, 9.4),
+                    new("stay", 9.4, 10.0)
+                ]),
+            new(3, 10.0, 16.0, "suddenly i am not half the man i used to be", "вдруг я больше не тот человек кем был раньше",
+                [
+                    new("suddenly", 10.0, 11.2),
+                    new("i", 11.2, 11.6),
+                    new("am", 11.6, 12.0),
+                    new("not", 12.0, 12.5),
+                    new("half", 12.5, 13.0),
+                    new("the", 13.0, 13.3),
+                    new("man", 13.3, 13.8),
+                    new("i", 13.8, 14.2),
+                    new("used", 14.2, 14.8),
+                    new("to", 14.8, 15.1),
+                    new("be", 15.1, 16.0)
+                ]),
+            new(4, 16.0, 22.0, "why she had to go i do not know she would not say", "почему она должна была уйти я не знаю она не сказала",
+                [
+                    new("why", 16.0, 16.6),
+                    new("she", 16.6, 17.0),
+                    new("had", 17.0, 17.5),
+                    new("to", 17.5, 17.8),
+                    new("go", 17.8, 18.5),
+                    new("i", 18.5, 18.9),
+                    new("do", 18.9, 19.3),
+                    new("not", 19.3, 19.7),
+                    new("know", 19.7, 20.4),
+                    new("she", 20.4, 20.8),
+                    new("would", 20.8, 21.2),
+                    new("not", 21.2, 21.5),
+                    new("say", 21.5, 22.0)
+                ])
         ],
         [
             new("Past Simple for Past States", "all my troubles seemed so far away", "seemed правильный глагол в Past Simple указывает на состояние в прошлом.", "past-simple"),
@@ -595,12 +786,19 @@ public record LeaderboardRequest(
     string Level
 );
 
+public record SubtitleWord(
+    string Word,
+    double Start,
+    double End
+);
+
 public record MusicSubtitleLine(
     int Id,
     double StartSeconds,
     double EndSeconds,
     string TextEn,
-    string TextRu
+    string TextRu,
+    List<SubtitleWord>? Words = null
 );
 
 public record GrammarBreakdownItem(

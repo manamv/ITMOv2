@@ -118,7 +118,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Фильтр по уровню">
         <div className="flex items-center space-x-1.5 text-xs text-slate-400 mr-2">
-          <Filter className="w-3.5 h-3.5 text-emerald-400" />
+          <Filter className="w-3.5 h-3.5 text-sky-400" />
           <span>Уровень:</span>
         </div>
         {[
@@ -132,8 +132,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
             onClick={() => handleFilterChange(tab.id)}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
               activeFilter === tab.id
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300'
+                ? 'bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-600 text-slate-950 font-bold shadow-md shadow-sky-500/20'
+                : 'bg-[#0d1527] border border-[#1e2c4a] text-slate-300 hover:text-white hover:border-sky-500/40'
             }`}
           >
             {tab.label}
@@ -146,8 +146,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           {/* 2nd Place */}
           {top2 ? (
-            <div className="order-2 md:order-1 p-5 rounded-2xl bg-slate-900/90 border border-slate-700/60 flex flex-col items-center text-center shadow-lg hover:border-slate-500 transition">
-              <div className="w-12 h-12 rounded-full bg-slate-800 border-2 border-slate-400 flex items-center justify-center mb-3 text-slate-300 shadow-md">
+            <div className="order-2 md:order-1 p-5 rounded-2xl bg-[#0d1527]/90 border border-[#1e2c4a] flex flex-col items-center text-center shadow-lg hover:border-slate-500 transition">
+              <div className="w-12 h-12 rounded-full bg-[#101828] border-2 border-slate-400 flex items-center justify-center mb-3 text-slate-300 shadow-md">
                 <Medal className="w-6 h-6 text-slate-300" />
               </div>
               <Badge variant="slate" className="mb-2">#2 Серебро</Badge>
@@ -156,13 +156,13 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
                 <span className="text-2xl font-extrabold text-slate-200">{top2.wpm}</span>
                 <span className="text-xs text-slate-400 ml-1">WPM</span>
               </div>
-              <span className="text-xs text-cyan-400 mt-1 font-mono">{top2.accuracy}% точность</span>
+              <span className="text-xs text-sky-400 mt-1 font-mono">{top2.accuracy}% точность</span>
               <span className="text-[11px] text-slate-500 mt-2 truncate max-w-full">{top2.topicTitle}</span>
             </div>
           ) : <div className="order-2 md:order-1" />}
 
           {/* 1st Place (Gold Center) */}
-          <div className="order-1 md:order-2 p-6 rounded-2xl bg-gradient-to-b from-amber-500/10 via-slate-900/90 to-slate-900/90 border-2 border-amber-500/50 flex flex-col items-center text-center shadow-2xl shadow-amber-500/10 scale-105">
+          <div className="order-1 md:order-2 p-6 rounded-2xl bg-gradient-to-b from-amber-500/10 via-[#0d1527]/95 to-[#0d1527]/95 border-2 border-amber-500/50 flex flex-col items-center text-center shadow-2xl shadow-amber-500/10 scale-105">
             <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-500 flex items-center justify-center mb-3 text-slate-950 font-bold shadow-lg shadow-amber-500/30">
               <Trophy className="w-7 h-7 text-slate-950" />
             </div>
@@ -174,14 +174,14 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
               <span className="text-3xl font-extrabold text-amber-400">{top1.wpm}</span>
               <span className="text-xs text-slate-400 ml-1 font-semibold">WPM</span>
             </div>
-            <span className="text-xs text-cyan-400 mt-1 font-mono font-medium">{top1.accuracy}% точность</span>
+            <span className="text-xs text-sky-400 mt-1 font-mono font-medium">{top1.accuracy}% точность</span>
             <span className="text-[11px] text-slate-400 mt-2 truncate max-w-full">{top1.topicTitle}</span>
           </div>
 
           {/* 3rd Place */}
           {top3 ? (
-            <div className="order-3 p-5 rounded-2xl bg-slate-900/90 border border-amber-700/50 flex flex-col items-center text-center shadow-lg hover:border-amber-600 transition">
-              <div className="w-12 h-12 rounded-full bg-slate-800 border-2 border-amber-600 flex items-center justify-center mb-3 text-amber-500 shadow-md">
+            <div className="order-3 p-5 rounded-2xl bg-[#0d1527]/90 border border-amber-700/50 flex flex-col items-center text-center shadow-lg hover:border-amber-600 transition">
+              <div className="w-12 h-12 rounded-full bg-[#101828] border-2 border-amber-600 flex items-center justify-center mb-3 text-amber-500 shadow-md">
                 <Award className="w-6 h-6 text-amber-500" />
               </div>
               <Badge variant="amber" className="mb-2">#3 Бронза</Badge>
@@ -190,7 +190,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
                 <span className="text-2xl font-extrabold text-amber-500">{top3.wpm}</span>
                 <span className="text-xs text-slate-400 ml-1">WPM</span>
               </div>
-              <span className="text-xs text-cyan-400 mt-1 font-mono">{top3.accuracy}% точность</span>
+              <span className="text-xs text-sky-400 mt-1 font-mono">{top3.accuracy}% точность</span>
               <span className="text-[11px] text-slate-500 mt-2 truncate max-w-full">{top3.topicTitle}</span>
             </div>
           ) : <div className="order-3" />}
@@ -198,8 +198,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
       )}
 
       {/* Full Leaderboard Table */}
-      <Card className="overflow-hidden border-slate-800">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+      <Card className="overflow-hidden border-[#1e2c4a]">
+        <div className="p-4 border-b border-[#1e2c4a] flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-300">Полный список лидеров</span>
           <span className="text-xs font-mono text-slate-500">Всего участников: {entries.length}</span>
         </div>
@@ -211,7 +211,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs" data-testid="leaderboard-table">
-              <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800/80 font-mono">
+              <thead className="bg-[#0a0f1d] text-slate-400 border-b border-[#1e2c4a] font-mono">
                 <tr>
                   <th className="py-3 px-4 w-16">Ранг</th>
                   <th className="py-3 px-4">Участник</th>
@@ -221,9 +221,9 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
                   <th className="py-3 px-4 text-right">Дата</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className="divide-y divide-[#1e2c4a]/60 font-mono">
                 {entries.map((entry, idx) => (
-                  <tr key={entry.id || idx} className="hover:bg-slate-800/40 transition">
+                  <tr key={entry.id || idx} className="hover:bg-[#131f38]/40 transition">
                     <td className="py-3 px-4">
                       {idx === 0 ? (
                         <span className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-bold flex items-center justify-center text-xs">1</span>
@@ -237,21 +237,21 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
                     </td>
                     <td className="py-3 px-4 font-sans font-semibold text-white">
                       <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-emerald-400 font-bold">
+                        <div className="w-6 h-6 rounded-full bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-[10px] text-sky-400 font-bold">
                           {entry.userName.slice(0, 1).toUpperCase()}
                         </div>
                         <span>{entry.userName}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="text-emerald-400 font-bold text-sm">{entry.wpm}</span>
+                      <span className="text-sky-400 font-bold text-sm">{entry.wpm}</span>
                       <span className="text-[10px] text-slate-500 ml-1">WPM</span>
                     </td>
-                    <td className="py-3 px-4 text-cyan-400 font-medium">
+                    <td className="py-3 px-4 text-indigo-400 font-medium">
                       {entry.accuracy}%
                     </td>
                     <td className="py-3 px-4 text-slate-300 font-sans">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 border border-slate-700 text-slate-300 mr-2 font-mono">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#101828] border border-[#1e2c4a] text-slate-300 mr-2 font-mono">
                         {entry.level}
                       </span>
                       <span className="truncate">{entry.topicTitle}</span>
@@ -274,14 +274,14 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
         title="Сохранить свой результат в Лидерборд"
       >
         <form onSubmit={handleSubmitScore} className="space-y-4">
-          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between font-mono text-xs">
+          <div className="p-3 rounded-xl bg-[#0a0f1d] border border-[#1e2c4a] flex items-center justify-between font-mono text-xs">
             <div>
               <span className="text-slate-500 block">Ваш показатель WPM:</span>
-              <span className="text-emerald-400 font-bold text-lg">{lastSessionStats?.wpm || 75} WPM</span>
+              <span className="text-sky-400 font-bold text-lg">{lastSessionStats?.wpm || 75} WPM</span>
             </div>
             <div>
               <span className="text-slate-500 block">Точность:</span>
-              <span className="text-cyan-400 font-bold text-lg">{lastSessionStats?.accuracy || 98.5}%</span>
+              <span className="text-indigo-400 font-bold text-lg">{lastSessionStats?.accuracy || 98.5}%</span>
             </div>
             <div>
               <span className="text-slate-500 block">Уровень:</span>
@@ -299,7 +299,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lastSessionSta
               value={nickname}
               onChange={e => setNickname(e.target.value)}
               placeholder="Например: linus_speed"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0f1d] border border-[#1e2c4a] text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
               maxLength={24}
               autoFocus
               required

@@ -71,7 +71,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-emerald-400" />
+            <BookOpen className="w-6 h-6 text-sky-400" />
             Словарь трудных слов
           </h2>
           <p className="text-xs text-slate-400 mt-1">
@@ -91,7 +91,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
       </div>
 
       {/* Add New Word Form (Validation Form - Criterion 9) */}
-      <Card className="bg-slate-900 border border-slate-800">
+      <Card className="bg-[#0d1527] border border-[#1e2c4a]">
         <h3 className="text-sm font-semibold text-white mb-3">Добавить слово в личный словарь</h3>
         <form onSubmit={handleSubmit} className="space-y-4" data-testid="add-word-form" noValidate>
           {errorMessage && (
@@ -116,7 +116,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
                 value={newWord}
                 onChange={e => setNewWord(e.target.value)}
                 placeholder="например, thoroughly"
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1e2c4a] text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
 
@@ -130,7 +130,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
                 value={newTranslation}
                 onChange={e => setNewTranslation(e.target.value)}
                 placeholder="например, тщательно"
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1e2c4a] text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
 
@@ -144,7 +144,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
                 value={newPhonetic}
                 onChange={e => setNewPhonetic(e.target.value)}
                 placeholder="например, /ˈθʌr.ə.li/"
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                className="w-full px-3 py-2 rounded-xl bg-[#0a0f1d] border border-[#1e2c4a] text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
 
       {/* Words List */}
       {words.length === 0 ? (
-        <div className="p-8 rounded-2xl bg-slate-900/50 border border-dashed border-slate-800 text-center space-y-2">
+        <div className="p-8 rounded-2xl bg-[#0d1527]/50 border border-dashed border-[#1e2c4a] text-center space-y-2">
           <BookOpen className="w-8 h-8 text-slate-600 mx-auto" />
           <p className="text-xs text-slate-400">Словарь пока пуст. Добавьте новые слова через форму выше или кликайте на слова во время набора текста.</p>
         </div>
@@ -174,13 +174,13 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
           {words.map(w => (
             <div
               key={w.id}
-              className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition"
+              className="p-4 rounded-xl bg-[#0d1527] border border-[#1e2c4a] flex items-center justify-between hover:border-sky-500/40 transition"
               data-testid={`word-item-${w.word}`}
             >
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => soundService.playWordAudio(w.word, w.audioUrl)}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition cursor-pointer"
+                  className="p-2 rounded-lg bg-[#101828] hover:bg-[#16233d] text-sky-400 transition cursor-pointer"
                   title="Прослушать произношение"
                   aria-label={`Прослушать ${w.word}`}
                 >
@@ -191,17 +191,17 @@ export const VocabularyView: React.FC<VocabularyViewProps> = ({
                     <span className="font-bold text-white text-sm font-mono">{w.word}</span>
                     <span className="text-[11px] text-slate-400 font-mono">{w.phonetic}</span>
                   </div>
-                  <div className="text-xs text-emerald-400">{w.translation}</div>
+                  <div className="text-xs text-sky-300">{w.translation}</div>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] text-slate-500 font-mono px-2 py-0.5 rounded bg-slate-800">
+                <span className="text-[10px] text-slate-500 font-mono px-2 py-0.5 rounded bg-[#101828] border border-[#1e2c4a]">
                   {w.mistakeCount} опечаток
                 </span>
                 <button
                   onClick={() => onDeleteWord(w.id)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-[#101828] transition cursor-pointer"
                   title="Удалить слово"
                   aria-label={`Удалить ${w.word}`}
                 >
