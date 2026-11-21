@@ -265,6 +265,47 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     expect(wordByWordBtn).toHaveTextContent('ВЫКЛ')
   })
 
+  it('TypingEngine: handles Esc to pause and resume, showing pause overlay and resume button', () => {
+    const dummyLesson = {
+      id: 'test-topic-pause',
+      title: 'test topic pause',
+      level: 'A1',
+      description: 'test description',
+      sentences: [
+        {
+          id: 's1',
+          english: 'pause test',
+          russian: 'тест паузы',
+          grammarTip: 'проверка Esc'
+        }
+      ]
+    }
+
+    render(<TypingEngine lesson={dummyLesson} onFinish={vi.fn()} />)
+
+    // Initially not paused
+    expect(screen.queryByTestId('pause-overlay')).not.toBeInTheDocument()
+
+    // 1. Press Escape to pause
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.getByTestId('pause-overlay')).toBeInTheDocument()
+    expect(screen.getByText('Тренировка на паузе')).toBeInTheDocument()
+
+    // 2. Press Escape again to resume
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByTestId('pause-overlay')).not.toBeInTheDocument()
+
+    // 3. Click pause toggle button
+    const pauseToggleBtn = screen.getByTestId('pause-toggle-btn')
+    fireEvent.click(pauseToggleBtn)
+    expect(screen.getByTestId('pause-overlay')).toBeInTheDocument()
+
+    // 4. Click Resume button inside overlay
+    const resumeBtn = screen.getByTestId('resume-btn')
+    fireEvent.click(resumeBtn)
+    expect(screen.queryByTestId('pause-overlay')).not.toBeInTheDocument()
+  })
+
   it('TypingEngine: toggles text hiding for blind audio dictation mode and masks text', () => {
     const dummyLesson = {
       id: 'test-topic',
