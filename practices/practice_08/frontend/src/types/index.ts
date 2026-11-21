@@ -68,3 +68,31 @@ export type FingerType =
   | 'ring-r' 
   | 'pinky-r' 
   | 'thumb'
+
+export interface MusicSubtitleLine {
+  id: number
+  startSeconds: number
+  endSeconds: number
+  textEn: string
+  textRu: string
+}
+
+export interface GrammarBreakdownItem {
+  ruleTitle: string
+  lyricQuote: string
+  explanation: string
+  grammarTag: string
+}
+
+export interface MusicLesson {
+  id: string
+  title: string
+  artist: string
+  level: string
+  videoUrl: string
+  thumbnailUrl: string
+  grammarFocus: string
+  subtitles: MusicSubtitleLine[]
+  grammarBreakdown: GrammarBreakdownItem[]
+  typingSentences: SentenceItem[]
+}

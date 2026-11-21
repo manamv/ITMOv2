@@ -87,6 +87,92 @@ var leaderboard = new List<LeaderboardEntry>
     new("lb-7", "touch_pro", 70, 95.9, "present simple and daily routines", "A1", DateTime.UtcNow.AddDays(-5))
 };
 
+var musicLessons = new List<MusicLesson>
+{
+    new(
+        "queen-champions",
+        "We Are the Champions",
+        "Queen",
+        "B1",
+        "https://www.youtube.com/embed/04854XqcfCY",
+        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+        "Present Perfect vs Past Simple, gerunds and colloquial contractions",
+        [
+            new(1, 0.0, 4.5, "i have paid my dues time after time", "я платил по счетам снова и снова"),
+            new(2, 4.5, 9.0, "i did my sentence but committed no crime", "я отбыл свой срок но не совершал преступления"),
+            new(3, 9.0, 14.0, "and bad mistakes i have made a few", "и тяжких ошибок я совершил немного"),
+            new(4, 14.0, 19.5, "i have had my share of sand kicked in my face but i have come through", "мне тоже швыряли песок в лицо но я выстоял"),
+            new(5, 19.5, 25.0, "we are the champions my friends and we will keep on fighting till the end", "мы чемпионы друзья мои и мы продолжим бороться до конца"),
+            new(6, 25.0, 31.0, "we are the champions no time for losers because we are the champions of the world", "мы чемпионы не время для проигравших потому что мы чемпионы мира")
+        ],
+        [
+            new("Present Perfect for Life Experience", "i have paid my dues time after time", "have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.", "present-perfect"),
+            new("Past Simple for Definite Events", "i did my sentence but committed no crime", "did и committed в Past Simple выражают завершенные действия в прошлом.", "past-simple"),
+            new("Keep on + Gerund", "we will keep on fighting till the end", "фразовый глагол keep on в сочетании с герундием fighting означает непрерывное продолжение действия.", "phrasal-verbs"),
+            new("Colloquial Contraction", "no time for losers because we are the champions", "в песне часто используется 'cause как разговорное сокращение от because.", "informal-english")
+        ],
+        [
+            new("qc-1", "i have paid my dues time after time and i did my sentence but committed no crime", "я платил по счетам снова и снова и я отбыл свой срок но не совершал преступления", "контраст present perfect have paid и past simple did committed"),
+            new("qc-2", "and bad mistakes i have made a few i have had my share of sand kicked in my face", "и тяжких ошибок я совершил немного мне тоже швыряли песок в лицо", "present perfect have made have had для жизненного опыта"),
+            new("qc-3", "we are the champions my friends and we will keep on fighting till the end", "мы чемпионы друзья мои и мы продолжим бороться до конца", "keep on fighting конструкция продолжения действия"),
+            new("qc-4", "we are the champions no time for losers because we are the champions of the world", "мы чемпионы не время для проигравших потому что мы чемпионы мира", "утвердительные конструкции и ритм песни")
+        ]
+    ),
+    new(
+        "coldplay-scientist",
+        "The Scientist",
+        "Coldplay",
+        "B1",
+        "https://www.youtube.com/embed/RB-RcX5DS5A",
+        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
+        "Infinitive of purpose, modal verbs and expressions of regret",
+        [
+            new(1, 0.0, 5.0, "come up to meet you tell you i am sorry", "прийти чтобы встретиться с тобой сказать что мне жаль"),
+            new(2, 5.0, 10.0, "you do not know how lovely you are", "ты даже не знаешь насколько ты прекрасна"),
+            new(3, 10.0, 15.0, "i had to find you tell you i need you", "я должен был найти тебя сказать что ты мне нужна"),
+            new(4, 15.0, 21.0, "tell you i set you apart", "сказать что ты для меня особенная"),
+            new(5, 21.0, 27.0, "nobody said it was easy it is such a shame for us to part", "никто не говорил что будет легко так жаль что нам пришлось расстаться")
+        ],
+        [
+            new("Infinitive of Purpose", "come up to meet you tell you i am sorry", "Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.", "infinitive"),
+            new("Modal Verb of Obligation in Past", "i had to find you tell you i need you", "had to это форма прошедшего времени от must/have to выражающая внешнюю необходимость.", "modals"),
+            new("Phrasal Verb Set Apart", "tell you i set you apart", "set apart означает выделять кого-то, считать особенным среди всех.", "phrasal-verbs"),
+            new("Impersonal Construction", "it is such a shame for us to part", "it is such a shame выражает сожаление и сочувствие по поводу ситуации.", "constructions")
+        ],
+        [
+            new("cs-1", "come up to meet you tell you i am sorry you do not know how lovely you are", "прийти чтобы встретиться с тобой сказать что мне жаль ты не знаешь как ты прекрасна", "infinitive of purpose to meet you to tell you"),
+            new("cs-2", "i had to find you tell you i need you tell you i set you apart", "я должен был найти тебя сказать что ты мне нужна сказать что ты особенная", "had to прошедшее время от must"),
+            new("cs-3", "tell me your secrets and ask me your questions oh let us go back to the start", "открой мне свои секреты и задай вопросы давай вернемся к началу", "повелительное наклонение tell me let us go back"),
+            new("cs-4", "nobody said it was easy it is such a shame for us to part", "никто не говорил что будет легко так жаль что нам приходится расстаться", "согласование времен nobody said it was easy")
+        ]
+    ),
+    new(
+        "beatles-yesterday",
+        "Yesterday",
+        "The Beatles",
+        "A2",
+        "https://www.youtube.com/embed/NrgmdOz227I",
+        "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80",
+        "Past Simple, Used to and contrast with present",
+        [
+            new(1, 0.0, 5.0, "yesterday all my troubles seemed so far away", "вчера все мои невзгоды казались такими далекими"),
+            new(2, 5.0, 10.0, "now it looks as though they are here to stay", "теперь кажется будто они останутся навсегда"),
+            new(3, 10.0, 16.0, "suddenly i am not half the man i used to be", "вдруг я больше не тот человек кем был раньше"),
+            new(4, 16.0, 22.0, "why she had to go i do not know she would not say", "почему она должна была уйти я не знаю она не сказала")
+        ],
+        [
+            new("Past Simple for Past States", "all my troubles seemed so far away", "seemed правильный глагол в Past Simple указывает на состояние в прошлом.", "past-simple"),
+            new("Used to for Past Habits or States", "i am not half the man i used to be", "used to выражает состояние или привычку в прошлом которая больше не актуальна в настоящем.", "used-to"),
+            new("As Though / As If", "it looks as though they are here to stay", "as though используется для описания того как что-то выглядит или кажется.", "conjunctions")
+        ],
+        [
+            new("by-1", "yesterday all my troubles seemed so far away now it looks as though they are here to stay", "вчера все невзгоды казались далекими теперь кажется будто они здесь навсегда", "past simple seemed в контрасте с настоящим looks"),
+            new("by-2", "suddenly i am not half the man i used to be there is a shadow hanging over me", "вдруг я больше не тот кем был раньше надо мной нависла тень", "конструкция used to для прошлых состояний"),
+            new("by-3", "why she had to go i do not know she would not say i said something wrong", "почему она должна была уйти я не знаю она не сказала я сказал что-то не то", "косвенный вопрос why she had to go и модальный would")
+        ]
+    )
+};
+
 // ----------------- API ENDPOINTS -----------------
 
 // 1. Get all topics or filter by CEFR level
@@ -336,6 +422,24 @@ app.MapPost("/api/leaderboard", (LeaderboardRequest request) =>
     return Results.Created($"/api/leaderboard/{entry.Id}", entry);
 });
 
+// 12. Music & Video Lessons with Subtitles, Grammar Breakdown and Lyrics Typing
+app.MapGet("/api/music-lessons", () => Results.Ok(musicLessons.Select(m => new
+{
+    m.Id,
+    m.Title,
+    m.Artist,
+    m.Level,
+    m.ThumbnailUrl,
+    m.GrammarFocus,
+    SentenceCount = m.TypingSentences.Count
+})));
+
+app.MapGet("/api/music-lessons/{id}", (string id) =>
+{
+    var lesson = musicLessons.FirstOrDefault(m => m.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+    return lesson != null ? Results.Ok(lesson) : Results.NotFound(new { error = $"Music lesson '{id}' not found." });
+});
+
 app.Run();
 
 // Helper Levenshtein distance
@@ -441,4 +545,32 @@ public record LeaderboardRequest(
     double Accuracy,
     string TopicTitle,
     string Level
+);
+
+public record MusicSubtitleLine(
+    int Id,
+    double StartSeconds,
+    double EndSeconds,
+    string TextEn,
+    string TextRu
+);
+
+public record GrammarBreakdownItem(
+    string RuleTitle,
+    string LyricQuote,
+    string Explanation,
+    string GrammarTag
+);
+
+public record MusicLesson(
+    string Id,
+    string Title,
+    string Artist,
+    string Level,
+    string VideoUrl,
+    string ThumbnailUrl,
+    string GrammarFocus,
+    List<MusicSubtitleLine> Subtitles,
+    List<GrammarBreakdownItem> GrammarBreakdown,
+    List<SentenceItem> TypingSentences
 );

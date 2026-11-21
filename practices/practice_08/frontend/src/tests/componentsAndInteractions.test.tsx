@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { VirtualKeyboard } from '../components/keyboard/VirtualKeyboard'
+import { BlindTypingKeyboard } from '../components/keyboard/BlindTypingKeyboard'
 import { TopicSelector } from '../components/grammar/TopicSelector'
 import { Modal } from '../components/ui/Modal'
 import { WordPopover } from '../components/typing/WordPopover'
 import { TypingEngine } from '../components/typing/TypingEngine'
 import { HandsVisualizer } from '../components/keyboard/HandsVisualizer'
 import { LeaderboardView } from '../components/leaderboard/LeaderboardView'
+import { MusicClipsView } from '../components/music/MusicClipsView'
 
 describe('Criterion 8: Component Rendering and User Interactions', () => {
   it('renders Virtual Keyboard with finger zones and highlights active character', () => {
@@ -226,5 +228,79 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     // Toggle OFF
     fireEvent.click(wordByWordBtn)
     expect(wordByWordBtn).toHaveTextContent('ВЫКЛ')
+  })
+
+  it('TypingEngine: toggles text hiding for blind audio dictation mode and masks text', () => {
+    const dummyLesson = {
+      id: 'test-topic',
+      title: 'test topic',
+      level: 'B1',
+      description: 'test description',
+      sentences: [
+        {
+          id: 's1',
+          english: 'listen and type',
+          russian: 'слушай и печатай',
+          grammarTip: 'слепой набор на слух'
+        }
+      ]
+    }
+
+    render(<TypingEngine lesson={dummyLesson} onFinish={vi.fn()} />)
+
+    // Initially text toggle is visible with 'ВИДЕН'
+    const hideBtn = screen.getByTestId('hide-text-toggle')
+    expect(hideBtn).toBeInTheDocument()
+    expect(hideBtn).toHaveTextContent('ВИДЕН')
+    expect(screen.queryByTestId('hidden-text-banner')).not.toBeInTheDocument()
+
+    // Toggle text hidden ON
+    fireEvent.click(hideBtn)
+    expect(hideBtn).toHaveTextContent('СКРЫТ')
+    expect(screen.getByTestId('hidden-text-banner')).toBeInTheDocument()
+
+    // Characters in the display box are masked with '•'
+    const displayBox = screen.getByTestId('typing-text-display')
+    expect(displayBox.textContent).toContain('•')
+
+    // Toggle text hidden OFF
+    fireEvent.click(hideBtn)
+    expect(hideBtn).toHaveTextContent('ВИДЕН')
+    expect(screen.queryByTestId('hidden-text-banner')).not.toBeInTheDocument()
+  })
+
+  it('BlindTypingKeyboard: renders keyboard and moves active finger to highlighted key', () => {
+    render(<BlindTypingKeyboard activeChar="T" />)
+
+    expect(screen.getByTestId('virtual-keyboard')).toBeInTheDocument()
+    expect(screen.getByTestId('key-t')).toBeInTheDocument()
+    expect(screen.getByTestId('key-space')).toBeInTheDocument()
+
+    // Guidance text shows Left Index finger for T
+    expect(screen.getByText(/Левый указательный/i)).toBeInTheDocument()
+  })
+
+  it('MusicClipsView: renders song lessons, subtitles, grammar breakdown, and starts typing lesson', async () => {
+    const handleStartTyping = vi.fn()
+    render(<MusicClipsView onStartTyping={handleStartTyping} />)
+
+    expect(screen.getByTestId('music-clips-view')).toBeInTheDocument()
+    expect(screen.getByText(/Музыкальные клипы & Разбор грамматики/i)).toBeInTheDocument()
+
+    // Song tab for Queen
+    const queenTab = await screen.findByTestId('song-tab-queen-champions')
+    expect(queenTab).toBeInTheDocument()
+
+    // Subtitles and grammar section are rendered
+    expect(await screen.findByText(/Разбор правил песни/i)).toBeInTheDocument()
+
+    // Click "Начать печать песни" button
+    const startBtn = await screen.findByTestId('start-music-typing-btn')
+    fireEvent.click(startBtn)
+
+    expect(handleStartTyping).toHaveBeenCalledTimes(1)
+    const passedLesson = handleStartTyping.mock.calls[0][0]
+    expect(passedLesson.title).toContain('Queen')
+    expect(passedLesson.sentences.length).toBeGreaterThan(0)
   })
 })

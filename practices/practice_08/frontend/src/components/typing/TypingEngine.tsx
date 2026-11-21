@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Volume2, Pause, RotateCcw, AlertCircle, Timer, Headphones } from 'lucide-react'
+import { Volume2, Pause, RotateCcw, AlertCircle, Timer, Headphones, Eye, EyeOff } from 'lucide-react'
 import type { LessonData, SessionStats } from '../../types'
 import { VirtualKeyboard } from '../keyboard/VirtualKeyboard'
 import { WordPopover } from './WordPopover'
@@ -26,10 +26,11 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedWord, setSelectedWord] = useState<string | null>(null)
 
-  // Speech options
+  // Speech & Visual options
   const [speechRate, setSpeechRate] = useState<number>(1.0)
   const [wordByWordMode, setWordByWordMode] = useState<boolean>(false)
   const [showRateMenu, setShowRateMenu] = useState<boolean>(false)
+  const [isTextHidden, setIsTextHidden] = useState<boolean>(false)
 
   const currentSentence = lesson.sentences[currentSentenceIndex] || lesson.sentences[0]
   // Normalize target text: strictly lowercase, no punctuation
@@ -342,6 +343,22 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             <span>{wordByWordMode ? 'ВКЛ' : 'ВЫКЛ'}</span>
           </button>
 
+          {/* Text Hiding Toggle (Blind Audio Dictation Mode) */}
+          <button
+            onClick={() => setIsTextHidden(h => !h)}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer flex items-center space-x-1.5 ${
+              isTextHidden
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/20 font-semibold'
+                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+            }`}
+            title="Скрыть текст (слепой ввод на слух / диктант)"
+            data-testid="hide-text-toggle"
+          >
+            {isTextHidden ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">Текст:</span>
+            <span>{isTextHidden ? 'СКРЫТ' : 'ВИДЕН'}</span>
+          </button>
+
           {/* Pause */}
           <button
             onClick={() => setIsPaused(p => !p)}
@@ -385,6 +402,17 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           <span>Перевод: «{currentSentence.russian}»</span>
         </div>
 
+        {/* Hidden text banner for audio dictation mode */}
+        {isTextHidden && (
+          <div
+            className="mb-3 flex items-center space-x-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/25 px-3 py-1.5 rounded-xl animate-fade-in"
+            data-testid="hidden-text-banner"
+          >
+            <Headphones className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Режим слепого набора на слух: текст скрыт. Слушайте озвучку слова и угадывайте буквы по памяти!</span>
+          </div>
+        )}
+
         {/* 3-line height sentence box with generous line-height and descender clearance */}
         <div
           className="font-mono text-xl sm:text-2xl tracking-wide select-none leading-[2.6rem] min-h-[8.4rem] max-h-[8.8rem] overflow-hidden break-words content-start pb-2"
@@ -394,19 +422,28 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             let charClass = 'text-slate-500' // Untyped
             let isCurrent = false
             let isError = false
+            let displayChar: string = char
 
             if (idx < typedChars.length) {
               if (typedChars[idx] === char) {
                 // Correctly typed
                 charClass = 'text-emerald-400 font-medium'
+                displayChar = char
               } else {
                 // Mistake: letter lights up in red, user must erase with backspace to complete
                 isError = true
                 charClass = 'text-rose-400 bg-rose-500/25 underline decoration-rose-500 decoration-2 font-bold rounded-xs px-0.5'
+                displayChar = typedChars[idx] || char
               }
             } else if (idx === typedChars.length) {
               isCurrent = true
               charClass = 'text-white bg-emerald-500/30 px-0.5 rounded-sm border-b-2 border-emerald-400'
+              displayChar = isTextHidden ? (char === ' ' ? ' ' : '•') : char
+            } else {
+              if (isTextHidden) {
+                displayChar = char === ' ' ? ' ' : '•'
+                charClass = 'text-slate-600 select-none'
+              }
             }
 
             return (
@@ -415,7 +452,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
                 className={`${charClass} ${isCurrent ? 'animate-pulse' : ''}`}
                 data-testid={isCurrent ? 'current-char' : isError ? 'error-char' : undefined}
               >
-                {char === ' ' && isError ? '␣' : char}
+                {char === ' ' && isError ? '␣' : displayChar}
               </span>
             )
           })}

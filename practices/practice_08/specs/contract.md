@@ -119,3 +119,11 @@
   * Тело: `{ "userName": "string", "wpm": number, "accuracy": number, "topicTitle": "string", "level": "string" }`
   * Валидация: `userName` $\ge 2$ символов, $WPM > 0, 0 \le Accuracy \le 100$.
   * Ответ `201 Created` с объектом `LeaderboardEntry`.
+
+### 2.7. Музыкальные видео-уроки и печать по тексту песен
+* **`GET /api/music-lessons`** $\rightarrow$ список доступных песен и клипов с грамматическим фокусом (Queen, Coldplay, The Beatles).
+* **`GET /api/music-lessons/{id}`** $\rightarrow$ детальная модель урока:
+  * `videoUrl` и `thumbnailUrl` для видеоплеера;
+  * `subtitles`: массив строк субтитров с временными метками `startSeconds` и `endSeconds`;
+  * `grammarBreakdown`: разбор языковых конструкций песни с цитатами и правилами;
+  * `typingSentences`: массив строк текста песни без заглавных букв и знаков препинания для тренажера слепой печати.

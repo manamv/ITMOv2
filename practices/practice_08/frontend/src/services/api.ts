@@ -1,4 +1,4 @@
-import type { GrammarTopic, LeaderboardEntry, LessonData, SessionStats, UserStatsSummary, VocabularyWord } from '../types'
+import type { GrammarTopic, LeaderboardEntry, LessonData, SessionStats, UserStatsSummary, VocabularyWord, MusicLesson } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
@@ -70,6 +70,61 @@ const FALLBACK_LESSONS: Record<string, LessonData> = {
     ]
   }
 }
+
+const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
+  {
+    id: 'queen-champions',
+    title: 'We Are the Champions',
+    artist: 'Queen',
+    level: 'B1',
+    videoUrl: 'https://www.youtube.com/embed/04854XqcfCY',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+    grammarFocus: 'Present Perfect vs Past Simple, gerunds and colloquial contractions',
+    subtitles: [
+      { id: 1, startSeconds: 0.0, endSeconds: 4.5, textEn: 'i have paid my dues time after time', textRu: 'я платил по счетам снова и снова' },
+      { id: 2, startSeconds: 4.5, endSeconds: 9.0, textEn: 'i did my sentence but committed no crime', textRu: 'я отбыл свой срок но не совершал преступления' },
+      { id: 3, startSeconds: 9.0, endSeconds: 14.0, textEn: 'and bad mistakes i have made a few', textRu: 'и тяжких ошибок я совершил немного' },
+      { id: 4, startSeconds: 14.0, endSeconds: 19.5, textEn: 'i have had my share of sand kicked in my face but i have come through', textRu: 'мне тоже швыряли песок в лицо но я выстоял' },
+      { id: 5, startSeconds: 19.5, endSeconds: 25.0, textEn: 'we are the champions my friends and we will keep on fighting till the end', textRu: 'мы чемпионы друзья мои и мы продолжим бороться до конца' },
+      { id: 6, startSeconds: 25.0, endSeconds: 31.0, textEn: 'we are the champions no time for losers because we are the champions of the world', textRu: 'мы чемпионы не время для проигравших потому что мы чемпионы мира' }
+    ],
+    grammarBreakdown: [
+      { ruleTitle: 'Present Perfect for Life Experience', lyricQuote: 'i have paid my dues time after time', explanation: 'have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.', grammarTag: 'present-perfect' },
+      { ruleTitle: 'Past Simple for Definite Events', lyricQuote: 'i did my sentence but committed no crime', explanation: 'did и committed в Past Simple выражают завершенные действия в прошлом.', grammarTag: 'past-simple' },
+      { ruleTitle: 'Keep on + Gerund', lyricQuote: 'we will keep on fighting till the end', explanation: 'фразовый глагол keep on в сочетании с герундием fighting означает непрерывное продолжение действия.', grammarTag: 'phrasal-verbs' },
+      { ruleTitle: 'Colloquial Contraction', lyricQuote: 'no time for losers because we are the champions', explanation: 'в песне часто используется cause как разговорное сокращение от because.', grammarTag: 'informal-english' }
+    ],
+    typingSentences: [
+      { id: 'qc-1', english: 'i have paid my dues time after time and i did my sentence but committed no crime', russian: 'я платил по счетам снова и снова и я отбыл свой срок но не совершал преступления', grammarTip: 'контраст present perfect have paid и past simple did committed' },
+      { id: 'qc-2', english: 'and bad mistakes i have made a few i have had my share of sand kicked in my face', russian: 'и тяжких ошибок я совершил немного мне тоже швыряли песок в лицо', grammarTip: 'present perfect have made have had для жизненного опыта' },
+      { id: 'qc-3', english: 'we are the champions my friends and we will keep on fighting till the end', russian: 'мы чемпионы друзья мои и мы продолжим бороться до конца', grammarTip: 'keep on fighting конструкция продолжения действия' },
+      { id: 'qc-4', english: 'we are the champions no time for losers because we are the champions of the world', russian: 'мы чемпионы не время для проигравших потому что мы чемпионы мира', grammarTip: 'утвердительные конструкции и ритм песни' }
+    ]
+  },
+  {
+    id: 'coldplay-scientist',
+    title: 'The Scientist',
+    artist: 'Coldplay',
+    level: 'B1',
+    videoUrl: 'https://www.youtube.com/embed/RB-RcX5DS5A',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
+    grammarFocus: 'Infinitive of purpose, modal verbs and expressions of regret',
+    subtitles: [
+      { id: 1, startSeconds: 0.0, endSeconds: 5.0, textEn: 'come up to meet you tell you i am sorry', textRu: 'прийти чтобы встретиться с тобой сказать что мне жаль' },
+      { id: 2, startSeconds: 5.0, endSeconds: 10.0, textEn: 'you do not know how lovely you are', textRu: 'ты даже не знаешь насколько ты прекрасна' },
+      { id: 3, startSeconds: 10.0, endSeconds: 15.0, textEn: 'i had to find you tell you i need you', textRu: 'я должен был найти тебя сказать что ты мне нужна' },
+      { id: 4, startSeconds: 15.0, endSeconds: 21.0, textEn: 'tell you i set you apart', textRu: 'сказать что ты для меня особенная' }
+    ],
+    grammarBreakdown: [
+      { ruleTitle: 'Infinitive of Purpose', lyricQuote: 'come up to meet you tell you i am sorry', explanation: 'Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.', grammarTag: 'infinitive' },
+      { ruleTitle: 'Modal Verb of Obligation in Past', lyricQuote: 'i had to find you tell you i need you', explanation: 'had to это форма прошедшего времени от must/have to выражающая внешнюю необходимость.', grammarTag: 'modals' }
+    ],
+    typingSentences: [
+      { id: 'cs-1', english: 'come up to meet you tell you i am sorry you do not know how lovely you are', russian: 'прийти чтобы встретиться с тобой сказать что мне жаль ты не знаешь как ты прекрасна', grammarTip: 'infinitive of purpose to meet you to tell you' },
+      { id: 'cs-2', english: 'i had to find you tell you i need you tell you i set you apart', russian: 'я должен был найти тебя сказать что ты мне нужна сказать что ты особенная', grammarTip: 'had to прошедшее время от must' }
+    ]
+  }
+]
 
 export const api = {
   async getTopics(level?: string): Promise<GrammarTopic[]> {
@@ -233,5 +288,35 @@ export const api = {
       throw new Error(err.error || 'Ошибка при отправке в лидерборд')
     }
     return await res.json()
+  },
+
+  async getMusicLessons(): Promise<Array<{ id: string; title: string; artist: string; level: string; thumbnailUrl: string; grammarFocus: string; sentenceCount: number }>> {
+    try {
+      const res = await fetch(`${API_BASE}/music-lessons`)
+      if (!res.ok) throw new Error(`Failed to load music lessons: ${res.status}`)
+      return await res.json()
+    } catch {
+      return FALLBACK_MUSIC_LESSONS.map(m => ({
+        id: m.id,
+        title: m.title,
+        artist: m.artist,
+        level: m.level,
+        thumbnailUrl: m.thumbnailUrl,
+        grammarFocus: m.grammarFocus,
+        sentenceCount: m.typingSentences.length
+      }))
+    }
+  },
+
+  async getMusicLesson(id: string): Promise<MusicLesson> {
+    try {
+      const res = await fetch(`${API_BASE}/music-lessons/${id}`)
+      if (!res.ok) throw new Error(`Failed to load music lesson ${id}: ${res.status}`)
+      return await res.json()
+    } catch {
+      const found = FALLBACK_MUSIC_LESSONS.find(m => m.id === id)
+      if (found) return found
+      return FALLBACK_MUSIC_LESSONS[0]
+    }
   }
 }
