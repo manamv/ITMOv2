@@ -163,15 +163,12 @@ export const Logo: React.FC<LogoProps> = ({
       {/* Brand Typography */}
       {showText && (
         <div className="flex flex-col">
-          <div className="flex items-center space-x-1.5 leading-none">
+          <div className="flex items-center leading-none">
             <span className={`font-extrabold tracking-tight text-white ${textSizes}`}>
               Lingua
             </span>
             <span className={`font-black tracking-tight bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent ${textSizes}`}>
               Type
-            </span>
-            <span className="text-[9px] font-mono tracking-widest uppercase font-semibold px-1.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-sky-300 ml-1">
-              AI PRO
             </span>
           </div>
           <span className="text-[10px] text-slate-500 font-mono tracking-wider uppercase mt-1 hidden sm:block">

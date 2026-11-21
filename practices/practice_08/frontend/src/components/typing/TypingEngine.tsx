@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Volume2, Pause, Play, RotateCcw, AlertCircle, Timer, Headphones, Eye, EyeOff } from 'lucide-react'
+import { Volume2, Pause, Play, RotateCcw, AlertCircle, Timer, Headphones, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import type { LessonData, SessionStats } from '../../types'
 import { VirtualKeyboard } from '../keyboard/VirtualKeyboard'
 import { WordPopover } from './WordPopover'
@@ -9,11 +9,13 @@ import { weakKeysService } from '../../services/weakKeys'
 interface TypingEngineProps {
   lesson: LessonData
   onFinish: (stats: SessionStats) => Promise<void>
+  onBack?: () => void
 }
 
 export const TypingEngine: React.FC<TypingEngineProps> = ({
   lesson,
-  onFinish
+  onFinish,
+  onBack
 }) => {
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0)
   const [typedChars, setTypedChars] = useState<string>('')
@@ -280,6 +282,17 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       {/* 1. Metrics & Control Bar (Compact, 1 Row) */}
       <div className="relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#090d16]/85 backdrop-blur-2xl p-2.5 rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/80 shrink-0">
         <div className="flex items-center space-x-2">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] text-xs font-mono transition cursor-pointer active:scale-95 shadow-sm"
+              title="Вернуться назад"
+              data-testid="typing-back-btn"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Назад</span>
+            </button>
+          )}
           <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold border border-sky-500/25">
             {lesson.level} • {lesson.title}
           </span>
@@ -452,14 +465,26 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
                 Нажмите клавишу <kbd className="px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.1] text-slate-200 font-mono text-[11px]">Esc</kbd> или кнопку ниже, чтобы продолжить печать
               </p>
             </div>
-            <button
-              onClick={() => setIsPaused(false)}
-              className="px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/25 transition cursor-pointer flex items-center space-x-2 active:scale-[0.98]"
-              data-testid="resume-btn"
-            >
-              <Play className="w-4 h-4 fill-slate-950" />
-              <span>Продолжить (Esc)</span>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setIsPaused(false)}
+                className="px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/25 transition cursor-pointer flex items-center space-x-2 active:scale-[0.98]"
+                data-testid="resume-btn"
+              >
+                <Play className="w-4 h-4 fill-slate-950" />
+                <span>Продолжить (Esc)</span>
+              </button>
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-slate-300 hover:text-white border border-white/[0.1] text-xs font-mono transition cursor-pointer flex items-center space-x-1.5"
+                  data-testid="pause-back-btn"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Выйти назад</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 

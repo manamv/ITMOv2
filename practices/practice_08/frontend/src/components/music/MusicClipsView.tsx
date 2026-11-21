@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Music, Play, Pause, Volume2, BookOpen, Sparkles, ChevronRight, Headphones, Bot, Flame, RotateCcw } from 'lucide-react'
+import { Music, Play, Pause, Volume2, BookOpen, Sparkles, ChevronRight, Headphones, Bot, Flame, RotateCcw, ArrowLeft } from 'lucide-react'
 import type { MusicLesson, LessonData } from '../../types'
 import { api } from '../../services/api'
 import { soundService } from '../../services/sound'
@@ -13,6 +13,7 @@ declare global {
 
 interface MusicClipsViewProps {
   onStartTyping: (lesson: LessonData) => void
+  onBack?: () => void
 }
 
 // Deep AI Meaning Analysis for famous tracks
@@ -81,7 +82,7 @@ const AI_SONG_ANALYSES: Record<string, {
   }
 }
 
-export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping }) => {
+export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, onBack }) => {
   const [songsList, setSongsList] = useState<Array<{ id: string; title: string; artist: string; level: string; thumbnailUrl: string; grammarFocus: string; sentenceCount: number }>>([])
   const [selectedSongId, setSelectedSongId] = useState<string>('queen-champions')
   const [currentSong, setCurrentSong] = useState<MusicLesson | null>(null)
@@ -97,6 +98,12 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
   const activeSubtitleRef = useRef<HTMLDivElement>(null)
   const subtitlesScrollContainerRef = useRef<HTMLDivElement>(null)
   const ytPlayerRef = useRef<any>(null)
+  const seekingUntilRef = useRef<number>(0)
+  const seekTargetTimeRef = useRef<number>(0)
+  const activeSubtitleIdRef = useRef(activeSubtitleId)
+  activeSubtitleIdRef.current = activeSubtitleId
+  const timingOffsetRef = useRef(timingOffset)
+  timingOffsetRef.current = timingOffset
 
   // Direct postMessage command to YouTube iframe with handshake
   const sendYtCommand = (func: string, args: any[] = []) => {
@@ -117,41 +124,38 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     }
   }
 
-  // Jump to specific word in the video
-  const handlePlayWord = (e: React.MouseEvent, wordStart: number, subId: number) => {
-    e.stopPropagation()
-    setActiveSubtitleId(subId)
-    setPlaybackTime(wordStart)
+  // Safe seek and play helper that prevents postMessage race conditions and frame lag
+  const executeSeekAndPlay = (targetTime: number, subId?: number) => {
+    seekingUntilRef.current = Date.now() + 600
+    seekTargetTimeRef.current = targetTime
+    setPlaybackTime(targetTime)
+    if (subId !== undefined) {
+      setActiveSubtitleId(subId)
+    }
 
     if (ytPlayerRef.current?.seekTo) {
       try {
-        ytPlayerRef.current.seekTo(wordStart, true)
+        ytPlayerRef.current.seekTo(targetTime, true)
         ytPlayerRef.current.playVideo()
       } catch {}
     } else {
-      sendYtCommand('seekTo', [wordStart, true])
+      sendYtCommand('seekTo', [targetTime, true])
       sendYtCommand('playVideo')
     }
     setIsKaraokePlaying(true)
+  }
+
+  // Jump to specific word in the video
+  const handlePlayWord = (e: React.MouseEvent, wordStart: number, subId: number) => {
+    e.stopPropagation()
+    executeSeekAndPlay(wordStart, subId)
   }
 
   // Skip instrumental intro directly to the first singing word
   const handleSkipIntro = () => {
     if (!currentSong || currentSong.subtitles.length === 0) return
     const firstVocalStart = currentSong.subtitles[0].startSeconds || 0.0
-    setActiveSubtitleId(currentSong.subtitles[0].id)
-    setPlaybackTime(firstVocalStart)
-
-    if (ytPlayerRef.current?.seekTo) {
-      try {
-        ytPlayerRef.current.seekTo(firstVocalStart, true)
-        ytPlayerRef.current.playVideo()
-      } catch {}
-    } else {
-      sendYtCommand('seekTo', [firstVocalStart, true])
-      sendYtCommand('playVideo')
-    }
-    setIsKaraokePlaying(true)
+    executeSeekAndPlay(firstVocalStart, currentSong.subtitles[0].id)
   }
 
   // Dynamically load YouTube IFrame API script once
@@ -169,7 +173,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     }
   }, [])
 
-  // Listen to real-time YouTube postMessage playback notifications
+  // Listen to real-time YouTube postMessage playback notifications (ONLY for state changes to avoid race conditions)
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -178,14 +182,6 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
         if (!event.data) return
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
         if (data && data.event === 'infoDelivery' && data.info) {
-          if (typeof data.info.currentTime === 'number') {
-            const ytTime = data.info.currentTime
-            setPlaybackTime(ytTime)
-            if (currentSong) {
-              const match = currentSong.subtitles.find(s => ytTime >= s.startSeconds && ytTime <= s.endSeconds)
-              if (match) setActiveSubtitleId(match.id)
-            }
-          }
           if (data.info.playerState === 1) {
             setIsKaraokePlaying(true)
           } else if (data.info.playerState === 2 || data.info.playerState === 0) {
@@ -199,7 +195,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
 
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [currentSong])
+  }, [])
 
   // Attach YouTube Player as soon as currentSong and iframe are rendered
   useEffect(() => {
@@ -309,93 +305,95 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     let lastTimestamp = performance.now()
 
     const interval = setInterval(() => {
+      // If we recently executed a seek, wait for YouTube to settle without rubber-banding
+      if (Date.now() < seekingUntilRef.current) {
+        return
+      }
+
+      let currentTime = -1
+
       // 1. Prioritize YouTube player's exact real-time playback position
       if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
         try {
           const ytTime = ytPlayerRef.current.getCurrentTime()
           if (typeof ytTime === 'number' && !isNaN(ytTime) && ytTime >= 0) {
-            setPlaybackTime(ytTime)
-
-            // Find matching subtitle line taking timing offset into account
-            const effTime = ytTime + timingOffset
-            const match = currentSong.subtitles.find(s => effTime >= s.startSeconds && effTime <= s.endSeconds)
-            if (match && match.id !== activeSubtitleId) {
-              setActiveSubtitleId(match.id)
-            }
-            lastTimestamp = performance.now()
-            return
+            currentTime = ytTime
           }
         } catch {
           // fallback to high-precision wall clock ticker below
         }
       }
 
-      // 2. High-precision wall-clock fallback if YouTube player is unavailable (tests or offline)
-      const now = performance.now()
-      const deltaSec = (now - lastTimestamp) / 1000
-      lastTimestamp = now
+      if (currentTime >= 0) {
+        lastTimestamp = performance.now()
+        setPlaybackTime(currentTime)
 
-      setPlaybackTime(prev => {
-        const next = Math.round((prev + deltaSec) * 100) / 100
-        const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
-        if (next > maxTime + 5.0) {
-          setIsKaraokePlaying(false)
-          return 0
-        }
-
-        const effNext = next + timingOffset
-        const match = currentSong.subtitles.find(s => effNext >= s.startSeconds && effNext <= s.endSeconds)
-        if (match && match.id !== activeSubtitleId) {
+        // Find matching subtitle line taking timing offset into account
+        const effTime = currentTime + timingOffsetRef.current
+        const match = currentSong.subtitles.find(s => effTime >= s.startSeconds && effTime <= s.endSeconds)
+        if (match && match.id !== activeSubtitleIdRef.current) {
           setActiveSubtitleId(match.id)
         }
-        return next
-      })
-    }, 40)
+      } else {
+        // 2. High-precision wall-clock fallback if YouTube player is unavailable (tests or offline)
+        const now = performance.now()
+        const deltaSec = (now - lastTimestamp) / 1000
+        lastTimestamp = now
+
+        setPlaybackTime(prev => {
+          const next = Math.round((prev + deltaSec) * 100) / 100
+          const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
+          if (next > maxTime + 5.0) {
+            setIsKaraokePlaying(false)
+            return 0
+          }
+
+          const effNext = next + timingOffsetRef.current
+          const match = currentSong.subtitles.find(s => effNext >= s.startSeconds && effNext <= s.endSeconds)
+          if (match && match.id !== activeSubtitleIdRef.current) {
+            setActiveSubtitleId(match.id)
+          }
+          return next
+        })
+      }
+    }, 100)
 
     return () => clearInterval(interval)
-  }, [isKaraokePlaying, currentSong, activeSubtitleId, timingOffset])
+  }, [isKaraokePlaying, currentSong])
 
-  // Auto-scroll active subtitle line into view smoothly
+  // Auto-scroll active subtitle line smoothly inside container
   useEffect(() => {
-    if (activeSubtitleRef.current) {
-      activeSubtitleRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest'
-      })
+    const container = subtitlesScrollContainerRef.current
+    const activeEl = activeSubtitleRef.current
+    if (container && activeEl) {
+      const elTop = activeEl.offsetTop - container.offsetTop
+      const elHeight = activeEl.offsetHeight
+      const containerScrollTop = container.scrollTop
+      const containerHeight = container.clientHeight
+
+      if (elTop < containerScrollTop || elTop + elHeight > containerScrollTop + containerHeight - 10) {
+        container.scrollTo({
+          top: Math.max(0, elTop - 24),
+          behavior: 'smooth'
+        })
+      }
     }
   }, [activeSubtitleId])
 
   // Toggle video playback and karaoke synchronization simultaneously
   const handleToggleKaraoke = () => {
     if (isKaraokePlaying) {
-      sendYtCommand('pauseVideo')
       if (ytPlayerRef.current?.pauseVideo) {
         try { ytPlayerRef.current.pauseVideo() } catch {}
+      } else {
+        sendYtCommand('pauseVideo')
       }
       setIsKaraokePlaying(false)
     } else {
-      // If currently at 0 and track has an intro, start directly from the first vocal line so user doesn't wait!
-      const firstVocalStart = currentSong?.subtitles[0]?.startSeconds || 0
-      const targetTime = (playbackTime === 0 && firstVocalStart > 0) ? firstVocalStart : playbackTime
-
-      setPlaybackTime(targetTime)
-      if (currentSong?.subtitles[0]) {
-        setActiveSubtitleId(currentSong.subtitles[0].id)
-      }
-
-      if (ytPlayerRef.current?.seekTo && targetTime > 0) {
-        try {
-          ytPlayerRef.current.seekTo(targetTime, true)
-          ytPlayerRef.current.playVideo()
-        } catch {}
-      } else if (targetTime > 0) {
-        sendYtCommand('seekTo', [targetTime, true])
-        sendYtCommand('playVideo')
+      if (ytPlayerRef.current?.playVideo) {
+        try { ytPlayerRef.current.playVideo() } catch {}
       } else {
         sendYtCommand('playVideo')
-        if (ytPlayerRef.current?.playVideo) {
-          try { ytPlayerRef.current.playVideo() } catch {}
-        }
       }
       setIsKaraokePlaying(true)
     }
@@ -403,30 +401,22 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
 
   // Jump to subtitle line and start video playback from that second
   const handlePlayLine = (text: string, id: number, startSec: number) => {
-    setActiveSubtitleId(id)
-    setPlaybackTime(startSec)
-
-    sendYtCommand('seekTo', [startSec, true])
-    sendYtCommand('playVideo')
-    if (ytPlayerRef.current?.seekTo) {
-      try {
-        ytPlayerRef.current.seekTo(startSec, true)
-        ytPlayerRef.current.playVideo()
-      } catch {}
-    }
-    setIsKaraokePlaying(true)
+    executeSeekAndPlay(startSec, id)
     soundService.speakText(text, 1.0)
   }
 
   // Reset video and karaoke to beginning
   const handleResetToStart = () => {
-    sendYtCommand('seekTo', [0, true])
-    sendYtCommand('pauseVideo')
+    seekingUntilRef.current = Date.now() + 600
+    seekTargetTimeRef.current = 0
     if (ytPlayerRef.current?.seekTo) {
       try {
         ytPlayerRef.current.seekTo(0, true)
         ytPlayerRef.current.pauseVideo()
       } catch {}
+    } else {
+      sendYtCommand('seekTo', [0, true])
+      sendYtCommand('pauseVideo')
     }
     setPlaybackTime(0)
     setIsKaraokePlaying(false)
@@ -455,6 +445,17 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
       {/* Header Banner - Linear Midnight Navy */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-3xl bg-[#090d16]/85 backdrop-blur-2xl border border-white/[0.08] shadow-2xl shadow-black/80">
         <div className="flex items-center space-x-3.5">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] text-xs font-mono transition cursor-pointer active:scale-95"
+              title="Назад к тренировке"
+              data-testid="music-back-btn"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Назад</span>
+            </button>
+          )}
           <div className="w-11 h-11 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/20">
             <Music className="w-5 h-5" />
           </div>
@@ -696,11 +697,11 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
                               const isPastWord = isActive && (activeWordIdx > -1 ? wIdx < activeWordIdx : false)
                               const wordTiming = sub.words?.[wIdx]
 
-                              let wordStyle = 'text-slate-400 hover:text-sky-300 transition-colors'
+                              let wordStyle = 'text-slate-400 hover:text-sky-300'
                               if (isCurrentWord) {
-                                wordStyle = 'text-white font-black bg-sky-500/25 px-2.5 py-0.5 rounded-lg border border-sky-400/50 shadow-[0_0_16px_rgba(56,189,248,0.4)] scale-105 inline-block transition-transform duration-100'
+                                wordStyle = 'text-white font-extrabold bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.35)] inline-block'
                               } else if (isPastWord) {
-                                wordStyle = 'text-sky-400 font-semibold'
+                                wordStyle = 'text-sky-300 font-medium'
                               }
 
                               return (
@@ -733,7 +734,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
                       {isActive && isKaraokePlaying && (
                         <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
                           <div
-                            className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full transition-all duration-75"
+                            className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full"
                             style={{ width: `${lineProgress * 100}%` }}
                           />
                         </div>

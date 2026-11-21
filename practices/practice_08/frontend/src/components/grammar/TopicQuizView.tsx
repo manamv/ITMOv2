@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CheckCircle2, XCircle, ArrowRight, Sparkles, BookOpen, SkipForward } from 'lucide-react'
+import { CheckCircle2, XCircle, ArrowRight, Sparkles, BookOpen, SkipForward, ArrowLeft } from 'lucide-react'
 import type { LessonData } from '../../types'
 
 interface QuizQuestion {
@@ -15,6 +15,7 @@ interface TopicQuizViewProps {
   lesson: LessonData
   onComplete: (quizScore: { correct: number; total: number }) => void
   onSkip: () => void
+  onBack?: () => void
 }
 
 // Curated question banks for grammar topics
@@ -126,7 +127,8 @@ const DEFAULT_QUESTIONS: QuizQuestion[] = [
 export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
   lesson,
   onComplete,
-  onSkip
+  onSkip,
+  onBack
 }) => {
   const questions = QUIZ_BANKS[lesson.id] || DEFAULT_QUESTIONS
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -158,10 +160,20 @@ export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl bg-[#0d1527]/95 border border-[#1e2c4a] shadow-2xl space-y-6 animate-fade-in" data-testid="topic-quiz-view">
+    <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl bg-[#090d16]/95 border border-white/[0.08] shadow-2xl shadow-black/80 space-y-6 animate-fade-in" data-testid="topic-quiz-view">
       {/* Quiz Header */}
-      <div className="flex items-center justify-between border-b border-[#1e2c4a] pb-4">
+      <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
         <div className="flex items-center space-x-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer"
+              title="Вернуться к темам"
+              data-testid="quiz-back-btn"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
           <div className="w-10 h-10 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-lg shadow-sky-500/10">
             <BookOpen className="w-5 h-5" />
           </div>
@@ -177,7 +189,7 @@ export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
 
         <button
           onClick={onSkip}
-          className="text-xs text-slate-500 hover:text-slate-300 flex items-center space-x-1 transition cursor-pointer"
+          className="text-xs text-slate-400 hover:text-slate-200 flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition cursor-pointer"
           title="Пропустить тест"
           data-testid="skip-quiz-btn"
         >

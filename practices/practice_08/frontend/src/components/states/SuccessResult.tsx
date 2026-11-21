@@ -48,7 +48,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
 
       {/* Stats Scoreboard */}
       <div className="grid grid-cols-3 gap-4">
-        <Card className="text-center p-5 bg-[#0d1527] border border-[#1e2c4a]">
+        <Card className="text-center p-5 bg-[#090d16]/90 border border-white/[0.08] shadow-2xl shadow-black/80">
           <div className="text-xs text-slate-500 font-medium mb-1">СКОРОСТЬ</div>
           <div className="text-4xl font-extrabold text-sky-400 font-mono" data-testid="result-wpm">
             {stats.wpm} <span className="text-sm font-normal text-slate-400">WPM</span>
@@ -56,7 +56,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
           <div className="text-[11px] text-sky-400/80 mt-1">слов в минуту</div>
         </Card>
 
-        <Card className="text-center p-5 bg-[#0d1527] border border-[#1e2c4a]">
+        <Card className="text-center p-5 bg-[#090d16]/90 border border-white/[0.08] shadow-2xl shadow-black/80">
           <div className="text-xs text-slate-500 font-medium mb-1">ТОЧНОСТЬ</div>
           <div className="text-4xl font-extrabold text-indigo-400 font-mono" data-testid="result-accuracy">
             {stats.accuracy}%
@@ -66,7 +66,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
           </div>
         </Card>
 
-        <Card className="text-center p-5 bg-[#0d1527] border border-[#1e2c4a]">
+        <Card className="text-center p-5 bg-[#090d16]/90 border border-white/[0.08] shadow-2xl shadow-black/80">
           <div className="text-xs text-slate-500 font-medium mb-1">ВРЕМЯ</div>
           <div className="text-4xl font-extrabold text-white font-mono" data-testid="result-duration">
             {stats.durationSeconds} <span className="text-sm font-normal text-slate-400">сек</span>
@@ -77,7 +77,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
 
       {/* Weak Keys Identified */}
       {stats.weakKeys && stats.weakKeys.length > 0 ? (
-        <Card className="bg-[#0d1527] border border-[#1e2c4a] space-y-2">
+        <Card className="bg-[#090d16]/90 border border-white/[0.08] shadow-2xl shadow-black/80 space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-white flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
@@ -97,7 +97,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
           </div>
         </Card>
       ) : (
-        <Card className="bg-[#0d1527] border border-[#1e2c4a] flex items-center gap-2 text-xs text-sky-400 py-3">
+        <Card className="bg-[#090d16]/90 border border-white/[0.08] shadow-2xl shadow-black/80 flex items-center gap-2 text-xs text-sky-400 py-3">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>Идеальный набор! Ни одной проблемной клавиши не выявлено.</span>
         </Card>
