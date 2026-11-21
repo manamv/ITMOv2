@@ -170,9 +170,9 @@ export function App() {
   }
 
   return (
-    <div className={`flex flex-col bg-[#0b0f17] text-slate-100 ${activeTab === 'PRACTICE' && practiceMode === 'TYPING' ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className="min-h-screen flex flex-col bg-[#0b0f17] text-slate-100">
       {/* Top Navbar */}
-      <header className={`border-b border-slate-800/80 bg-slate-900/60 backdrop-blur sticky top-0 z-40 px-6 ${activeTab === 'PRACTICE' && practiceMode === 'TYPING' ? 'py-1.5' : 'py-3'}`}>
+      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur sticky top-0 z-40 px-6 py-2.5 shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo & Product Name */}
           <div 
@@ -284,7 +284,7 @@ export function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className={`w-full mx-auto flex flex-col ${activeTab === 'PRACTICE' && practiceMode === 'TYPING' ? 'flex-1 h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] overflow-hidden p-2 sm:p-3 justify-between' : 'flex-1 max-w-6xl p-6 justify-center'}`}>
+      <main className={`w-full mx-auto flex flex-col ${activeTab === 'PRACTICE' && practiceMode === 'TYPING' ? 'flex-1 max-w-5xl px-3 py-2' : 'flex-1 max-w-6xl p-6 justify-center'}`}>
         {/* Loading State */}
         {isLoading && <LoadingState message="Синхронизация с сервером..." />}
 

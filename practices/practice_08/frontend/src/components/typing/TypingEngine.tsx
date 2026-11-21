@@ -251,7 +251,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
 
   return (
     <div
-      className="h-full max-h-full flex flex-col justify-between overflow-hidden max-w-5xl mx-auto w-full px-2 sm:px-4 py-0 select-none animate-fade-in"
+      className="flex flex-col gap-2 max-w-5xl mx-auto w-full select-none animate-fade-in"
       data-testid="typing-engine"
     >
       {/* 1. Metrics & Control Bar (Compact, 1 Row) */}
@@ -434,7 +434,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
         <div
           onMouseUp={handleSelectionTranslate}
           onTouchEnd={handleSelectionTranslate}
-          className="font-mono text-lg sm:text-xl tracking-wide select-text cursor-text leading-[2.4rem] min-h-[7.2rem] max-h-[7.5rem] overflow-hidden break-words content-start pb-2"
+          className="font-mono text-lg sm:text-xl tracking-wide select-text cursor-text leading-[2.3rem] min-h-[6.9rem] whitespace-pre-wrap break-words content-start pb-1"
           data-testid="typing-text-display"
         >
           {targetText.split('').map((char, idx) => {
@@ -465,16 +465,18 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
               }
             }
 
+            const isSpace = char === ' '
+
             return (
               <span
                 key={idx}
-                className={`relative inline-block ${charClass}`}
+                className={`relative ${isSpace ? 'inline' : 'inline-block'} ${charClass}`}
                 data-testid={isCurrent ? 'current-char' : isError ? 'error-char' : undefined}
               >
                 {isCurrent && (
                   <span className="absolute -left-[1px] top-1 bottom-1 w-[2px] bg-white animate-pulse pointer-events-none" />
                 )}
-                {displayChar}
+                {isSpace && isError ? '␣' : (isSpace ? ' ' : displayChar)}
               </span>
             )
           })}
