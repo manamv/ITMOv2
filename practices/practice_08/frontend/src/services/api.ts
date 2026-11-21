@@ -6,30 +6,30 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api
 const FALLBACK_TOPICS: GrammarTopic[] = [
   {
     id: 'pres-perf',
-    title: 'Present Perfect vs Past Simple',
+    title: 'present perfect vs past simple',
     level: 'B1',
-    description: 'Разница между результатом в настоящем (have/has + V3) и завершённым действием в прошлом.',
+    description: 'разница между результатом в настоящем и завершенным действием в прошлом',
     sentenceCount: 5
   },
   {
     id: 'cond-2',
-    title: 'Second & Third Conditionals',
+    title: 'second and third conditionals',
     level: 'B2',
-    description: 'Нереальные условия в настоящем (If + Past Simple) и прошлом (would have + V3).',
+    description: 'нереальные условия в настоящем и прошлом без знаков препинания',
     sentenceCount: 4
   },
   {
     id: 'pass-voice',
-    title: 'Passive Voice in Tech Contexts',
+    title: 'passive voice in tech contexts',
     level: 'B1',
-    description: 'Страдательный залог: объект действия важнее исполнителя (be + V3).',
+    description: 'страдательный залог объект действия важнее исполнителя',
     sentenceCount: 3
   },
   {
     id: 'a1-basics',
-    title: 'Present Simple & Daily Routines',
+    title: 'present simple and daily routines',
     level: 'A1',
-    description: 'Базовые утверждения, отрицания и вопросы о повседневных привычках.',
+    description: 'базовые утверждения отрицания и вопросы о повседневных привычках',
     sentenceCount: 3
   }
 ]
@@ -37,27 +37,27 @@ const FALLBACK_TOPICS: GrammarTopic[] = [
 const FALLBACK_LESSONS: Record<string, LessonData> = {
   'pres-perf': {
     id: 'pres-perf',
-    title: 'Present Perfect vs Past Simple',
+    title: 'present perfect vs past simple',
     level: 'B1',
-    description: 'Отработка временных маркеров already, yet, yesterday, last week.',
+    description: 'отработка временных маркеров without uppercase and punctuation',
     sentences: [
       {
         id: 's1',
-        english: 'She has already completed this difficult report on time.',
-        russian: 'Она уже завершила этот сложный отчёт вовремя.',
-        grammarTip: 'already указывает на результат действия к настоящему моменту'
+        english: 'she has already completed this difficult engineering report on time and the lead architect has verified all database schema changes with the entire team',
+        russian: 'она уже завершила этот сложный инженерный отчёт вовремя и главный архитектор проверил все изменения схемы базы данных со всей командой',
+        grammarTip: 'already указывает на результат в настоящем have или has плюс v3'
       },
       {
         id: 's2',
-        english: 'They went to the conference in Berlin last Tuesday.',
-        russian: 'Оны поехали на конференцию в Берлин в прошлый вторник.',
-        grammarTip: 'last Tuesday — точный момент в прошлом (Past Simple)'
+        english: 'they went to the international tech conference in berlin last tuesday and presented their new automated deployment pipeline to many distributed backend developers',
+        russian: 'они поехали на международную технологическую конференцию в берлин в прошлый вторник и представили свой новый автоматизированный пайплайн деплоя разработчикам',
+        grammarTip: 'last tuesday указывает на конкретный момент в прошлом past simple'
       },
       {
         id: 's3',
-        english: 'I have never seen such an innovative software architecture before.',
-        russian: 'Я никогда раньше не видел столь инновационной архитектуры ПО.',
-        grammarTip: 'never выражает жизненный опыт до текущего момента'
+        english: 'we have never observed such an innovative microservice architecture before in any enterprise software system because the latency was always extremely low',
+        russian: 'мы никогда раньше не наблюдали столь инновационной микросервисной архитектуры ни в одной корпоративной системе потому что задержка была низкой',
+        grammarTip: 'never в контексте жизненного опыта до настоящего момента present perfect'
       }
     ]
   }
@@ -107,21 +107,21 @@ export const api = {
     } catch {
       return {
         id: 'adaptive-weak-keys',
-        title: `Тренировка слабых клавиш: [${keys.map(k => k.toUpperCase()).join(', ')}]`,
+        title: `тренировка слабых клавиш: [${keys.map(k => k.toLowerCase()).join(', ')}]`,
         level: 'Adaptive',
-        description: 'Предложения с высокой концентрацией проблемных букв.',
+        description: 'предложения с высокой концентрацией проблемных букв без знаков препинания',
         sentences: [
           {
             id: 'ad-1',
-            english: 'Rapid prototyping requires proper practice and continuous testing.',
-            russian: 'Быстрое прототипирование требует правильной практики и непрерывного тестирования.',
-            grammarTip: 'Повышенная концентрация букв R, P, T'
+            english: 'rapid prototyping requires proper practice and continuous testing to ensure that all critical software components perform reliably under heavy network load',
+            russian: 'быстрое прототипирование требует правильной практики и непрерывного тестирования чтобы гарантировать надежную работу всех компонентов под нагрузкой',
+            grammarTip: 'повышенная концентрация букв r p t'
           },
           {
             id: 'ad-2',
-            english: 'The report provides reliable performance metrics for the team.',
-            russian: 'Отчёт предоставляет надёжные метрики производительности для команды.',
-            grammarTip: 'Тренировка пальцев правой и левой руки'
+            english: 'senior programmers write clean structured code and optimize database queries to achieve the lowest possible response latency across all backend services',
+            russian: 'сеньор программисты пишут чистый структурированный код и оптимизируют запросы к базе данных для минимальной задержки ответа сервисов',
+            grammarTip: 'тренировка пальцев правой и левой руки'
           }
         ]
       }

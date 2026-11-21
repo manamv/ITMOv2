@@ -22,15 +22,15 @@ describe('Criterion 11: Full End-to-End User Scenario', () => {
 
     const mockLesson = {
       id: 'pres-perf',
-      title: 'Present Perfect vs Past Simple',
+      title: 'present perfect vs past simple',
       level: 'B1',
       description: 'Test lesson',
       sentences: [
         {
           id: 's1',
-          english: 'Hi.',
-          russian: 'Привет.',
-          grammarTip: 'Тестовое короткое предложение'
+          english: 'hi',
+          russian: 'привет',
+          grammarTip: 'тестовое предложение без знаков препинания'
         }
       ]
     }
@@ -64,12 +64,13 @@ describe('Criterion 11: Full End-to-End User Scenario', () => {
       expect(screen.getByTestId('typing-engine')).toBeInTheDocument()
     })
 
-    expect(screen.getByText(/Привет./i)).toBeInTheDocument()
+    expect(screen.getByText(/привет/i)).toBeInTheDocument()
+    expect(screen.getByTestId('metric-stopwatch')).toBeInTheDocument()
+    expect(screen.getByTestId('typing-text-display')).toBeInTheDocument()
 
-    // 5. User types the sentence: 'H', 'i', '.'
-    fireEvent.keyDown(window, { key: 'H' })
+    // 5. User types the sentence: 'h', 'i'
+    fireEvent.keyDown(window, { key: 'h' })
     fireEvent.keyDown(window, { key: 'i' })
-    fireEvent.keyDown(window, { key: '.' })
 
     // 6. User reaches victory result scoreboard!
     await waitFor(() => {

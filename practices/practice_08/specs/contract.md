@@ -39,9 +39,9 @@
 [
   {
     "id": "pres-perf",
-    "title": "Present Perfect vs Past Simple",
+    "title": "present perfect vs past simple",
     "level": "B1",
-    "description": "Разница между результатом в настоящем (have/has + V3) и завершённым действием в прошлом.",
+    "description": "разница между результатом в настоящем и завершенным действием в прошлом",
     "sentenceCount": 5
   }
 ]

@@ -134,6 +134,10 @@
         <!-- Live Metrics -->
         <div class="flex items-center space-x-6 font-mono text-sm">
           <div class="flex items-center space-x-2">
+            <span class="text-amber-400 text-xs">⏱️ СЕКУНДОМЕР</span>
+            <span class="text-amber-400 font-bold text-lg">00:14.2</span>
+          </div>
+          <div class="flex items-center space-x-2">
             <span class="text-slate-500 text-xs">WPM</span>
             <span class="text-emerald-400 font-bold text-lg">68</span>
           </div>
@@ -175,14 +179,21 @@
         <!-- Translation Hint (Russian Context for Grammar) -->
         <div class="text-xs font-medium text-slate-400 mb-3 flex items-center space-x-2">
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-          <span>Перевод: «Она уже завершила этот сложный отчёт вовремя.»</span>
+          <span>Перевод: «она уже завершила этот сложный инженерный отчёт вовремя и главный архитектор проверил все изменения схемы базы данных со всей командой»</span>
         </div>
 
-        <!-- Sentence with letter states -->
-        <div class="font-mono text-2xl tracking-wide select-none leading-relaxed">
-          <span class="text-emerald-400">She has </span>
-          <span class="text-white border-b-2 border-emerald-400 pb-0.5 animate-pulse bg-emerald-500/20 px-0.5 rounded">a</span>
-          <span class="text-slate-500">lready completed this difficult report on time.</span>
+        <!-- 3-line height sentence with correct, red error, and untyped letters -->
+        <div class="font-mono text-2xl tracking-wide select-none leading-relaxed h-[6.5rem] overflow-hidden">
+          <span class="text-emerald-400">she has already </span>
+          <span class="text-rose-400 bg-rose-500/25 underline decoration-rose-500 font-bold px-0.5 rounded">x</span>
+          <span class="text-emerald-400">ompleted </span>
+          <span class="text-white border-b-2 border-emerald-400 pb-0.5 animate-pulse bg-emerald-500/20 px-0.5 rounded">t</span>
+          <span class="text-slate-500">his difficult engineering report on time and the lead architect has verified all database schema changes with the entire team</span>
+        </div>
+
+        <!-- Unfixed errors hint -->
+        <div class="mt-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 rounded-xl flex items-center space-x-2">
+          <span>⚠️ Нажмите <strong>Backspace ⌫</strong>, чтобы стереть красную букву «x» и исправить опечатку.</span>
         </div>
 
         <!-- Finger guidance alert -->

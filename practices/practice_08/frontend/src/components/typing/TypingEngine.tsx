@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Volume2, Pause, RotateCcw, AlertCircle } from 'lucide-react'
+import { Volume2, Pause, RotateCcw, AlertCircle, Timer } from 'lucide-react'
 import type { LessonData, SessionStats } from '../../types'
 import { VirtualKeyboard } from '../keyboard/VirtualKeyboard'
 import { WordPopover } from './WordPopover'
@@ -20,23 +20,38 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   const [errorsCount, setErrorsCount] = useState(0)
   const [sessionWeakKeys, setSessionWeakKeys] = useState<Set<string>>(new Set())
   const [startTime, setStartTime] = useState<number | null>(null)
+  const [sentenceStartTime, setSentenceStartTime] = useState<number | null>(null)
+  const [sentenceElapsedTime, setSentenceElapsedTime] = useState<number>(0)
   const [isPaused, setIsPaused] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedWord, setSelectedWord] = useState<string | null>(null)
 
   const currentSentence = lesson.sentences[currentSentenceIndex] || lesson.sentences[0]
-  const targetText = currentSentence ? currentSentence.english : ''
-  const currentChar = targetText[typedChars.length] || ''
+  // Normalize target text: strictly lowercase, no punctuation
+  const targetText = currentSentence ? currentSentence.english.toLowerCase() : ''
 
   // Double-submit prevention ref
   const submitLockRef = useRef(false)
 
-  // Start timer on first keystroke
-  const ensureTimerStarted = useCallback(() => {
-    if (!startTime) {
-      setStartTime(Date.now())
-    }
-  }, [startTime])
+  // Stopwatch timer for current sentence
+  useEffect(() => {
+    if (!sentenceStartTime || isPaused || isSubmitting) return
+
+    const timer = setInterval(() => {
+      setSentenceElapsedTime(Date.now() - sentenceStartTime)
+    }, 100)
+
+    return () => clearInterval(timer)
+  }, [sentenceStartTime, isPaused, isSubmitting])
+
+  // Format stopwatch ms as MM:SS.s
+  const formatStopwatch = (ms: number): string => {
+    const totalSeconds = Math.floor(ms / 1000)
+    const tenths = Math.floor((ms % 1000) / 100)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${tenths}`
+  }
 
   // Play audio on sentence switch or button click
   const handlePronounce = useCallback(() => {
@@ -47,7 +62,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   const calculateWpm = (): number => {
     if (!startTime) return 0
     const minutes = Math.max(0.05, (Date.now() - startTime) / 60000)
-    const wordsTyped = (typedChars.length) / 5
+    const wordsTyped = typedChars.length / 5
     return Math.round(wordsTyped / minutes)
   }
 
@@ -58,6 +73,14 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     const acc = Math.max(0, ((totalHits - errorsCount) / totalHits) * 100)
     return Math.round(acc * 10) / 10
   }
+
+  // Check if there are unfixed red mistakes in typed text
+  const hasUnfixedErrors = typedChars.split('').some((char, idx) => char !== targetText[idx])
+
+  // Determine current active character for keyboard guidance
+  const currentChar = typedChars.length < targetText.length
+    ? targetText[typedChars.length]
+    : (hasUnfixedErrors ? 'backspace' : '')
 
   // Handle lesson finish with strict double-submit guard
   const handleCompleteLesson = useCallback(async () => {
@@ -97,63 +120,94 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
         return
       }
 
-      // Ignore functional keys
+      // Ignore functional modifier keys
       if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.key === 'Tab') {
         return
       }
 
-      // Backspace handler
+      // Backspace handler: delete character and allow manual correction
       if (e.key === 'Backspace') {
         e.preventDefault()
-        setTypedChars(prev => prev.slice(0, -1))
+        if (e.ctrlKey) {
+          setTypedChars(prev => prev.replace(/\s*\S*$/, ''))
+        } else {
+          setTypedChars(prev => prev.slice(0, -1))
+        }
         return
       }
 
+      // Printable character
       if (e.key.length === 1) {
         e.preventDefault()
-        ensureTimerStarted()
+        const typedKey = e.key.toLowerCase()
 
-        const expected = currentChar
-        if (e.key === expected) {
-          // Correct character
-          soundService.playKeyClick(false)
-          weakKeysService.recordKey(expected, false)
-          const newTyped = typedChars + e.key
+        // Start stopwatch and session timers
+        if (!sentenceStartTime) {
+          const now = Date.now()
+          setSentenceStartTime(now)
+          if (!startTime) {
+            setStartTime(now)
+          }
+        }
+
+        // Advance typing if within sentence length
+        if (typedChars.length < targetText.length) {
+          const expected = targetText[typedChars.length]
+          const isCorrect = typedKey === expected
+
+          if (isCorrect) {
+            soundService.playKeyClick(false)
+            weakKeysService.recordKey(expected, false)
+          } else {
+            // Mistake: letter lights up in red, user can continue or erase with Backspace
+            soundService.playKeyClick(true)
+            setErrorsCount(prev => prev + 1)
+            weakKeysService.recordKey(expected, true)
+            setSessionWeakKeys(prev => new Set(prev).add(expected))
+          }
+
+          const newTyped = typedChars + typedKey
           setTypedChars(newTyped)
 
-          // Completed this sentence?
-          if (newTyped.length === targetText.length) {
+          // Completed sentence: all characters typed and all errors corrected!
+          if (newTyped.length === targetText.length && newTyped === targetText) {
             if (currentSentenceIndex + 1 < lesson.sentences.length) {
               // Advance to next sentence
               setCurrentSentenceIndex(prev => prev + 1)
               setTypedChars('')
               setSelectedWord(null)
+              setSentenceStartTime(null)
+              setSentenceElapsedTime(0)
             } else {
               // All sentences completed!
               handleCompleteLesson()
             }
           }
-        } else {
-          // Mistake!
-          soundService.playKeyClick(true)
-          setErrorsCount(prev => prev + 1)
-          weakKeysService.recordKey(expected, true)
-          setSessionWeakKeys(prev => new Set(prev).add(expected.toLowerCase()))
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isPaused, isSubmitting, typedChars, currentChar, targetText, currentSentenceIndex, lesson.sentences.length, ensureTimerStarted, handleCompleteLesson])
+  }, [
+    isPaused,
+    isSubmitting,
+    typedChars,
+    targetText,
+    currentSentenceIndex,
+    lesson.sentences.length,
+    sentenceStartTime,
+    startTime,
+    handleCompleteLesson
+  ])
 
   // Split sentence into words for interactive translation popovers
-  const words = targetText.split(' ')
+  const words = targetText.split(' ').filter(Boolean)
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full animate-fade-in" data-testid="typing-engine">
       {/* Metrics & Control Bar */}
-      <div className="flex items-center justify-between bg-slate-900/80 backdrop-blur p-4 rounded-2xl border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/80 backdrop-blur p-4 rounded-2xl border border-slate-800">
         <div className="flex items-center space-x-3">
           <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
             {lesson.level} • {lesson.title}
@@ -163,8 +217,14 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           </span>
         </div>
 
-        {/* Live Metrics */}
+        {/* Live Metrics: WPM, Accuracy, Errors, Stopwatch */}
         <div className="flex items-center space-x-6 font-mono text-sm">
+          {/* Stopwatch */}
+          <div className="flex items-center space-x-1.5" data-testid="metric-stopwatch">
+            <Timer className="w-4 h-4 text-amber-400" />
+            <span className="text-slate-500 text-xs">СЕКУНДОМЕР</span>
+            <span className="text-amber-400 font-bold text-lg">{formatStopwatch(sentenceElapsedTime)}</span>
+          </div>
           <div className="flex items-center space-x-1.5" data-testid="metric-wpm">
             <span className="text-slate-500 text-xs">WPM</span>
             <span className="text-emerald-400 font-bold text-lg">{calculateWpm()}</span>
@@ -201,6 +261,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             onClick={() => {
               setTypedChars('')
               setSelectedWord(null)
+              setSentenceStartTime(null)
+              setSentenceElapsedTime(0)
             }}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
             title="Сбросить предложение"
@@ -227,31 +289,52 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           <span>Перевод: «{currentSentence.russian}»</span>
         </div>
 
-        {/* Interactive Sentence Words */}
-        <div className="font-mono text-2xl tracking-wide select-none leading-relaxed min-h-[70px]">
-          {/* Render target with typed states */}
+        {/* 3-line height sentence box */}
+        <div
+          className="font-mono text-xl sm:text-2xl tracking-wide select-none leading-relaxed min-h-[5.5rem] max-h-[6.5rem] overflow-hidden break-words content-start"
+          data-testid="typing-text-display"
+        >
           {targetText.split('').map((char, idx) => {
             let charClass = 'text-slate-500' // Untyped
             let isCurrent = false
+            let isError = false
 
             if (idx < typedChars.length) {
-              charClass = 'text-emerald-400' // Correctly typed
+              if (typedChars[idx] === char) {
+                // Correctly typed
+                charClass = 'text-emerald-400 font-medium'
+              } else {
+                // Mistake: letter lights up in red, user must erase with backspace to complete
+                isError = true
+                charClass = 'text-rose-400 bg-rose-500/25 underline decoration-rose-500 decoration-2 font-bold rounded-xs px-0.5'
+              }
             } else if (idx === typedChars.length) {
               isCurrent = true
-              charClass = 'text-white bg-emerald-500/20 px-0.5 rounded border-b-2 border-emerald-400'
+              charClass = 'text-white bg-emerald-500/30 px-0.5 rounded-sm border-b-2 border-emerald-400'
             }
 
             return (
               <span
                 key={idx}
                 className={`${charClass} ${isCurrent ? 'animate-pulse' : ''}`}
-                data-testid={isCurrent ? 'current-char' : undefined}
+                data-testid={isCurrent ? 'current-char' : isError ? 'error-char' : undefined}
               >
-                {char}
+                {char === ' ' && isError ? '␣' : char}
               </span>
             )
           })}
         </div>
+
+        {/* Unfixed errors notice at the end */}
+        {hasUnfixedErrors && typedChars.length >= targetText.length && (
+          <div
+            className="mt-3 flex items-center space-x-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 rounded-xl animate-fade-in"
+            data-testid="error-backspace-hint"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <span>В тексте есть ошибки! Нажмите <strong>Backspace ⌫</strong>, чтобы стереть и исправить красные буквы.</span>
+          </div>
+        )}
 
         {/* Word click hint & Grammar Tip */}
         <div className="mt-4 flex flex-wrap items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800/80 gap-2">
@@ -270,7 +353,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
                 className="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 transition cursor-pointer"
                 aria-label={`Перевод слова ${w}`}
               >
-                {w.replace(/[^a-zA-Z]/g, '')}
+                {w}
               </button>
             ))}
           </div>
@@ -282,7 +365,10 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
 
       {/* Double Submit Protection Indicator (when sending to server) */}
       {isSubmitting && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center font-medium animate-pulse" data-testid="submitting-indicator">
+        <div
+          className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center font-medium animate-pulse"
+          data-testid="submitting-indicator"
+        >
           Сохранение результатов на сервере...
         </div>
       )}

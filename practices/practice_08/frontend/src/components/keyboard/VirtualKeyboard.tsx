@@ -151,7 +151,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           <div className="flex items-center space-x-2 bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-700/60 font-mono text-xs">
             <span className="text-slate-400">Символ:</span>
             <span className="font-bold text-emerald-400 bg-slate-950 px-2 py-0.5 rounded border border-emerald-500/30">
-              {normalizedTarget === ' ' ? '␣ SPACE' : normalizedTarget.toUpperCase()}
+              {normalizedTarget === ' ' ? '␣ space' : normalizedTarget === 'backspace' ? '⌫ backspace' : normalizedTarget.toLowerCase()}
             </span>
             <span className="text-emerald-400 font-medium">
               ← {FINGER_NAMES[targetFinger]}
@@ -190,9 +190,9 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
                   key={keyIndex}
                   style={customStyle}
                   className={`h-10 ${widthClass} rounded-lg border flex items-center justify-center font-semibold text-xs transition-all duration-100 ${keyExtraClass}`}
-                  data-testid={item.key === ' ' ? 'key-space' : `key-${item.key}`}
+                  data-testid={item.key === ' ' ? 'key-space' : `key-${item.key.toLowerCase()}`}
                 >
-                  {item.display || item.key.toUpperCase()}
+                  {item.display || item.key.toLowerCase()}
                 </div>
               )
             })}

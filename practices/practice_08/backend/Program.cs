@@ -19,46 +19,46 @@ app.UseCors();
 // In-Memory Database / Store
 var topics = new List<GrammarTopic>
 {
-    new("pres-perf", "Present Perfect vs Past Simple", "B1", 
-        "Разница между результатом в настоящем (have/has + V3) и завершённым действием в прошлом.",
+    new("pres-perf", "present perfect vs past simple", "B1", 
+        "разница между результатом в настоящем и завершенным действием в прошлом",
         [
-            new("s1", "She has already completed this difficult report on time.", "Она уже завершила этот сложный отчёт вовремя.", "already указывает на результат в настоящем"),
-            new("s2", "They went to the conference in Berlin last Tuesday.", "Они поехали на конференцию в Берлин в прошлый вторник.", "last Tuesday — конкретный момент в прошлом, Past Simple"),
-            new("s3", "I have never seen such an innovative software architecture before.", "Я никогда раньше не видел столь инновационной архитектуры ПО.", "never в контексте жизненного опыта — Present Perfect"),
-            new("s4", "We launched our new web application two months ago.", "Мы запустили наше новое веб-приложение два месяца назад.", "ago требует Past Simple"),
-            new("s5", "Have you ever refactored a legacy distributed system?", "Вы когда-нибудь рефакторили легаси распределенную систему?", "ever — опыт до настоящего момента")
+            new("s1", "she has already completed this difficult engineering report on time and the lead architect has verified all database schema changes with the entire team", "она уже завершила этот сложный инженерный отчёт вовремя и главный архитектор проверил все изменения схемы базы данных со всей командой", "already указывает на результат в настоящем have или has плюс v3"),
+            new("s2", "they went to the international tech conference in berlin last tuesday and presented their new automated deployment pipeline to many distributed backend developers", "они поехали на международную технологическую конференцию в берлин в прошлый вторник и представили свой новый автоматизированный пайплайн деплоя разработчикам", "last tuesday указывает на конкретный момент в прошлом past simple"),
+            new("s3", "we have never observed such an innovative microservice architecture before in any enterprise software system because the latency was always extremely low", "мы никогда раньше не наблюдали столь инновационной микросервисной архитектуры ни в одной корпоративной системе потому что задержка была низкой", "never в контексте жизненного опыта до настоящего момента present perfect"),
+            new("s4", "the core team launched our new cloud service two weeks ago and we have monitored every transaction continuously without any major production incident", "основная команда запустила наш новый облачный сервис две недели назад и мы непрерывно отслеживаем каждую транзакцию без каких либо инцидентов", "ago требует past simple а непрерывный мониторинг до настоящего времени present perfect"),
+            new("s5", "have you ever refactored a legacy distributed system under high workload and maintained complete backward compatibility with all external client applications", "вы когда нибудь рефакторили легаси распределенную систему под высокой нагрузкой и сохраняли полную обратную совместимость с внешними приложениями", "ever в вопросе о жизненном опыте требует present perfect")
         ]),
 
-    new("cond-2", "Second & Third Conditionals", "B2", 
-        "Нереальные условия в настоящем (If + Past Simple, would + V) и прошлом (If + Past Perfect, would have + V3).",
+    new("cond-2", "second and third conditionals", "B2", 
+        "нереальные условия в настоящем и прошлом без знаков препинания",
         [
-            new("c1", "If I had more time, I would learn three programming languages simultaneously.", "Если бы у меня было больше времени, я бы учил три языка программирования одновременно.", "2nd conditional: воображаемое настоящее"),
-            new("c2", "If we had deployed the database migration yesterday, the production incident would not have occurred.", "Если бы мы развернули миграцию БД вчера, инцидента на проде не произошло бы.", "3rd conditional: сожаление о прошлом"),
-            new("c3", "She would travel around the world if she worked remotely as a senior engineer.", "Она бы путешествовала по миру, если бы работала удаленно сеньор-инженером.", "2nd conditional"),
-            new("c4", "If they had tested all edge cases, the automated release would have succeeded.", "Если бы они протестировали все граничные случаи, автоматический релиз был бы успешен.", "3rd conditional")
+            new("c1", "if i had more free time during the working week i would learn three modern programming languages simultaneously and build high performance web applications", "если бы у меня было больше свободного времени на рабочей неделе я бы учил три языка программирования одновременно и создавал быстрые приложения", "второй тип условных предложений нереальное настоящее if плюс past simple would плюс v1"),
+            new("c2", "if we had deployed the database migration yesterday the unexpected production incident would not have occurred and the system would be completely stable today", "если бы мы развернули миграцию базы данных вчера непредвиденного инцидента на проде не произошло бы и система была бы стабильна сегодня", "третий тип условных предложений сожаление о прошлом if плюс had v3 would have v3"),
+            new("c3", "she would travel around the world if she worked remotely as a senior engineer and had sufficient balance to support long journeys across different continents", "она бы путешествовала по миру если бы работала удаленно сеньор инженером и имела достаточный баланс для долгих поездок по разным континентам", "второй тип условных предложений воображаемая ситуация в настоящем"),
+            new("c4", "if they had thoroughly tested all edge cases before the deployment the automated release would have succeeded without any manual intervention from engineers", "если бы они тщательно протестировали все граничные случаи перед деплоем автоматический релиз прошел бы успешно без ручного вмешательства инженеров", "третий тип условных предложений гипотетическое прошлое if плюс had v3")
         ]),
 
-    new("pass-voice", "Passive Voice in Tech Contexts", "B1", 
-        "Страдательный залог: объект действия важнее исполнителя (be + V3).",
+    new("pass-voice", "passive voice in tech contexts", "B1", 
+        "страдательный залог объект действия важнее исполнителя",
         [
-            new("p1", "The microservices are monitored continuously by our automated observability stack.", "Микросервисы непрерывно мониторятся нашим стеком наблюдаемости.", "Present Simple Passive"),
-            new("p2", "All unit and integration tests were executed before the pull request was merged.", "Все юнит и интеграционные тесты были выполнены до слияния пулл-реквеста.", "Past Simple Passive"),
-            new("p3", "Security tokens must be kept confidential by every team member.", "Токены безопасности должны сохраняться в тайне каждым членом команды.", "Modal Passive")
+            new("p1", "all critical microservices are monitored continuously by our automated observability stack and incident reports are delivered immediately to engineers on call", "все критические микросервисы непрерывно мониторятся нашим стеком наблюдаемости и отчеты об инцидентах доставляются дежурным инженерам", "present simple passive are monitored are delivered"),
+            new("p2", "the automated integration tests were executed before the pull request was merged into the main development branch by the release manager yesterday afternoon", "автоматические интеграционные тесты были выполнены до того как пулл реквест был слит в основную ветку разработки релиз менеджером вчера днём", "past simple passive were executed was merged"),
+            new("p3", "all authentication tokens must be kept confidential by every team member so that unauthorized access to private user records is completely prevented at all times", "все токены аутентификации должны храниться в тайне каждым членом команды чтобы несанкционированный доступ к записям был предотвращен", "modal passive must be kept is prevented")
         ]),
 
-    new("rel-clauses", "Defining & Non-defining Relative Clauses", "B2", 
-        "Придаточные определительные предложения (who, which, that, whose).",
+    new("rel-clauses", "defining and non defining relative clauses", "B2", 
+        "придаточные определительные предложения со словами who which that",
         [
-            new("r1", "The architect who designed our event-driven system received an international award.", "Архитектор, который спроектировал нашу событийно-ориентированную систему, получил международную премию.", "Defining relative clause"),
-            new("r2", "Docker containers, which isolate system processes, enhance reproducible deployment pipelines.", "Docker-контейнеры, изолирующие системные процессы, улучшают воспроизводимость пайплайнов деплоя.", "Non-defining: дополнительная информация")
+            new("r1", "the software architect who designed our event driven distributed system received an international award and gave an inspiring lecture on system reliability", "архитектор по который спроектировал нашу событийно ориентированную систему получил международную премию и прочитал вдохновляющую лекцию", "defining relative clause со словом who"),
+            new("r2", "docker containers which isolate operating system processes enhance reproducible deployment pipelines and speed up local developer environments everywhere", "контейнеры докер которые изолируют процессы операционной системы улучшают воспроизводимость пайплайнов и ускоряют среду разработки", "relative clause со словом which")
         ]),
 
-    new("a1-basics", "Present Simple & Daily Routines", "A1", 
-        "Базовые утверждения, отрицания и вопросы о повседневных привычках и фактах.",
+    new("a1-basics", "present simple and daily routines", "A1", 
+        "базовые утверждения отрицания и вопросы о повседневных привычках",
         [
-            new("a1", "She writes clean and readable code every single morning.", "Она пишет чистый и читаемый код каждое утро.", "Present Simple 3rd person singular (-s)"),
-            new("a2", "Do you drink fresh coffee before your first engineering standup meeting?", "Ты пьёшь свежий кофе перед первым инженерным стендапом?", "Вопрос в Present Simple"),
-            new("a3", "Our team does not ignore software accessibility guidelines.", "Наша команда не игнорирует руководства по доступности ПО.", "Отрицание: does not + V1")
+            new("a1", "she writes clean and readable code every single morning and then reviews pull requests submitted by other software engineers across the development company", "она пишет чистый и читаемый код каждое утро а затем проверяет пулл реквесты отправленные другими инженерами компании", "present simple третье лицо единственное число writes reviews"),
+            new("a2", "we always drink fresh hot coffee before our first engineering standup meeting and discuss our daily tasks and upcoming release milestones together as a team", "мы всегда пьем свежий горячий кофе перед первым инженерным стендапом и обсуждаем наши ежедневные задачи и цели релиза вместе", "present simple с наречием частотности always drink discuss"),
+            new("a3", "our development team does not ignore software accessibility guidelines because every modern web application must be convenient for all people around the world", "наша команда разработки не игнорирует руководства по доступности по потому что каждое приложение должно быть удобным для всех людей", "отрицание в present simple does not ignore")
         ])
 };
 
@@ -138,7 +138,7 @@ app.MapGet("/api/adaptive/weak-keys", (string? keys) =>
     return Results.Ok(new
     {
         Id = "adaptive-weak-keys",
-        Title = $"Адаптивная тренировка слабых букв: [{string.Join(", ", targetKeys.Select(k => k.ToUpperInvariant()))}]",
+        Title = $"Адаптивная тренировка слабых букв: [{string.Join(", ", targetKeys.Select(k => k.ToLowerInvariant()))}]",
         Level = "Adaptive",
         Description = "Фразы с максимальной концентрацией ваших проблемных клавиш для тренировки мышечной памяти.",
         Sentences = scored
