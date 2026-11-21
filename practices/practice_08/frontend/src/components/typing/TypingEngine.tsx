@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Volume2, Pause, RotateCcw, AlertCircle, Timer } from 'lucide-react'
+import { Volume2, Pause, RotateCcw, AlertCircle, Timer, Headphones } from 'lucide-react'
 import type { LessonData, SessionStats } from '../../types'
 import { VirtualKeyboard } from '../keyboard/VirtualKeyboard'
 import { WordPopover } from './WordPopover'
@@ -26,9 +26,15 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedWord, setSelectedWord] = useState<string | null>(null)
 
+  // Speech options
+  const [speechRate, setSpeechRate] = useState<number>(1.0)
+  const [wordByWordMode, setWordByWordMode] = useState<boolean>(false)
+  const [showRateMenu, setShowRateMenu] = useState<boolean>(false)
+
   const currentSentence = lesson.sentences[currentSentenceIndex] || lesson.sentences[0]
   // Normalize target text: strictly lowercase, no punctuation
   const targetText = currentSentence ? currentSentence.english.toLowerCase() : ''
+  const targetWords = targetText.split(' ').filter(Boolean)
 
   // Double-submit prevention ref
   const submitLockRef = useRef(false)
@@ -44,6 +50,13 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     return () => clearInterval(timer)
   }, [sentenceStartTime, isPaused, isSubmitting])
 
+  // Word-by-word mode: pronounce the first word when sentence begins or mode activated
+  useEffect(() => {
+    if (wordByWordMode && typedChars.length === 0 && targetWords.length > 0) {
+      soundService.speakWord(targetWords[0], speechRate)
+    }
+  }, [wordByWordMode, currentSentenceIndex, speechRate, targetText, typedChars.length, targetWords])
+
   // Format stopwatch ms as MM:SS.s
   const formatStopwatch = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000)
@@ -53,10 +66,10 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${tenths}`
   }
 
-  // Play audio on sentence switch or button click
+  // Play audio for full sentence
   const handlePronounce = useCallback(() => {
-    soundService.speakText(targetText)
-  }, [targetText])
+    soundService.speakText(targetText, speechRate)
+  }, [targetText, speechRate])
 
   // Calculate live WPM
   const calculateWpm = (): number => {
@@ -169,15 +182,34 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           const newTyped = typedChars + typedKey
           setTypedChars(newTyped)
 
+          // Word-by-word anticipatory speech: when word completes with a space, pronounce the NEXT word
+          if (wordByWordMode && isCorrect && expected === ' ') {
+            const finishedWords = newTyped.split(' ').filter(Boolean)
+            const nextWordIndex = finishedWords.length
+            if (nextWordIndex < targetWords.length) {
+              soundService.speakWord(targetWords[nextWordIndex], speechRate)
+            }
+          }
+
           // Completed sentence: all characters typed and all errors corrected!
           if (newTyped.length === targetText.length && newTyped === targetText) {
             if (currentSentenceIndex + 1 < lesson.sentences.length) {
               // Advance to next sentence
-              setCurrentSentenceIndex(prev => prev + 1)
+              const nextIndex = currentSentenceIndex + 1
+              setCurrentSentenceIndex(nextIndex)
               setTypedChars('')
               setSelectedWord(null)
               setSentenceStartTime(null)
               setSentenceElapsedTime(0)
+
+              // Word-by-word: pronounce first word of next sentence
+              if (wordByWordMode) {
+                const nextSentenceObj = lesson.sentences[nextIndex]
+                if (nextSentenceObj) {
+                  const words = nextSentenceObj.english.toLowerCase().split(' ').filter(Boolean)
+                  if (words[0]) soundService.speakWord(words[0], speechRate)
+                }
+              }
             } else {
               // All sentences completed!
               handleCompleteLesson()
@@ -194,10 +226,13 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     isSubmitting,
     typedChars,
     targetText,
+    targetWords,
     currentSentenceIndex,
-    lesson.sentences.length,
+    lesson.sentences,
     sentenceStartTime,
     startTime,
+    wordByWordMode,
+    speechRate,
     handleCompleteLesson
   ])
 
@@ -239,16 +274,75 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           </div>
         </div>
 
-        {/* Controls */}
+        {/* Controls: Audio, Speech Rate, Word-by-Word Mode, Pause, Reset */}
         <div className="flex items-center space-x-2">
+          {/* Full Sentence Pronounce */}
           <button
             onClick={handlePronounce}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition cursor-pointer"
-            title="Озвучить предложение"
+            title="Озвучить все предложение"
             aria-label="Озвучить предложение"
+            data-testid="audio-pronounce-btn"
           >
             <Volume2 className="w-4 h-4" />
           </button>
+
+          {/* Speech Rate Selector */}
+          <div className="relative">
+            <button
+              onClick={() => setShowRateMenu(m => !m)}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-emerald-400 border border-slate-700/60 transition cursor-pointer flex items-center space-x-1"
+              title="Скорость озвучки"
+              data-testid="speech-rate-btn"
+            >
+              <span>{speechRate}x</span>
+            </button>
+
+            {showRateMenu && (
+              <div className="absolute top-10 right-0 bg-slate-900 border border-slate-700 rounded-xl p-1 shadow-2xl z-50 flex flex-col gap-1 min-w-[130px] font-sans">
+                {[0.75, 1.0, 1.25, 1.5].map(rate => (
+                  <button
+                    key={rate}
+                    onClick={() => {
+                      setSpeechRate(rate)
+                      setShowRateMenu(false)
+                    }}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono text-left transition cursor-pointer ${
+                      speechRate === rate
+                        ? 'bg-emerald-500 text-slate-950 font-bold'
+                        : 'text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    {rate}x {rate === 1.0 ? '(обычная)' : rate < 1.0 ? '(медленно)' : '(быстро)'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Word-by-Word Audio Mode Toggle */}
+          <button
+            onClick={() => {
+              const next = !wordByWordMode
+              setWordByWordMode(next)
+              if (next && typedChars.length === 0 && targetWords.length > 0) {
+                soundService.speakWord(targetWords[0], speechRate)
+              }
+            }}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition cursor-pointer flex items-center space-x-1.5 ${
+              wordByWordMode
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/20 font-semibold'
+                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+            }`}
+            title="Озвучивать каждое следующее слово после набора предыдущего"
+            data-testid="word-by-word-toggle"
+          >
+            <Headphones className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">По словам:</span>
+            <span>{wordByWordMode ? 'ВКЛ' : 'ВЫКЛ'}</span>
+          </button>
+
+          {/* Pause */}
           <button
             onClick={() => setIsPaused(p => !p)}
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
@@ -257,6 +351,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           >
             <Pause className="w-4 h-4" />
           </button>
+
+          {/* Reset */}
           <button
             onClick={() => {
               setTypedChars('')
@@ -360,7 +456,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
         </div>
       </div>
 
-      {/* Virtual Keyboard */}
+      {/* 3D Virtual Keyboard with Hands Pressing Down on Keys */}
       <VirtualKeyboard activeChar={currentChar} />
 
       {/* Double Submit Protection Indicator (when sending to server) */}

@@ -49,6 +49,27 @@ class SoundService {
   }
 
   /**
+   * Speak an individual word promptly for real-time word-by-word dictation
+   */
+  speakWord(word: string, rate: number = 1.0) {
+    if (!word || typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(word)
+    if (!this.selectedVoice) {
+      this.initVoice()
+    }
+    if (this.selectedVoice) {
+      utterance.voice = this.selectedVoice
+    }
+    utterance.lang = 'en-US'
+    utterance.rate = rate
+    utterance.pitch = 1.05
+
+    window.speechSynthesis.speak(utterance)
+  }
+
+  /**
    * Play studio MP3 pronunciation if available, otherwise fallback to speech synthesis
    */
   async playWordAudio(word: string, audioUrl?: string) {

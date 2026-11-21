@@ -182,4 +182,49 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     expect(screen.getByText('Сохранить свой результат в Лидерборд')).toBeInTheDocument()
     expect(screen.getByLabelText(/Ваш никнейм/i)).toBeInTheDocument()
   })
+
+  it('TypingEngine: controls speech rate and toggles word-by-word dictation mode', () => {
+    const dummyLesson = {
+      id: 'test-topic',
+      title: 'test topic',
+      level: 'B1',
+      description: 'test description',
+      sentences: [
+        {
+          id: 's1',
+          english: 'we write clean code',
+          russian: 'мы пишем чистый код',
+          grammarTip: 'без знаков препинания'
+        }
+      ]
+    }
+
+    render(<TypingEngine lesson={dummyLesson} onFinish={vi.fn()} />)
+
+    // Check speech rate button
+    const rateBtn = screen.getByTestId('speech-rate-btn')
+    expect(rateBtn).toBeInTheDocument()
+    expect(rateBtn).toHaveTextContent('1x')
+
+    // Click to open rate menu
+    fireEvent.click(rateBtn)
+    expect(screen.getByText(/1.25x/i)).toBeInTheDocument()
+
+    // Select 1.25x
+    fireEvent.click(screen.getByText(/1.25x/i))
+    expect(rateBtn).toHaveTextContent('1.25x')
+
+    // Check word-by-word toggle button
+    const wordByWordBtn = screen.getByTestId('word-by-word-toggle')
+    expect(wordByWordBtn).toBeInTheDocument()
+    expect(wordByWordBtn).toHaveTextContent('ВЫКЛ')
+
+    // Toggle ON
+    fireEvent.click(wordByWordBtn)
+    expect(wordByWordBtn).toHaveTextContent('ВКЛ')
+
+    // Toggle OFF
+    fireEvent.click(wordByWordBtn)
+    expect(wordByWordBtn).toHaveTextContent('ВЫКЛ')
+  })
 })
