@@ -1,0 +1,377 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { Volume2, Pause, RotateCcw, AlertCircle, Timer } from 'lucide-react'
+import type { LessonData, SessionStats } from '../../types'
+import { VirtualKeyboard } from '../keyboard/VirtualKeyboard'
+import { WordPopover } from './WordPopover'
+import { soundService } from '../../services/sound'
+import { weakKeysService } from '../../services/weakKeys'
+
+interface TypingEngineProps {
+  lesson: LessonData
+  onFinish: (stats: SessionStats) => Promise<void>
+}
+
+export const TypingEngine: React.FC<TypingEngineProps> = ({
+  lesson,
+  onFinish
+}) => {
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0)
+  const [typedChars, setTypedChars] = useState<string>('')
+  const [errorsCount, setErrorsCount] = useState(0)
+  const [sessionWeakKeys, setSessionWeakKeys] = useState<Set<string>>(new Set())
+  const [startTime, setStartTime] = useState<number | null>(null)
+  const [sentenceStartTime, setSentenceStartTime] = useState<number | null>(null)
+  const [sentenceElapsedTime, setSentenceElapsedTime] = useState<number>(0)
+  const [isPaused, setIsPaused] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedWord, setSelectedWord] = useState<string | null>(null)
+
+  const currentSentence = lesson.sentences[currentSentenceIndex] || lesson.sentences[0]
+  // Normalize target text: strictly lowercase, no punctuation
+  const targetText = currentSentence ? currentSentence.english.toLowerCase() : ''
+
+  // Double-submit prevention ref
+  const submitLockRef = useRef(false)
+
+  // Stopwatch timer for current sentence
+  useEffect(() => {
+    if (!sentenceStartTime || isPaused || isSubmitting) return
+
+    const timer = setInterval(() => {
+      setSentenceElapsedTime(Date.now() - sentenceStartTime)
+    }, 100)
+
+    return () => clearInterval(timer)
+  }, [sentenceStartTime, isPaused, isSubmitting])
+
+  // Format stopwatch ms as MM:SS.s
+  const formatStopwatch = (ms: number): string => {
+    const totalSeconds = Math.floor(ms / 1000)
+    const tenths = Math.floor((ms % 1000) / 100)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${tenths}`
+  }
+
+  // Play audio on sentence switch or button click
+  const handlePronounce = useCallback(() => {
+    soundService.speakText(targetText)
+  }, [targetText])
+
+  // Calculate live WPM
+  const calculateWpm = (): number => {
+    if (!startTime) return 0
+    const minutes = Math.max(0.05, (Date.now() - startTime) / 60000)
+    const wordsTyped = typedChars.length / 5
+    return Math.round(wordsTyped / minutes)
+  }
+
+  // Calculate live accuracy
+  const calculateAccuracy = (): number => {
+    const totalHits = typedChars.length + errorsCount
+    if (totalHits === 0) return 100
+    const acc = Math.max(0, ((totalHits - errorsCount) / totalHits) * 100)
+    return Math.round(acc * 10) / 10
+  }
+
+  // Check if there are unfixed red mistakes in typed text
+  const hasUnfixedErrors = typedChars.split('').some((char, idx) => char !== targetText[idx])
+
+  // Determine current active character for keyboard guidance
+  const currentChar = typedChars.length < targetText.length
+    ? targetText[typedChars.length]
+    : (hasUnfixedErrors ? 'backspace' : '')
+
+  // Handle lesson finish with strict double-submit guard
+  const handleCompleteLesson = useCallback(async () => {
+    if (submitLockRef.current || isSubmitting) return
+    submitLockRef.current = true
+    setIsSubmitting(true)
+
+    const duration = startTime ? Math.round((Date.now() - startTime) / 1000) : 10
+    const finalWpm = calculateWpm()
+    const finalAccuracy = calculateAccuracy()
+
+    const stats: SessionStats = {
+      topicId: lesson.id,
+      wpm: Math.max(1, finalWpm),
+      accuracy: finalAccuracy,
+      errors: errorsCount,
+      durationSeconds: Math.max(1, duration),
+      weakKeys: Array.from(sessionWeakKeys)
+    }
+
+    try {
+      await onFinish(stats)
+    } finally {
+      setIsSubmitting(false)
+      submitLockRef.current = false
+    }
+  }, [startTime, lesson.id, errorsCount, sessionWeakKeys, isSubmitting, onFinish])
+
+  // Keyboard listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isPaused || isSubmitting) return
+
+      // Escape toggles pause
+      if (e.key === 'Escape') {
+        setIsPaused(prev => !prev)
+        return
+      }
+
+      // Ignore functional modifier keys
+      if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.key === 'Tab') {
+        return
+      }
+
+      // Backspace handler: delete character and allow manual correction
+      if (e.key === 'Backspace') {
+        e.preventDefault()
+        if (e.ctrlKey) {
+          setTypedChars(prev => prev.replace(/\s*\S*$/, ''))
+        } else {
+          setTypedChars(prev => prev.slice(0, -1))
+        }
+        return
+      }
+
+      // Printable character
+      if (e.key.length === 1) {
+        e.preventDefault()
+        const typedKey = e.key.toLowerCase()
+
+        // Start stopwatch and session timers
+        if (!sentenceStartTime) {
+          const now = Date.now()
+          setSentenceStartTime(now)
+          if (!startTime) {
+            setStartTime(now)
+          }
+        }
+
+        // Advance typing if within sentence length
+        if (typedChars.length < targetText.length) {
+          const expected = targetText[typedChars.length]
+          const isCorrect = typedKey === expected
+
+          if (isCorrect) {
+            soundService.playKeyClick(false)
+            weakKeysService.recordKey(expected, false)
+          } else {
+            // Mistake: letter lights up in red, user can continue or erase with Backspace
+            soundService.playKeyClick(true)
+            setErrorsCount(prev => prev + 1)
+            weakKeysService.recordKey(expected, true)
+            setSessionWeakKeys(prev => new Set(prev).add(expected))
+          }
+
+          const newTyped = typedChars + typedKey
+          setTypedChars(newTyped)
+
+          // Completed sentence: all characters typed and all errors corrected!
+          if (newTyped.length === targetText.length && newTyped === targetText) {
+            if (currentSentenceIndex + 1 < lesson.sentences.length) {
+              // Advance to next sentence
+              setCurrentSentenceIndex(prev => prev + 1)
+              setTypedChars('')
+              setSelectedWord(null)
+              setSentenceStartTime(null)
+              setSentenceElapsedTime(0)
+            } else {
+              // All sentences completed!
+              handleCompleteLesson()
+            }
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [
+    isPaused,
+    isSubmitting,
+    typedChars,
+    targetText,
+    currentSentenceIndex,
+    lesson.sentences.length,
+    sentenceStartTime,
+    startTime,
+    handleCompleteLesson
+  ])
+
+  // Split sentence into words for interactive translation popovers
+  const words = targetText.split(' ').filter(Boolean)
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto w-full animate-fade-in" data-testid="typing-engine">
+      {/* Metrics & Control Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/80 backdrop-blur p-4 rounded-2xl border border-slate-800">
+        <div className="flex items-center space-x-3">
+          <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
+            {lesson.level} • {lesson.title}
+          </span>
+          <span className="text-xs text-slate-400 font-mono">
+            {currentSentenceIndex + 1} / {lesson.sentences.length}
+          </span>
+        </div>
+
+        {/* Live Metrics: WPM, Accuracy, Errors, Stopwatch */}
+        <div className="flex items-center space-x-6 font-mono text-sm">
+          {/* Stopwatch */}
+          <div className="flex items-center space-x-1.5" data-testid="metric-stopwatch">
+            <Timer className="w-4 h-4 text-amber-400" />
+            <span className="text-slate-500 text-xs">СЕКУНДОМЕР</span>
+            <span className="text-amber-400 font-bold text-lg">{formatStopwatch(sentenceElapsedTime)}</span>
+          </div>
+          <div className="flex items-center space-x-1.5" data-testid="metric-wpm">
+            <span className="text-slate-500 text-xs">WPM</span>
+            <span className="text-emerald-400 font-bold text-lg">{calculateWpm()}</span>
+          </div>
+          <div className="flex items-center space-x-1.5" data-testid="metric-accuracy">
+            <span className="text-slate-500 text-xs">ТОЧНОСТЬ</span>
+            <span className="text-cyan-400 font-bold text-lg">{calculateAccuracy()}%</span>
+          </div>
+          <div className="flex items-center space-x-1.5" data-testid="metric-errors">
+            <span className="text-slate-500 text-xs">ОШИБКИ</span>
+            <span className="text-rose-400 font-bold text-lg">{errorsCount}</span>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handlePronounce}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition cursor-pointer"
+            title="Озвучить предложение"
+            aria-label="Озвучить предложение"
+          >
+            <Volume2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setIsPaused(p => !p)}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer"
+            title="Пауза (Esc)"
+            aria-label="Пауза"
+          >
+            <Pause className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => {
+              setTypedChars('')
+              setSelectedWord(null)
+              setSentenceStartTime(null)
+              setSentenceElapsedTime(0)
+            }}
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+            title="Сбросить предложение"
+            aria-label="Сбросить предложение"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Text Display Box */}
+      <div className="relative p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl">
+        {/* Word Popover for Translation */}
+        {selectedWord && (
+          <WordPopover
+            word={selectedWord}
+            onClose={() => setSelectedWord(null)}
+          />
+        )}
+
+        {/* Context / Translation Hint */}
+        <div className="text-xs font-medium text-slate-400 mb-3 flex items-center space-x-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+          <span>Перевод: «{currentSentence.russian}»</span>
+        </div>
+
+        {/* 3-line height sentence box with generous line-height and descender clearance */}
+        <div
+          className="font-mono text-xl sm:text-2xl tracking-wide select-none leading-[2.6rem] min-h-[8.4rem] max-h-[8.8rem] overflow-hidden break-words content-start pb-2"
+          data-testid="typing-text-display"
+        >
+          {targetText.split('').map((char, idx) => {
+            let charClass = 'text-slate-500' // Untyped
+            let isCurrent = false
+            let isError = false
+
+            if (idx < typedChars.length) {
+              if (typedChars[idx] === char) {
+                // Correctly typed
+                charClass = 'text-emerald-400 font-medium'
+              } else {
+                // Mistake: letter lights up in red, user must erase with backspace to complete
+                isError = true
+                charClass = 'text-rose-400 bg-rose-500/25 underline decoration-rose-500 decoration-2 font-bold rounded-xs px-0.5'
+              }
+            } else if (idx === typedChars.length) {
+              isCurrent = true
+              charClass = 'text-white bg-emerald-500/30 px-0.5 rounded-sm border-b-2 border-emerald-400'
+            }
+
+            return (
+              <span
+                key={idx}
+                className={`${charClass} ${isCurrent ? 'animate-pulse' : ''}`}
+                data-testid={isCurrent ? 'current-char' : isError ? 'error-char' : undefined}
+              >
+                {char === ' ' && isError ? '␣' : char}
+              </span>
+            )
+          })}
+        </div>
+
+        {/* Unfixed errors notice at the end */}
+        {hasUnfixedErrors && typedChars.length >= targetText.length && (
+          <div
+            className="mt-3 flex items-center space-x-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 rounded-xl animate-fade-in"
+            data-testid="error-backspace-hint"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <span>В тексте есть ошибки! Нажмите <strong>Backspace ⌫</strong>, чтобы стереть и исправить красные буквы.</span>
+          </div>
+        )}
+
+        {/* Word click hint & Grammar Tip */}
+        <div className="mt-4 flex flex-wrap items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800/80 gap-2">
+          <div className="flex items-center space-x-1.5 text-slate-400">
+            <AlertCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Правило: {currentSentence.grammarTip}</span>
+          </div>
+
+          {/* Clickable word tokens for translation */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-slate-500 mr-1">Слова:</span>
+            {words.map((w, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedWord(w)}
+                className="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 transition cursor-pointer"
+                aria-label={`Перевод слова ${w}`}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Virtual Keyboard */}
+      <VirtualKeyboard activeChar={currentChar} />
+
+      {/* Double Submit Protection Indicator (when sending to server) */}
+      {isSubmitting && (
+        <div
+          className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs text-center font-medium animate-pulse"
+          data-testid="submitting-indicator"
+        >
+          Сохранение результатов на сервере...
+        </div>
+      )}
+    </div>
+  )
+}

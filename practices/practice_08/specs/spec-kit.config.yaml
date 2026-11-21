@@ -1,0 +1,35 @@
+# Spec-Kit Framework Configuration — Practice 8
+version: "1.0.0"
+project: "LinguaType — Practice 8 (AI Frontend + Backend)"
+methodology: "Specification-Driven Development (SDD)"
+teams:
+  - id: "team-ui"
+    name: "Frontend / Client Engineering"
+    scope: "Presentation layer, React 19 components, Tailwind/shadcn design system, keyboard layout, accessibility, client-side test suite"
+    spec_path: "specs/ui-spec.md"
+  - id: "team-logic"
+    name: "Backend / Logic Engineering"
+    scope: "Domain models, ASP.NET Core Minimal API, WPM/Accuracy formulas, adaptive weak-keys density algorithm, persistence"
+    spec_path: "specs/logic-spec.md"
+
+contract:
+  path: "specs/contract.md"
+  status: "approved"
+  enforcement: "strict"
+  validation_rules:
+    naming_convention: "camelCase"
+    content_type: "application/json; charset=utf-8"
+    error_format:
+      required_fields: ["error"]
+    idempotent_actions: ["save_stats", "add_vocabulary"]
+
+lifecycle:
+  phases:
+    - name: "Specification & Contract Drafting"
+      description: "Define OpenAPI 3.1 endpoints, data types, UI states, and domain algorithms before writing implementation"
+    - name: "Design & Mockup Alignment"
+      description: "Figma interactive design and v0 layout aligned with the approved UI specification"
+    - name: "Implementation"
+      description: "React client and ASP.NET Core backend developed strictly following the contract"
+    - name: "Verification"
+      description: "15 client automated tests (Vitest + Testing Library) verifying contract compliance, double-submit protection, and 4 UI states"
