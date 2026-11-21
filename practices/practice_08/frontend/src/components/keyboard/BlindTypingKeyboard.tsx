@@ -375,11 +375,10 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
       </div>
 
       {/* SVG Blind Typing Keyboard with Anatomical Hand Silhouette Overlay */}
-      <div className="relative w-full overflow-hidden rounded-2xl bg-[#07090e] border border-slate-800/80 shadow-2xl p-2 sm:p-2.5 flex justify-center">
+      <div className="relative w-full overflow-hidden rounded-2xl bg-[#07090e] border border-slate-800/80 shadow-2xl p-2 sm:p-3 flex justify-center">
         <svg
           viewBox="0 0 780 320"
-          className="w-full h-auto max-h-[240px] drop-shadow-2xl"
-          style={{ maxHeight: '240px' }}
+          className="w-full h-auto max-h-[320px] drop-shadow-2xl"
         >
           <defs>
             {/* Glow filter for active illuminated key */}

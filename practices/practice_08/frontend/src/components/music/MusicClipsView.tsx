@@ -4,6 +4,13 @@ import type { MusicLesson, LessonData } from '../../types'
 import { api } from '../../services/api'
 import { soundService } from '../../services/sound'
 
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady?: () => void
+    YT?: any
+  }
+}
+
 interface MusicClipsViewProps {
   onStartTyping: (lesson: LessonData) => void
 }
@@ -88,6 +95,55 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
 
   const activeSubtitleRef = useRef<HTMLDivElement>(null)
   const subtitlesScrollContainerRef = useRef<HTMLDivElement>(null)
+  const ytPlayerRef = useRef<any>(null)
+
+  // Dynamically load YouTube IFrame API script once
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.YT) {
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      const firstScriptTag = document.getElementsByTagName('script')[0]
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+      } else {
+        document.body.appendChild(tag)
+      }
+    }
+  }, [])
+
+  // Initialize YouTube Player attached to the iframe
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const initPlayer = () => {
+      if (!window.YT || !window.YT.Player) return
+      try {
+        if (!ytPlayerRef.current) {
+          ytPlayerRef.current = new window.YT.Player('youtube-karaoke-iframe', {
+            events: {
+              onStateChange: (event: any) => {
+                // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
+                if (event.data === 1) {
+                  setIsKaraokePlaying(true)
+                } else if (event.data === 2 || event.data === 0) {
+                  setIsKaraokePlaying(false)
+                }
+              }
+            }
+          })
+        }
+      } catch {
+        // Safe fallback for test environments
+      }
+    }
+
+    if (window.YT && window.YT.Player) {
+      initPlayer()
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer
+    }
+  }, [])
 
   // Load songs list on mount
   useEffect(() => {
@@ -125,6 +181,14 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
           if (song.subtitles.length > 0) {
             setActiveSubtitleId(song.subtitles[0].id)
           }
+
+          // If YT player exists, update video
+          if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
+            const match = song.videoUrl.match(/embed\/([a-zA-Z0-9_-]+)/)
+            if (match && match[1]) {
+              ytPlayerRef.current.loadVideoById(match[1])
+            }
+          }
         }
       } catch {
         // Fallback
@@ -134,28 +198,46 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     return () => { isMounted = false }
   }, [selectedSongId])
 
-  // Real-time karaoke timer ticker
+  // Real-time karaoke sync loop connected directly with YouTube video timestamp
   useEffect(() => {
     if (!isKaraokePlaying || !currentSong || currentSong.subtitles.length === 0) return
 
-    const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
-
     const interval = setInterval(() => {
+      // 1. Prioritize YouTube player's exact real-time playback position
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
+        try {
+          const ytTime = ytPlayerRef.current.getCurrentTime()
+          if (typeof ytTime === 'number' && !isNaN(ytTime) && ytTime >= 0) {
+            setPlaybackTime(ytTime)
+
+            // Find matching subtitle line
+            const match = currentSong.subtitles.find(s => ytTime >= s.startSeconds && ytTime <= s.endSeconds)
+            if (match && match.id !== activeSubtitleId) {
+              setActiveSubtitleId(match.id)
+            }
+            return
+          }
+        } catch {
+          // fallback to internal ticker below
+        }
+      }
+
+      // 2. Fallback internal ticker if YouTube player is unavailable (tests or offline)
       setPlaybackTime(prev => {
         const next = Math.round((prev + 0.15) * 100) / 100
+        const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
         if (next > maxTime) {
           setIsKaraokePlaying(false)
           return 0
         }
 
-        // Find active line
         const match = currentSong.subtitles.find(s => next >= s.startSeconds && next <= s.endSeconds)
         if (match && match.id !== activeSubtitleId) {
           setActiveSubtitleId(match.id)
         }
         return next
       })
-    }, 150)
+    }, 120)
 
     return () => clearInterval(interval)
   }, [isKaraokePlaying, currentSong, activeSubtitleId])
@@ -170,6 +252,58 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     }
   }, [activeSubtitleId])
 
+  // Toggle video playback and karaoke synchronization simultaneously
+  const handleToggleKaraoke = () => {
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+      try {
+        if (isKaraokePlaying) {
+          ytPlayerRef.current.pauseVideo()
+          setIsKaraokePlaying(false)
+        } else {
+          ytPlayerRef.current.playVideo()
+          setIsKaraokePlaying(true)
+        }
+        return
+      } catch {
+        // Fallback below
+      }
+    }
+    setIsKaraokePlaying(p => !p)
+  }
+
+  // Jump to subtitle line and start video playback from that second
+  const handlePlayLine = (text: string, id: number, startSec: number) => {
+    setActiveSubtitleId(id)
+    setPlaybackTime(startSec)
+
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+      try {
+        ytPlayerRef.current.seekTo(startSec, true)
+        ytPlayerRef.current.playVideo()
+        setIsKaraokePlaying(true)
+        return
+      } catch {
+        // Fallback
+      }
+    }
+    soundService.speakText(text, 1.0)
+  }
+
+  // Reset video and karaoke to beginning
+  const handleResetToStart = () => {
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+      try {
+        ytPlayerRef.current.seekTo(0, true)
+        ytPlayerRef.current.pauseVideo()
+      } catch {
+        // ignore
+      }
+    }
+    setPlaybackTime(0)
+    setIsKaraokePlaying(false)
+    setActiveSubtitleId(currentSong?.subtitles[0]?.id || 1)
+  }
+
   // Handle start typing session
   const handleStartTypingLesson = () => {
     if (!currentSong) return
@@ -183,13 +317,6 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
     }
 
     onStartTyping(lessonData)
-  }
-
-  // Play line audio via TTS
-  const handlePlayLine = (text: string, id: number, startSec: number) => {
-    setActiveSubtitleId(id)
-    setPlaybackTime(startSec)
-    soundService.speakText(text, 1.0)
   }
 
   const aiAnalysis = AI_SONG_ANALYSES[selectedSongId] || AI_SONG_ANALYSES['queen-champions']
@@ -264,8 +391,9 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
             <div className="rounded-2xl bg-slate-900/90 border border-slate-800 overflow-hidden shadow-2xl">
               <div className="relative aspect-video w-full bg-slate-950 flex items-center justify-center">
                 <iframe
+                  id="youtube-karaoke-iframe"
                   className="w-full h-full"
-                  src={currentSong.videoUrl}
+                  src={`${currentSong.videoUrl}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
                   title={`${currentSong.artist} - ${currentSong.title}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -275,36 +403,38 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping })
               {/* Player Header bar & Karaoke Controls */}
               <div className="p-3 bg-slate-900 flex items-center justify-between border-t border-slate-800/80">
                 <div>
-                  <h3 className="text-xs font-bold text-white">{currentSong.artist} — {currentSong.title}</h3>
-                  <p className="text-[11px] text-emerald-400 font-mono">{currentSong.grammarFocus}</p>
+                  <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                    <span>{currentSong.artist} — {currentSong.title}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-normal">
+                      YouTube Sync
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-emerald-400 font-mono mt-0.5">{currentSong.grammarFocus}</p>
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => setIsKaraokePlaying(p => !p)}
-                    className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold transition cursor-pointer"
+                    onClick={handleToggleKaraoke}
+                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 text-xs font-mono font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer"
                     data-testid="karaoke-toggle-btn"
                   >
                     {isKaraokePlaying ? (
                       <>
                         <Pause className="w-3.5 h-3.5" />
-                        <span>Пауза</span>
+                        <span>Пауза клипа</span>
                       </>
                     ) : (
                       <>
                         <Play className="w-3.5 h-3.5 fill-current" />
-                        <span>Караоке-трекинг</span>
+                        <span>Включить клип & Караоке</span>
                       </>
                     )}
                   </button>
 
                   <button
-                    onClick={() => {
-                      setPlaybackTime(0)
-                      setActiveSubtitleId(currentSong.subtitles[0]?.id || 1)
-                    }}
-                    className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 transition"
-                    title="В начало"
+                    onClick={handleResetToStart}
+                    className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                    title="В начало клипа и караоке"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>

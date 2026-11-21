@@ -251,7 +251,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
 
   return (
     <div
-      className="h-[calc(100vh-5.5rem)] max-h-[calc(100vh-5.5rem)] flex flex-col justify-between overflow-hidden max-w-5xl mx-auto w-full px-2 sm:px-4 py-1 select-none animate-fade-in"
+      className="h-full max-h-full flex flex-col justify-between overflow-hidden max-w-5xl mx-auto w-full px-2 sm:px-4 py-0 select-none animate-fade-in"
       data-testid="typing-engine"
     >
       {/* 1. Metrics & Control Bar (Compact, 1 Row) */}
@@ -434,7 +434,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
         <div
           onMouseUp={handleSelectionTranslate}
           onTouchEnd={handleSelectionTranslate}
-          className="font-mono text-lg sm:text-xl tracking-wide select-text cursor-text leading-[2.1rem] min-h-[6.3rem] max-h-[6.8rem] overflow-hidden break-words content-start pb-1"
+          className="font-mono text-lg sm:text-xl tracking-wide select-text cursor-text leading-[2.4rem] min-h-[7.2rem] max-h-[7.5rem] overflow-hidden break-words content-start pb-2"
           data-testid="typing-text-display"
         >
           {targetText.split('').map((char, idx) => {
@@ -451,12 +451,12 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
               } else {
                 // Mistake: letter lights up in red, user must erase with backspace to complete
                 isError = true
-                charClass = 'text-rose-400 bg-rose-500/25 underline decoration-rose-500 decoration-2 font-bold rounded-xs px-0.5'
-                displayChar = typedChars[idx] || char
+                charClass = 'text-rose-400 bg-rose-500/30 underline decoration-rose-500 decoration-2 font-medium'
+                displayChar = char === ' ' ? '␣' : char
               }
             } else if (idx === typedChars.length) {
               isCurrent = true
-              charClass = 'text-white bg-emerald-500/30 px-0.5 rounded-sm border-b-2 border-emerald-400'
+              charClass = 'text-white'
               displayChar = isTextHidden ? (char === ' ' ? ' ' : '•') : char
             } else {
               if (isTextHidden) {
@@ -468,10 +468,13 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             return (
               <span
                 key={idx}
-                className={`${charClass} ${isCurrent ? 'animate-pulse' : ''}`}
+                className={`relative inline-block ${charClass}`}
                 data-testid={isCurrent ? 'current-char' : isError ? 'error-char' : undefined}
               >
-                {char === ' ' && isError ? '␣' : displayChar}
+                {isCurrent && (
+                  <span className="absolute -left-[1px] top-1 bottom-1 w-[2px] bg-white animate-pulse pointer-events-none" />
+                )}
+                {displayChar}
               </span>
             )
           })}
