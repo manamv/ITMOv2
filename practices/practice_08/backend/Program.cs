@@ -59,6 +59,54 @@ var topics = new List<GrammarTopic>
             new("a1", "she writes clean and readable code every single morning and then reviews pull requests submitted by other software engineers across the development company", "она пишет чистый и читаемый код каждое утро а затем проверяет пулл реквесты отправленные другими инженерами компании", "present simple третье лицо единственное число writes reviews"),
             new("a2", "we always drink fresh hot coffee before our first engineering standup meeting and discuss our daily tasks and upcoming release milestones together as a team", "мы всегда пьем свежий горячий кофе перед первым инженерным стендапом и обсуждаем наши ежедневные задачи и цели релиза вместе", "present simple с наречием частотности always drink discuss"),
             new("a3", "our development team does not ignore software accessibility guidelines because every modern web application must be convenient for all people around the world", "наша команда разработки не игнорирует руководства по доступности по потому что каждое приложение должно быть удобным для всех людей", "отрицание в present simple does not ignore")
+        ]),
+
+    new("past-continuous", "past continuous vs past simple", "A2",
+        "параллельные и прерванные действия в прошлом без пунктуации",
+        [
+            new("pc1", "while the backend engineer was deploying the microservice to production the automated pipeline detected a sudden memory leak", "пока бэкенд инженер развертывал микросервис на проде автоматический пайплайн обнаружил внезапную утечку памяти", "длительное действие в прошлом was deploying прервано кратким detected"),
+            new("pc2", "they were discussing the new database schema when the lead architect received an urgent notification from the monitor server", "они обсуждали новую схему базы данных когда ведущий архитектор получил срочное уведомление с сервера мониторинга", "past continuous were discussing с союзом when и past simple received"),
+            new("pc3", "we were investigating the latency drop all evening yesterday while client applications were experiencing slow response times", "мы расследовали падение задержки весь вчерашний вечер в то время как клиентские приложения испытывали медленный отклик", "два параллельных длительных действия с союзом while were investigating were experiencing")
+        ]),
+
+    new("future-forms", "future forms will going to present continuous", "B1",
+        "разница между спонтанными решениями планами и точными договоренностями",
+        [
+            new("ff1", "our engineering team is going to rewrite the legacy authentication module during the next development sprint in march", "наша команда инженеров собирается переписать устаревший модуль аутентификации во время следующего спринта разработки в марте", "намерение и заранее спланированное решение is going to rewrite"),
+            new("ff2", "the cloud server is running out of memory so the automated orchestrator will spin up two additional worker instances soon", "на облачном сервере заканчивается память поэтому оркестратор вскоре запустит два дополнительных экземпляра воркеров", "спонтанное решение или логический прогноз will spin up"),
+            new("ff3", "we are meeting with the product stakeholders tomorrow morning at ten oclock to review the quarterly roadmap milestones", "мы встречаемся со стейкхолдерами продукта завтра утром в десять часов чтобы обсудить ключевые этапы квартального роадмапа", "запланированная договоренность во времени present continuous are meeting")
+        ]),
+
+    new("modal-deduction", "modals of deduction must cannot might", "B2",
+        "выражение уверенности и предположений в настоящем и прошлом",
+        [
+            new("md1", "the distributed database cluster cannot be offline because the health check endpoint is responding with status two hundred ok", "распределенный кластер базы данных не может быть оффлайн так как эндпоинт проверки здоровья отвечает статусом двести", "уверенность в невозможности действия cannot be"),
+            new("md2", "the unexpected spike in cpu workload must be caused by an infinite loop in the background synchronization worker thread", "неожиданный скачок нагрузки на процессор должно быть вызван бесконечным циклом в фоновом потоке синхронизации", "логическая уверенность в причине происходящего must be caused"),
+            new("md3", "the security audit team might have detected unauthorized access attempts in the network traffic logs earlier this afternoon", "команда аудита безопасности возможно обнаружила попытки несанкционированного доступа в логах сетевого трафика сегодня днем", "предположение о действии в прошлом might have detected")
+        ]),
+
+    new("phrasal-tech", "essential phrasal verbs in software engineering", "B2",
+        "ключевые фразовые глаголы в разработке и системной инженерии",
+        [
+            new("pv1", "the devops engineer decided to roll back the broken container image and spin up the previous stable release immediately", "девопс инженер решил откатить поврежденный образ контейнера и немедленно запустить предыдущий стабильный релиз", "фразовые глаголы roll back откатить и spin up запустить контейнер"),
+            new("pv2", "our development squad will figure out why the message queue is backing up and sort out all bottleneck queries this morning", "наш отряд разработки выяснит почему очередь сообщений переполняется и разберется с узкими местами этим утром", "figure out понять выяснить и sort out устранить проблему"),
+            new("pv3", "we need to carry out comprehensive load testing before we roll out the new payment gateway integration to all active customers", "нам необходимо провести комплексное нагрузочное тестирование перед тем как выкатить новую интеграцию платежного шлюза", "carry out проводить испытания и roll out развертывать релиз")
+        ]),
+
+    new("c1-inversion", "advanced inversion and fronting", "C1",
+        "эмфатическая инверсия порядка слов после отрицательных наречий",
+        [
+            new("inv1", "seldom have we witnessed such an elegant software architecture handle millions of concurrent user sessions with zero downtime", "редко когда мы наблюдали столь элегантную архитектуру программного обеспечения выдерживающую миллионы сессий без простоев", "инверсия после seldom вспомогательный глагол have перед подлежащим we"),
+            new("inv2", "hardly had the engineers merged the feature branch when the continuous integration pipeline executed all regression test suites", "едва только инженеры слили ветку фичи как пайплайн непрерывной интеграции запустил все регрессионные тесты", "конструкция hardly had v3 when с обратным порядком слов"),
+            new("inv3", "not only did the development team refactor the legacy codebase but they also reduced the overall server latency by half", "команда разработки не только провела рефакторинг легаси кода но и сократила общую задержку сервера вдвое", "инверсия с not only did they refactor")
+        ]),
+
+    new("reported-speech", "reported speech in technical discussions", "B1",
+        "косвенная речь и согласование времен в командных обсуждениях",
+        [
+            new("rs1", "the lead architect explained that the distributed system would scale horizontally once the cache invalidation bug was fixed", "главный архитектор объяснил что распределенная система будет масштабироваться по горизонтали как только баг будет исправлен", "согласование времен в косвенной речи will переходит в would"),
+            new("rs2", "she said that the frontend developers had already verified all accessibility guidelines before submitting the pull request", "она сказала что фронтенд разработчики уже проверили все правила доступности перед отправкой пулл реквеста", "предшествующее действие в косвенной речи past perfect had verified"),
+            new("rs3", "our scrum master asked whether the engineering team could complete the database migration before the scheduled maintenance window", "наш скрам мастер спросил сможет ли команда завершить миграцию базы данных до запланированного окна обслуживания", "косвенный вопрос со словом whether и модальным could")
         ])
 };
 

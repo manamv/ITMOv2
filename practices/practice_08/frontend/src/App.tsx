@@ -8,6 +8,8 @@ import { VocabularyView } from './components/vocabulary/VocabularyView'
 import { StatsView } from './components/stats/StatsView'
 import { LeaderboardView } from './components/leaderboard/LeaderboardView'
 import { MusicClipsView } from './components/music/MusicClipsView'
+import { AchievementsModal } from './components/achievements/AchievementsModal'
+import { achievementsService } from './services/achievements'
 import { LoadingState } from './components/states/LoadingState'
 import { EmptyState } from './components/states/EmptyState'
 import { ErrorState } from './components/states/ErrorState'
@@ -36,6 +38,10 @@ export function App() {
   // Loading & Error states
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Achievements states
+  const [isAchievementsOpen, setIsAchievementsOpen] = useState(false)
+  const [unlockedToast, setUnlockedToast] = useState<string | null>(null)
 
   // Initial load
   const loadInitialData = useCallback(async () => {
@@ -105,6 +111,21 @@ export function App() {
     } catch {
       // Offline fallback
     }
+
+    // Check achievements
+    const newlyUnlocked = achievementsService.checkAndUnlock({
+      wpm: stats.wpm,
+      accuracy: stats.accuracy,
+      errors: stats.errors,
+      topicId: stats.topicId,
+      isMusic: stats.topicId.startsWith('music-'),
+      vocabCount: vocabulary.length
+    })
+    if (newlyUnlocked.length > 0) {
+      setUnlockedToast(newlyUnlocked.map(a => a.title).join(', '))
+      setTimeout(() => setUnlockedToast(null), 5000)
+    }
+
     setPracticeMode('RESULT')
   }
 
@@ -112,6 +133,13 @@ export function App() {
   const handleAddWord = async (word: { word: string; translation: string; phonetic?: string }) => {
     const added = await api.addVocabularyWord(word)
     setVocabulary(prev => [...prev, added])
+
+    // Check vocabulary achievements
+    const newly = achievementsService.checkAndUnlock({ vocabCount: vocabulary.length + 1 })
+    if (newly.length > 0) {
+      setUnlockedToast(newly.map(a => a.title).join(', '))
+      setTimeout(() => setUnlockedToast(null), 5000)
+    }
   }
 
   // Delete word from vocabulary
@@ -234,8 +262,18 @@ export function App() {
             </button>
           </nav>
 
-          {/* User Score Badge */}
+          {/* User Score Badge & Achievements Button */}
           <div className="flex items-center space-x-3 text-xs font-mono">
+            <button
+              onClick={() => setIsAchievementsOpen(true)}
+              className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition cursor-pointer"
+              title="Список достижений"
+              data-testid="achievements-btn"
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <span>Награды ({achievementsService.getUnlockedCount()}/10)</span>
+            </button>
+
             <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{statsSummary.avgWpm} WPM</span>
@@ -352,6 +390,26 @@ export function App() {
           </>
         )}
       </main>
+
+      {/* Achievements Modal Dialog */}
+      <AchievementsModal
+        isOpen={isAchievementsOpen}
+        onClose={() => setIsAchievementsOpen(false)}
+      />
+
+      {/* Unlocked Achievement Toast Notification */}
+      {unlockedToast && (
+        <div
+          className="fixed bottom-6 right-6 z-50 flex items-center space-x-3 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold px-4 py-3 rounded-2xl shadow-2xl animate-bounce border border-amber-300"
+          data-testid="achievement-toast"
+        >
+          <Trophy className="w-5 h-5 text-slate-950" />
+          <div>
+            <div className="text-[10px] uppercase tracking-wider font-extrabold">Новая награда!</div>
+            <div className="text-xs font-bold">{unlockedToast}</div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">

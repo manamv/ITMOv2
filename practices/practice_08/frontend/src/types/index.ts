@@ -96,3 +96,15 @@ export interface MusicLesson {
   grammarBreakdown: GrammarBreakdownItem[]
   typingSentences: SentenceItem[]
 }
+
+export interface Achievement {
+  id: string
+  title: string
+  description: string
+  icon: string
+  category: 'speed' | 'accuracy' | 'grammar' | 'special'
+  unlocked: boolean
+  unlockedAt?: string
+  progress?: number
+  maxProgress?: number
+}

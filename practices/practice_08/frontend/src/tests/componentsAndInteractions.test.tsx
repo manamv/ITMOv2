@@ -9,6 +9,8 @@ import { TypingEngine } from '../components/typing/TypingEngine'
 import { HandsVisualizer } from '../components/keyboard/HandsVisualizer'
 import { LeaderboardView } from '../components/leaderboard/LeaderboardView'
 import { MusicClipsView } from '../components/music/MusicClipsView'
+import { AchievementsModal } from '../components/achievements/AchievementsModal'
+import { achievementsService } from '../services/achievements'
 
 describe('Criterion 8: Component Rendering and User Interactions', () => {
   it('renders Virtual Keyboard with finger zones and highlights active character', () => {
@@ -302,5 +304,39 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     const passedLesson = handleStartTyping.mock.calls[0][0]
     expect(passedLesson.title).toContain('Queen')
     expect(passedLesson.sentences.length).toBeGreaterThan(0)
+  })
+
+  it('AchievementsModal: renders progress bar, categories, and responds to close button', () => {
+    const handleClose = vi.fn()
+    const { rerender } = render(<AchievementsModal isOpen={true} onClose={handleClose} />)
+
+    expect(screen.getByTestId('achievements-modal')).toBeInTheDocument()
+    expect(screen.getByText(/Достижения & Награды/i)).toBeInTheDocument()
+    expect(screen.getByText(/Общий прогресс разблокировки/i)).toBeInTheDocument()
+
+    // Filter categories
+    expect(screen.getByText(/⚡ Скорость/i)).toBeInTheDocument()
+    expect(screen.getByText(/🎯 Точность/i)).toBeInTheDocument()
+
+    // Click close button
+    const closeBtn = screen.getByLabelText(/Закрыть достижения/i)
+    fireEvent.click(closeBtn)
+    expect(handleClose).toHaveBeenCalled()
+
+    // Doesn't render when isOpen is false
+    rerender(<AchievementsModal isOpen={false} onClose={handleClose} />)
+    expect(screen.queryByTestId('achievements-modal')).not.toBeInTheDocument()
+  })
+
+  it('achievementsService: checks and unlocks achievements based on performance', () => {
+    const unlocked = achievementsService.checkAndUnlock({
+      wpm: 92,
+      accuracy: 100,
+      errors: 0,
+      topicId: 'c1-inversion'
+    })
+
+    expect(unlocked.length).toBeGreaterThan(0)
+    expect(achievementsService.getUnlockedCount()).toBeGreaterThan(0)
   })
 })

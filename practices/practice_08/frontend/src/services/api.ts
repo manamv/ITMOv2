@@ -39,6 +39,48 @@ const FALLBACK_TOPICS: GrammarTopic[] = [
     level: 'A1',
     description: 'базовые утверждения отрицания и вопросы о повседневных привычках',
     sentenceCount: 3
+  },
+  {
+    id: 'past-continuous',
+    title: 'past continuous vs past simple',
+    level: 'A2',
+    description: 'параллельные и прерванные действия в прошлом без пунктуации',
+    sentenceCount: 3
+  },
+  {
+    id: 'future-forms',
+    title: 'future forms will going to present continuous',
+    level: 'B1',
+    description: 'разница между спонтанными решениями планами и точными договоренностями',
+    sentenceCount: 3
+  },
+  {
+    id: 'modal-deduction',
+    title: 'modals of deduction must cannot might',
+    level: 'B2',
+    description: 'выражение уверенности и предположений в настоящем и прошлом',
+    sentenceCount: 3
+  },
+  {
+    id: 'phrasal-tech',
+    title: 'essential phrasal verbs in software engineering',
+    level: 'B2',
+    description: 'ключевые фразовые глаголы в разработке и системной инженерии',
+    sentenceCount: 3
+  },
+  {
+    id: 'c1-inversion',
+    title: 'advanced inversion and fronting',
+    level: 'C1',
+    description: 'эмфатическая инверсия порядка слов после отрицательных наречий',
+    sentenceCount: 3
+  },
+  {
+    id: 'reported-speech',
+    title: 'reported speech in technical discussions',
+    level: 'B1',
+    description: 'косвенная речь и согласование времен в командных обсуждениях',
+    sentenceCount: 3
   }
 ]
 
