@@ -250,14 +250,18 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Present Perfect vs Past Simple, gerunds and colloquial contractions',
     subtitles: [
-      makeSub(1, 10.0, 18.1, 'i have paid my dues time after time', 'я платил по счетам снова и снова'),
-      makeSub(2, 18.1, 25.8, 'i have done my sentence but committed no crime', 'я отбыл свой срок но не совершал преступления'),
-      makeSub(3, 25.8, 33.6, 'and bad mistakes i have made a few', 'и тяжких ошибок я совершил немного'),
-      makeSub(4, 33.6, 44.1, 'i have had my share of sand kicked in my face but i have come through', 'мне тоже швыряли песок в лицо но я выстоял'),
-      makeSub(5, 44.1, 51.4, 'we are the champions my friends', 'мы чемпионы друзья мои'),
-      makeSub(6, 51.4, 59.3, 'and we will keep on fighting till the end', 'и мы продолжим бороться до конца'),
-      makeSub(7, 59.3, 66.9, 'we are the champions we are the champions', 'мы чемпионы мы чемпионы'),
-      makeSub(8, 66.9, 77.5, 'no time for losers because we are the champions of the world', 'не время для проигравших потому что мы чемпионы мира')
+      makeSub(1, 1.20, 4.68, 'i have paid my dues', 'я платил по счетам'),
+      makeSub(2, 4.68, 8.64, 'time after time', 'снова и снова'),
+      makeSub(3, 8.64, 11.89, 'i have done my sentence', 'я отбыл свой срок'),
+      makeSub(4, 11.89, 15.83, 'but committed no crime', 'но не совершал преступления'),
+      makeSub(5, 15.83, 19.78, 'and bad mistakes', 'и тяжких ошибок'),
+      makeSub(6, 19.78, 23.51, 'i have made a few', 'я совершил немного'),
+      makeSub(7, 23.51, 27.16, 'i have had my share of sand kicked in my face', 'мне тоже швыряли песок в лицо'),
+      makeSub(8, 27.16, 34.26, 'but i have come through and we mean to go on and on and on', 'но я выстоял и мы намерены идти вперед снова и снова'),
+      makeSub(9, 34.26, 41.36, 'we are the champions my friends', 'мы чемпионы друзья мои'),
+      makeSub(10, 41.36, 48.80, 'and we will keep on fighting till the end', 'и мы продолжим бороться до конца'),
+      makeSub(11, 48.80, 56.40, 'we are the champions we are the champions', 'мы чемпионы мы чемпионы'),
+      makeSub(12, 56.40, 67.50, 'no time for losers because we are the champions of the world', 'не время для проигравших потому что мы чемпионы мира')
     ],
     grammarBreakdown: [
       { ruleTitle: 'Present Perfect for Life Experience', lyricQuote: 'i have paid my dues time after time', explanation: 'have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.', grammarTag: 'present-perfect' },
@@ -281,15 +285,16 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Infinitive of purpose, modal verbs and expressions of regret',
     subtitles: [
-      makeSub(1, 31.0, 36.5, 'come up to meet you tell you i am sorry', 'прийти чтобы встретиться с тобой сказать что мне жаль'),
-      makeSub(2, 36.5, 44.3, 'you do not know how lovely you are', 'ты даже не знаешь насколько ты прекрасна'),
-      makeSub(3, 44.3, 50.5, 'i had to find you tell you i need you', 'я должен был найти тебя сказать что ты мне нужна'),
-      makeSub(4, 50.5, 57.2, 'tell you i set you apart', 'сказать что ты для меня особенная'),
-      makeSub(5, 57.2, 63.6, 'tell me your secrets and ask me your questions', 'открой мне свои секреты и задай свои вопросы'),
-      makeSub(6, 63.6, 70.7, 'oh let us go back to the start', 'давай вернемся к самому началу'),
-      makeSub(7, 70.7, 76.7, 'running in circles coming up tails', 'бежим по кругу выпадает решка'),
-      makeSub(8, 76.7, 83.1, 'heads on a science apart', 'головы погружены в отдельную науку'),
-      makeSub(9, 83.1, 96.2, 'nobody said it was easy it is such a shame for us to part', 'никто не говорил что будет легко так жаль что нам пришлось расстаться')
+      makeSub(1, 2.17, 8.52, 'come up to meet you tell you i am sorry', 'прийти чтобы встретиться с тобой сказать что мне жаль'),
+      makeSub(2, 8.52, 15.26, 'you do not know how lovely you are', 'ты даже не знаешь насколько ты прекрасна'),
+      makeSub(3, 15.26, 21.80, 'i had to find you tell you i need you', 'я должен был найти тебя сказать что ты мне нужна'),
+      makeSub(4, 21.80, 28.27, 'tell you i set you apart', 'сказать что ты для меня особенная'),
+      makeSub(5, 28.27, 35.14, 'tell me your secrets and ask me your questions', 'открой мне свои секреты и задай свои вопросы'),
+      makeSub(6, 35.14, 41.56, 'oh let us go back to the start', 'давай вернемся к самому началу'),
+      makeSub(7, 41.56, 47.96, 'running in circles coming up tails', 'бежим по кругу выпадает решка'),
+      makeSub(8, 47.96, 54.11, 'heads on a science apart', 'головы погружены в отдельную науку'),
+      makeSub(9, 54.11, 60.69, 'nobody said it was easy', 'никто не говорил что будет легко'),
+      makeSub(10, 60.69, 67.40, 'it is such a shame for us to part', 'так жаль что нам пришлось расстаться')
     ],
     grammarBreakdown: [
       { ruleTitle: 'Infinitive of Purpose', lyricQuote: 'come up to meet you tell you i am sorry', explanation: 'Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.', grammarTag: 'infinitive' },
@@ -309,14 +314,16 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Past Simple, Used to and contrast with present',
     subtitles: [
-      makeSub(1, 4.0, 11.6, 'yesterday all my troubles seemed so far away', 'вчера все мои невзгоды казались такими далекими'),
-      makeSub(2, 11.6, 16.5, 'now it looks as though they are here to stay', 'теперь кажется будто они останутся навсегда'),
-      makeSub(3, 16.5, 22.0, 'oh i believe in yesterday', 'о я верю во вчерашний день'),
-      makeSub(4, 22.0, 29.2, 'suddenly i am not half the man i used to be', 'вдруг я больше не тот человек кем был раньше'),
-      makeSub(5, 29.2, 34.1, 'there is a shadow hanging over me', 'надо мной нависла тень'),
-      makeSub(6, 34.1, 39.2, 'oh yesterday came suddenly', 'о вчерашний день ушел внезапно'),
-      makeSub(7, 39.2, 47.5, 'why she had to go i do not know she would not say', 'почему она должна была уйти я не знаю она не сказала'),
-      makeSub(8, 47.5, 56.0, 'i said something wrong now i long for yesterday', 'я сказал что то не так теперь я тоскую по вчерашнему дню')
+      makeSub(1, 5.06, 13.53, 'yesterday all my troubles seemed so far away', 'вчера все мои невзгоды казались такими далекими'),
+      makeSub(2, 13.53, 17.24, 'now it looks as though they are here to stay', 'теперь кажется будто они останутся навсегда'),
+      makeSub(3, 17.24, 22.64, 'oh i believe in yesterday', 'о я верю во вчерашний день'),
+      makeSub(4, 22.64, 30.02, 'suddenly i am not half the man i used to be', 'вдруг я больше не тот человек кем был раньше'),
+      makeSub(5, 30.02, 34.37, 'there is a shadow hanging over me', 'надо мной нависла тень'),
+      makeSub(6, 34.37, 39.88, 'oh yesterday came suddenly', 'о вчерашний день ушел внезапно'),
+      makeSub(7, 39.88, 44.20, 'why she had to go', 'почему она должна была уйти'),
+      makeSub(8, 44.20, 49.54, 'i do not know she would not say', 'я не знаю она не сказала'),
+      makeSub(9, 49.54, 54.10, 'i said something wrong', 'я сказал что то не так'),
+      makeSub(10, 54.10, 59.87, 'now i long for yesterday', 'теперь я тоскую по вчерашнему дню')
     ],
     grammarBreakdown: [
       { ruleTitle: 'Past Simple for Past States', lyricQuote: 'all my troubles seemed so far away', explanation: 'seemed правильный глагол в Past Simple указывает на состояние в прошлом.', grammarTag: 'past-simple' },
