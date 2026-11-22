@@ -128,6 +128,11 @@ class WeakKeysService {
     return this.history
   }
 
+  getBestWpm(): number {
+    if (this.history.length === 0) return 0
+    return Math.max(...this.history.map(h => h.wpm))
+  }
+
   /**
    * Returns list of keys with error rate > 12% (minimum 3 hits)
    */

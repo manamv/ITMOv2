@@ -144,16 +144,17 @@ class SoundService {
       const gain = ctx.createGain()
 
       if (isError) {
-        // Soft low muted thud for error
-        osc.type = 'triangle'
-        osc.frequency.setValueAtTime(145, now)
-        osc.frequency.exponentialRampToValueAtTime(68, now + 0.065)
-        gain.gain.setValueAtTime(0.075, now)
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.065)
+        // Gentle, unobtrusive muted low-mid error tap (soft two-tone wooden dip)
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(220, now)
+        osc.frequency.exponentialRampToValueAtTime(135, now + 0.085)
+        gain.gain.setValueAtTime(0.001, now)
+        gain.gain.linearRampToValueAtTime(0.065, now + 0.008)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09)
         osc.connect(gain)
         gain.connect(ctx.destination)
         osc.start(now)
-        osc.stop(now + 0.065)
+        osc.stop(now + 0.095)
       } else {
         // Crisp tactile mechanical "thock"
         osc.type = 'triangle'
@@ -168,6 +169,51 @@ class SoundService {
       }
     } catch {
       // AudioContext might be blocked before user gesture; safe to ignore
+    }
+  }
+
+  /**
+   * Pleasant sparkling chime arpeggio when the user beats their personal WPM record
+   */
+  playNewRecordFanfare() {
+    try {
+      if (typeof window === 'undefined') return
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      if (!AudioCtx) return
+
+      if (!this.audioContext) {
+        this.audioContext = new AudioCtx()
+      }
+      const ctx = this.audioContext
+      if (ctx.state === 'suspended') {
+        ctx.resume()
+      }
+
+      const now = ctx.currentTime
+      // Bright uplifting Cmaj9 ascending chime notes (C5, E5, G5, B5, D6, C6)
+      const notes = [523.25, 659.25, 783.99, 987.77, 1174.66, 1046.5]
+      notes.forEach((freq, idx) => {
+        const start = now + idx * 0.085
+        const duration = idx === notes.length - 1 ? 0.65 : 0.28
+
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = idx === notes.length - 1 ? 'triangle' : 'sine'
+        osc.frequency.setValueAtTime(freq, start)
+
+        gain.gain.setValueAtTime(0.0001, start)
+        gain.gain.linearRampToValueAtTime(0.075, start + 0.015)
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration)
+
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.start(start)
+        osc.stop(start + duration + 0.02)
+      })
+    } catch {
+      // Safe fallback in environments without Web Audio API
     }
   }
 }

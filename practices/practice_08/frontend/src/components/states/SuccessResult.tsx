@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
-import { Trophy, ArrowRight, RotateCcw, AlertTriangle, CheckCircle2, Bot, Zap } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Trophy, ArrowRight, RotateCcw, AlertTriangle, CheckCircle2, Bot, Zap, Sparkles } from 'lucide-react'
 import type { SessionStats } from '../../types'
 import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
+import { ConfettiCelebration } from '../ui/ConfettiCelebration'
 import { weakKeysService } from '../../services/weakKeys'
+import { soundService } from '../../services/sound'
 
 export interface SuccessResultProps {
   stats: SessionStats
@@ -11,6 +13,8 @@ export interface SuccessResultProps {
   onNext: () => Promise<void> | void
   onOpenLeaderboard?: () => void
   onStartErrorSprint?: (weakKeys: string[], weakBigrams: string[]) => void
+  isNewRecord?: boolean
+  previousBestWpm?: number
 }
 
 export const SuccessResult: React.FC<SuccessResultProps> = ({
@@ -18,11 +22,20 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
   onRepeat,
   onNext,
   onOpenLeaderboard,
-  onStartErrorSprint
+  onStartErrorSprint,
+  isNewRecord = false,
+  previousBestWpm = 0
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const weakBigrams = weakKeysService.getWeakBigrams(4)
   const sessionWeakKeys = stats.weakKeys || []
+
+  // Play sparkling victory chime when the user breaks their personal WPM record
+  useEffect(() => {
+    if (isNewRecord) {
+      soundService.playNewRecordFanfare()
+    }
+  }, [isNewRecord])
 
   // Build smart AI coaching feedback from session metrics + bigrams
   const getAiCoachAdvice = (): string => {
@@ -59,12 +72,39 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
       className="max-w-2xl mx-auto space-y-5 animate-fade-in my-6"
       data-testid="success-result"
     >
+      {/* Party Poppers & Fireworks on New Speed Record */}
+      <ConfettiCelebration active={isNewRecord} />
+
       {/* Trophy & Congrats Header */}
-      <div className="text-center">
-        <div className="inline-flex p-3 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-sky-400 mb-3 shadow-xl shadow-sky-500/15">
+      <div className="text-center space-y-2">
+        <div
+          className={`inline-flex p-3 rounded-2xl border mb-1 shadow-xl ${
+            isNewRecord
+              ? 'bg-amber-500/20 border-amber-400/50 text-amber-300 shadow-amber-500/25 animate-bounce'
+              : 'bg-sky-500/15 border-sky-400/30 text-sky-400 shadow-sky-500/15'
+          }`}
+        >
           <Trophy className="w-8 h-8" />
         </div>
-        <h2 className="text-3xl font-extrabold text-white mb-1">Отличная работа!</h2>
+
+        {isNewRecord && (
+          <div className="flex justify-center">
+            <span
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-sky-500/20 to-amber-500/20 border border-amber-400/40 text-amber-300 font-mono font-bold text-xs shadow-lg shadow-amber-500/15"
+              data-testid="new-record-badge"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                НОВЫЙ РЕКОРД СКОРОСТИ!
+                {previousBestWpm > 0 ? ` (+${Math.max(1, stats.wpm - previousBestWpm)} WPM)` : ''}
+              </span>
+            </span>
+          </div>
+        )}
+
+        <h2 className="text-3xl font-extrabold text-white">
+          {isNewRecord ? 'Потрясающий рекорд!' : 'Отличная работа!'}
+        </h2>
         <p className="text-xs text-slate-400">
           Упражнение завершено. Результаты сохранены в график прогресса.
         </p>

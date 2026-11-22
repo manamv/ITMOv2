@@ -29,6 +29,8 @@ export function App() {
   const [topics, setTopics] = useState<GrammarTopic[]>([])
   const [currentLesson, setCurrentLesson] = useState<LessonData | null>(null)
   const [lastStats, setLastStats] = useState<SessionStats | null>(null)
+  const [isNewSpeedRecord, setIsNewSpeedRecord] = useState<boolean>(false)
+  const [previousBestWpm, setPreviousBestWpm] = useState<number>(0)
   const [vocabulary, setVocabulary] = useState<VocabularyWord[]>([])
   const [statsSummary, setStatsSummary] = useState<UserStatsSummary>({
     totalSessions: 0,
@@ -113,6 +115,9 @@ export function App() {
 
   // Finish typing session
   const handleFinishTyping = async (stats: SessionStats) => {
+    const prevBest = weakKeysService.getBestWpm()
+    setPreviousBestWpm(prevBest)
+    setIsNewSpeedRecord(stats.wpm > prevBest)
     setLastStats(stats)
     weakKeysService.recordSession({
       wpm: stats.wpm,
@@ -353,6 +358,8 @@ export function App() {
                     onRepeat={() => setPracticeMode('TYPING')}
                     onNext={() => setPracticeMode('TOPICS')}
                     onOpenLeaderboard={() => setActiveTab('LEADERBOARD')}
+                    isNewRecord={isNewSpeedRecord}
+                    previousBestWpm={previousBestWpm}
                     onStartErrorSprint={(weakKeys, weakBigrams) => {
                       const sprintLesson = weakKeysService.buildErrorRecoverySprint(weakKeys, weakBigrams)
                       setCurrentLesson(sprintLesson)

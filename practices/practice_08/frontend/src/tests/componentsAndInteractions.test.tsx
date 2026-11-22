@@ -590,4 +590,18 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     expect(popover).toBeInTheDocument()
     expect(popover).toHaveTextContent(/долги/i)
   })
+
+  it('SuccessResult: shows new speed record badge and confetti fireworks when personal WPM record is beaten', () => {
+    render(
+      <SuccessResult
+        stats={{ topicId: 'pres-perf', wpm: 95, accuracy: 99, errors: 0, durationSeconds: 32, weakKeys: [] }}
+        onRepeat={vi.fn()}
+        onNext={vi.fn()}
+        isNewRecord={true}
+        previousBestWpm={74}
+      />
+    )
+    expect(screen.getByTestId('new-record-badge')).toHaveTextContent(/\+21 WPM/i)
+    expect(screen.getByTestId('confetti-celebration')).toBeInTheDocument()
+  })
 })
