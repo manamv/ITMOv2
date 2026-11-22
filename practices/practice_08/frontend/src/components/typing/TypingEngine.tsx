@@ -195,9 +195,11 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           const expected = targetText[currentTyped.length]
           const isCorrect = typedKey === expected
 
+          const prevChar = currentTyped.length > 0 ? targetText[currentTyped.length - 1] : ''
           if (isCorrect) {
             soundService.playKeyClick(false)
             weakKeysService.recordKey(expected, false)
+            if (prevChar) weakKeysService.recordBigram(prevChar, expected, false)
             setCombo(prev => prev + 1)
           } else {
             // Mistake: letter lights up in red, user can continue or erase with Backspace
@@ -205,6 +207,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             setErrorsCount(prev => prev + 1)
             setCombo(0)
             weakKeysService.recordKey(expected, true)
+            if (prevChar) weakKeysService.recordBigram(prevChar, expected, true)
             setSessionWeakKeys(prev => new Set(prev).add(expected))
           }
 

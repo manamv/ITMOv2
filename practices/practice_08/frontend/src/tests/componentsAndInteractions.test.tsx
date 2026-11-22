@@ -11,6 +11,8 @@ import { LeaderboardView } from '../components/leaderboard/LeaderboardView'
 import { MusicClipsView } from '../components/music/MusicClipsView'
 import { AchievementsModal } from '../components/achievements/AchievementsModal'
 import { TopicQuizView } from '../components/grammar/TopicQuizView'
+import { StatsView } from '../components/stats/StatsView'
+import { SuccessResult } from '../components/states/SuccessResult'
 import { achievementsService } from '../services/achievements'
 
 describe('Criterion 8: Component Rendering and User Interactions', () => {
@@ -547,5 +549,45 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
 
     fireEvent.click(screen.getByTestId('typing-back-btn'))
     expect(handleBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('StatsView: renders WPM/Accuracy progress SVG chart and switches metrics', () => {
+    render(
+      <StatsView
+        summary={{ totalSessions: 5, avgWpm: 68, avgAccuracy: 97.5, totalErrors: 8, weakKeys: ['r'] }}
+      />
+    )
+    expect(screen.getByTestId('progress-chart-card')).toBeInTheDocument()
+    const accBtn = screen.getByTestId('chart-toggle-accuracy')
+    fireEvent.click(accBtn)
+    expect(screen.getByText(/График прогресса по сессиям/i)).toBeInTheDocument()
+  })
+
+  it('SuccessResult: renders AI error analysis and triggers one-click error recovery sprint', () => {
+    const handleSprint = vi.fn()
+    render(
+      <SuccessResult
+        stats={{ topicId: 'pres-perf', wpm: 64, accuracy: 92, errors: 4, durationSeconds: 45, weakKeys: ['t', 'h'] }}
+        onRepeat={vi.fn()}
+        onNext={vi.fn()}
+        onStartErrorSprint={handleSprint}
+      />
+    )
+    expect(screen.getByTestId('ai-error-analysis')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('start-error-sprint-btn'))
+    expect(handleSprint).toHaveBeenCalledTimes(1)
+  })
+
+  it('MusicClipsView: enables click-to-translate on karaoke lyrics and opens WordPopover', async () => {
+    render(<MusicClipsView onStartTyping={vi.fn()} />)
+    const translateToggle = await screen.findByTestId('lyrics-translate-mode-btn')
+    fireEvent.click(translateToggle)
+
+    const lyricWord = await screen.findByTestId('lyric-word-1-dues')
+    fireEvent.click(lyricWord)
+
+    const popover = await screen.findByTestId('word-popover')
+    expect(popover).toBeInTheDocument()
+    expect(popover).toHaveTextContent(/долги/i)
   })
 })

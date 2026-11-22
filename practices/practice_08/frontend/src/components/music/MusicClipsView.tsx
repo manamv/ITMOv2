@@ -12,52 +12,23 @@ import {
   Flame,
   RotateCcw,
   ArrowLeft,
-  Crosshair
+  Repeat,
+  SkipBack,
+  SkipForward,
+  Video,
+  Mic,
+  Languages
 } from 'lucide-react'
 import type { MusicLesson, LessonData } from '../../types'
 import { api } from '../../services/api'
-import { soundService } from '../../services/sound'
-
-interface YTPlayerInstance {
-  playVideo?: () => void
-  pauseVideo?: () => void
-  seekTo?: (seconds: number, allowSeekAhead?: boolean) => void
-  getCurrentTime?: () => number
-  getPlayerState?: () => number
-  cueVideoById?: (videoId: string) => void
-  loadVideoById?: (videoId: string) => void
-  destroy?: () => void
-}
-
-declare global {
-  interface Window {
-    onYouTubeIframeAPIReady?: () => void
-    YT?: {
-      Player: new (
-        element: HTMLElement | string,
-        options: {
-          width?: string | number
-          height?: string | number
-          videoId?: string
-          playerVars?: Record<string, string | number>
-          events?: {
-            onReady?: () => void
-            onStateChange?: (event: { data: number }) => void
-          }
-        }
-      ) => YTPlayerInstance
-    }
-  }
-}
+import { karaokeBeat } from '../../services/karaokeBeat'
+import { WordPopover } from '../typing/WordPopover'
+import { useWordSelection } from '../../hooks/useWordSelection'
+import { normalizeEnglishWord } from '../../utils/dictionary'
 
 interface MusicClipsViewProps {
   onStartTyping: (lesson: LessonData) => void
   onBack?: () => void
-}
-
-function extractYouTubeId(url: string): string {
-  const match = url.match(/embed\/([a-zA-Z0-9_-]+)/)
-  return match ? match[1] : '04854XqcfCY'
 }
 
 // Deep AI Meaning Analysis for famous tracks
@@ -131,6 +102,22 @@ const AI_SONG_ANALYSES: Record<
   }
 }
 
+/**
+ * Maps a character index from SpeechSynthesisUtterance.onboundary to the exact word index.
+ */
+function charIndexToWordIndex(text: string, charIndex: number): number {
+  const words = text.split(' ')
+  let cursor = 0
+  for (let i = 0; i < words.length; i++) {
+    const end = cursor + words[i].length
+    if (charIndex <= end) {
+      return i
+    }
+    cursor = end + 1
+  }
+  return Math.max(0, words.length - 1)
+}
+
 export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, onBack }) => {
   const [songsList, setSongsList] = useState<
     Array<{
@@ -148,39 +135,64 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [activeTab, setActiveTab] = useState<'grammar' | 'ai-meaning'>('grammar')
 
-  // Minimal reactive karaoke state (only updates on line/word transitions — zero per-frame lag!)
-  const [isKaraokePlaying, setIsKaraokePlaying] = useState<boolean>(false)
-  const [isYtConnected, setIsYtConnected] = useState<boolean>(false)
-  const [activeSubtitleId, setActiveSubtitleId] = useState<number>(1)
-  const [activeWordIdx, setActiveWordIdx] = useState<number>(-1)
-  const [isInIntro, setIsInIntro] = useState<boolean>(false)
-  const [timingOffset, setTimingOffset] = useState<number>(0.0)
-  const [syncFlashMsg, setSyncFlashMsg] = useState<string | null>(null)
+  // Reinvented Dual-Mode Stage: Studio Voice Karaoke (100% exact word sync) vs YouTube Clip
+  const [stageMode, setStageMode] = useState<'studio' | 'youtube'>('studio')
 
-  // Direct DOM refs for buttery 60-FPS updates without React re-renders
-  const ytHostRef = useRef<HTMLDivElement>(null)
-  const ytPlayerRef = useRef<YTPlayerInstance | null>(null)
-  const ytPlayerReadyRef = useRef<boolean>(false)
+  // Native Synchronized Studio Karaoke State
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const [activeLineIdx, setActiveLineIdx] = useState<number>(0)
+  const [activeWordIdx, setActiveWordIdx] = useState<number>(-1)
+  const [tempo, setTempo] = useState<number>(0.9)
+  const [loopLine, setLoopLine] = useState<boolean>(false)
+  const [ambientBeatEnabled, setAmbientBeatEnabled] = useState<boolean>(true)
+  const [translateOnClick, setTranslateOnClick] = useState<boolean>(false)
+
+  // Shared Word Translation Popover (Idea #4)
+  const { selectedWord, handleTextSelection, selectWord, clearSelectedWord } = useWordSelection()
+
+  // Refs for clean, leak-free audio/speech control
+  const isPlayingRef = useRef(false)
+  const loopLineRef = useRef(false)
+  const tempoRef = useRef(tempo)
+  const fallbackTimerRef = useRef<number | null>(null)
+  const nextLineTimeoutRef = useRef<number | null>(null)
   const activeSubtitleRef = useRef<HTMLDivElement>(null)
   const subtitlesScrollContainerRef = useRef<HTMLDivElement>(null)
-  const activeProgressBarRef = useRef<HTMLDivElement>(null)
-  const spotlightProgressRef = useRef<HTMLDivElement>(null)
-  const timeDisplayRef = useRef<HTMLSpanElement>(null)
-  const introCountdownRef = useRef<HTMLSpanElement>(null)
+  const playGenerationRef = useRef<number>(0)
 
-  // Mutable high-precision clock refs
-  const currentTimeRef = useRef<number>(0)
-  const seekingUntilRef = useRef<number>(0)
-  const activeSubIdRef = useRef<number>(1)
-  const activeWordIdxRef = useRef<number>(-1)
-  const isInIntroRef = useRef<boolean>(false)
-  const timingOffsetRef = useRef<number>(0)
-  timingOffsetRef.current = timingOffset
+  isPlayingRef.current = isPlaying
+  loopLineRef.current = loopLine
+  tempoRef.current = tempo
 
-  // Keep refs synced with React state
-  activeSubIdRef.current = activeSubtitleId
-  activeWordIdxRef.current = activeWordIdx
-  isInIntroRef.current = isInIntro
+  const clearTimers = useCallback(() => {
+    if (fallbackTimerRef.current !== null) {
+      clearInterval(fallbackTimerRef.current)
+      fallbackTimerRef.current = null
+    }
+    if (nextLineTimeoutRef.current !== null) {
+      clearTimeout(nextLineTimeoutRef.current)
+      nextLineTimeoutRef.current = null
+    }
+  }, [])
+
+  const stopPlayback = useCallback(() => {
+    playGenerationRef.current += 1
+    isPlayingRef.current = false
+    setIsPlaying(false)
+    setActiveWordIdx(-1)
+    clearTimers()
+    karaokeBeat.stop()
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+  }, [clearTimers])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopPlayback()
+    }
+  }, [stopPlayback])
 
   // Load songs list on mount
   useEffect(() => {
@@ -210,33 +222,15 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
   // Load selected song details
   useEffect(() => {
     let isMounted = true
+    stopPlayback()
+    clearSelectedWord()
     const loadSong = async () => {
       try {
         const song = await api.getMusicLesson(selectedSongId)
         if (!isMounted) return
-
         setCurrentSong(song)
-        currentTimeRef.current = 0
-        setTimingOffset(0)
-        setIsKaraokePlaying(false)
+        setActiveLineIdx(0)
         setActiveWordIdx(-1)
-        setIsInIntro(false)
-        if (timeDisplayRef.current) {
-          timeDisplayRef.current.textContent = '0.0 сек'
-        }
-        if (song.subtitles.length > 0) {
-          setActiveSubtitleId(song.subtitles[0].id)
-        }
-
-        // Switch video cleanly on existing YT.Player instance without detaching API
-        const videoId = extractYouTubeId(song.videoUrl)
-        if (ytPlayerRef.current && ytPlayerReadyRef.current && typeof ytPlayerRef.current.cueVideoById === 'function') {
-          try {
-            ytPlayerRef.current.cueVideoById(videoId)
-          } catch {
-            // safe fallback
-          }
-        }
       } catch {
         // Fallback
       }
@@ -245,235 +239,189 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
     return () => {
       isMounted = false
     }
-  }, [selectedSongId])
+  }, [selectedSongId, stopPlayback, clearSelectedWord])
 
-  // Initialize official YouTube IFrame Player API cleanly once host div is mounted (!isLoading && currentSong)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !currentSong || isLoading) return
-    if (ytPlayerRef.current) return
-
-    let cancelled = false
-    const videoId = extractYouTubeId(currentSong.videoUrl)
-
-    const mountPlayer = () => {
-      if (cancelled || !window.YT?.Player || !ytHostRef.current || ytPlayerRef.current) return
-
-      try {
-        // Create an isolated child slot so YouTube replacing it with <iframe> never breaks React's ref
-        ytHostRef.current.innerHTML = ''
-        const slot = document.createElement('div')
-        slot.style.width = '100%'
-        slot.style.height = '100%'
-        ytHostRef.current.appendChild(slot)
-
-        ytPlayerRef.current = new window.YT.Player(slot, {
-          width: '100%',
-          height: '100%',
-          videoId,
-          playerVars: {
-            enablejsapi: 1,
-            modestbranding: 1,
-            rel: 0,
-            playsinline: 1,
-            origin: window.location.origin
-          },
-          events: {
-            onReady: () => {
-              if (!cancelled) {
-                ytPlayerReadyRef.current = true
-                setIsYtConnected(true)
-              }
-            },
-            onStateChange: (event) => {
-              if (cancelled) return
-              // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
-              if (event.data === 1) {
-                setIsKaraokePlaying(true)
-              } else if (event.data === 2 || event.data === 0) {
-                setIsKaraokePlaying(false)
-              }
-            }
-          }
-        })
-      } catch {
-        // Safe fallback for environments where YT API is unavailable
-      }
-    }
-
-    if (window.YT?.Player) {
-      mountPlayer()
-    } else {
-      const prevCallback = window.onYouTubeIframeAPIReady
-      window.onYouTubeIframeAPIReady = () => {
-        prevCallback?.()
-        mountPlayer()
-      }
-
-      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-        const tag = document.createElement('script')
-        tag.src = 'https://www.youtube.com/iframe_api'
-        document.head.appendChild(tag)
-      }
-    }
-
-    // Safety poll in case YT script finished loading between effect setup and callback assignment
-    let attempts = 0
-    const poll = setInterval(() => {
-      attempts++
-      if (ytPlayerRef.current || attempts > 40) {
-        clearInterval(poll)
-        return
-      }
-      if (window.YT?.Player && ytHostRef.current) {
-        mountPlayer()
-        clearInterval(poll)
-      }
-    }, 150)
-
-    return () => {
-      cancelled = true
-      clearInterval(poll)
-    }
-  }, [currentSong, isLoading])
-
-  // Cleanup player on unmount
-  useEffect(() => {
-    return () => {
-      try {
-        ytPlayerRef.current?.destroy?.()
-      } catch {
-        // ignore cleanup errors
-      }
-      ytPlayerRef.current = null
-      ytPlayerReadyRef.current = false
-    }
-  }, [])
-
-  // 60-FPS Zero-Lag requestAnimationFrame Karaoke Sync Loop with Sub-Tick Interpolation
-  useEffect(() => {
-    if (!isKaraokePlaying || !currentSong || currentSong.subtitles.length === 0) return
-
-    let rafId = 0
-    let lastYtReading = -1
-    let anchorYtTime = currentTimeRef.current
-    let anchorPerfTime = performance.now()
-    let lastFallbackPerf = performance.now()
-
-    const tick = (now: number) => {
-      if (Date.now() < seekingUntilRef.current) {
-        rafId = requestAnimationFrame(tick)
+  /**
+   * Core Reinvented Karaoke Engine:
+   * Speaks a subtitle line using Web Speech API and highlights every single word
+   * at the EXACT millisecond it is pronounced via SpeechSynthesisUtterance.onboundary!
+   * Includes an automatic fallback pacer if a browser's TTS engine doesn't fire onboundary.
+   */
+  const speakLineWithExactSync = useCallback(
+    (lineIndex: number, song: MusicLesson) => {
+      const sub = song.subtitles[lineIndex]
+      if (!sub) {
+        stopPlayback()
         return
       }
 
-      let liveTime = currentTimeRef.current
+      clearTimers()
+      const gen = ++playGenerationRef.current
+      setActiveLineIdx(lineIndex)
+      setActiveWordIdx(0)
 
-      // 1. Read exact YouTube playback time & smoothly interpolate between YouTube's ~250ms clock ticks
-      if (ytPlayerRef.current && ytPlayerReadyRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
-        try {
-          const ytTime = ytPlayerRef.current.getCurrentTime()
-          if (typeof ytTime === 'number' && !isNaN(ytTime) && ytTime >= 0) {
-            if (Math.abs(ytTime - lastYtReading) > 0.005) {
-              lastYtReading = ytTime
-              anchorYtTime = ytTime
-              anchorPerfTime = now
-              liveTime = ytTime
-            } else {
-              // Smoothly interpolate up to 0.35s between YT API ticks for silky 60fps progress
-              const elapsed = Math.min(0.35, (now - anchorPerfTime) / 1000)
-              liveTime = anchorYtTime + elapsed
+      const words = sub.textEn.split(' ').filter(Boolean)
+
+      const advanceAfterLine = () => {
+        if (playGenerationRef.current !== gen || !isPlayingRef.current) return
+        clearTimers()
+        const nextIdx = loopLineRef.current ? lineIndex : lineIndex + 1
+        if (nextIdx < song.subtitles.length) {
+          nextLineTimeoutRef.current = window.setTimeout(() => {
+            if (playGenerationRef.current === gen && isPlayingRef.current) {
+              speakLineWithExactSync(nextIdx, song)
             }
-          }
-        } catch {
-          // fallback below
-        }
-      } else {
-        // 2. Wall-clock fallback (offline / tests)
-        const deltaSec = (now - lastFallbackPerf) / 1000
-        lastFallbackPerf = now
-        liveTime = currentTimeRef.current + deltaSec
-        const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
-        if (liveTime > maxTime + 5.0) {
-          setIsKaraokePlaying(false)
-          currentTimeRef.current = 0
-          return
-        }
-      }
-
-      currentTimeRef.current = liveTime
-
-      // Direct DOM update for timer display (zero React re-renders!)
-      if (timeDisplayRef.current) {
-        timeDisplayRef.current.textContent = `${liveTime.toFixed(1)} сек`
-      }
-
-      const effTime = Math.max(0, liveTime + timingOffsetRef.current)
-      const firstStart = currentSong.subtitles[0].startSeconds
-      const nowInIntro = effTime < firstStart
-
-      if (nowInIntro !== isInIntroRef.current) {
-        isInIntroRef.current = nowInIntro
-        setIsInIntro(nowInIntro)
-      }
-
-      if (nowInIntro && introCountdownRef.current) {
-        introCountdownRef.current.textContent = `${Math.max(0, firstStart - effTime).toFixed(1)}с`
-      }
-
-      // Find active subtitle line
-      const match = currentSong.subtitles.find(
-        s => effTime >= s.startSeconds && effTime <= s.endSeconds
-      )
-
-      if (match) {
-        if (match.id !== activeSubIdRef.current) {
-          activeSubIdRef.current = match.id
-          setActiveSubtitleId(match.id)
-        }
-
-        // Compute exact active word index
-        let nextWordIdx = -1
-        if (match.words && match.words.length > 0) {
-          nextWordIdx = match.words.findIndex(w => effTime >= w.start && effTime <= w.end)
-          if (nextWordIdx === -1) {
-            for (let i = match.words.length - 1; i >= 0; i--) {
-              if (effTime >= match.words[i].start) {
-                nextWordIdx = i
-                break
-              }
-            }
-          }
+          }, 320)
         } else {
-          const wordsCount = match.textEn.split(' ').length
-          const dur = Math.max(0.1, match.endSeconds - match.startSeconds)
-          const progress = Math.max(0, Math.min(1, (effTime - match.startSeconds) / dur))
-          nextWordIdx = Math.min(wordsCount - 1, Math.floor(progress * wordsCount))
+          // Reached end of track cleanly
+          stopPlayback()
+          setActiveLineIdx(0)
         }
-
-        if (nextWordIdx !== activeWordIdxRef.current) {
-          activeWordIdxRef.current = nextWordIdx
-          setActiveWordIdx(nextWordIdx)
-        }
-
-        // Direct DOM update for silky 60fps progress bars (zero React re-renders!)
-        const dur = Math.max(0.1, match.endSeconds - match.startSeconds)
-        const pct = `${Math.max(0, Math.min(100, ((effTime - match.startSeconds) / dur) * 100)).toFixed(1)}%`
-        if (activeProgressBarRef.current) {
-          activeProgressBarRef.current.style.width = pct
-        }
-        if (spotlightProgressRef.current) {
-          spotlightProgressRef.current.style.width = pct
-        }
-      } else if (activeWordIdxRef.current !== -1) {
-        activeWordIdxRef.current = -1
-        setActiveWordIdx(-1)
       }
 
-      rafId = requestAnimationFrame(tick)
-    }
+      // If browser supports Web Speech API, synchronize word-by-word via native onboundary!
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
 
-    rafId = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafId)
-  }, [isKaraokePlaying, currentSong])
+        const utterance = new SpeechSynthesisUtterance(sub.textEn)
+        const voices = window.speechSynthesis.getVoices()
+        const engVoice =
+          voices.find(
+            v =>
+              v.lang.startsWith('en') &&
+              (v.name.includes('Natural') || v.name.includes('Google US English') || v.name.includes('Samantha'))
+          ) || voices.find(v => v.lang.startsWith('en'))
+        if (engVoice) utterance.voice = engVoice
+
+        utterance.lang = 'en-US'
+        utterance.rate = tempoRef.current
+        utterance.pitch = 1.0
+
+        let receivedNativeBoundary = false
+
+        utterance.onboundary = (event: SpeechSynthesisEvent) => {
+          if (playGenerationRef.current !== gen) return
+          if (event.name === 'word' || typeof event.charIndex === 'number') {
+            receivedNativeBoundary = true
+            if (fallbackTimerRef.current !== null) {
+              clearInterval(fallbackTimerRef.current)
+              fallbackTimerRef.current = null
+            }
+            const idx = charIndexToWordIndex(sub.textEn, event.charIndex)
+            setActiveWordIdx(idx)
+          }
+        }
+
+        utterance.onstart = () => {
+          if (playGenerationRef.current !== gen) return
+          setActiveWordIdx(0)
+
+          // Safety fallback pacer: only activates if browser TTS does NOT fire onboundary
+          const msPerWord = Math.round(370 / Math.max(0.5, tempoRef.current))
+          let fallbackIdx = 0
+          fallbackTimerRef.current = window.setInterval(() => {
+            if (playGenerationRef.current !== gen || receivedNativeBoundary) {
+              if (fallbackTimerRef.current !== null) {
+                clearInterval(fallbackTimerRef.current)
+                fallbackTimerRef.current = null
+              }
+              return
+            }
+            fallbackIdx += 1
+            if (fallbackIdx < words.length) {
+              setActiveWordIdx(fallbackIdx)
+            }
+          }, msPerWord)
+        }
+
+        utterance.onend = () => {
+          advanceAfterLine()
+        }
+
+        utterance.onerror = () => {
+          // If interrupted by user cancel, ignore; otherwise stop cleanly
+          if (playGenerationRef.current === gen && isPlayingRef.current) {
+            stopPlayback()
+          }
+        }
+
+        window.speechSynthesis.speak(utterance)
+      } else {
+        // Fallback for headless/test environments without SpeechSynthesis
+        const msPerWord = Math.round(380 / Math.max(0.5, tempoRef.current))
+        let idx = 0
+        fallbackTimerRef.current = Number(
+          globalThis.setInterval(() => {
+            if (playGenerationRef.current !== gen) return
+            idx += 1
+            if (idx < words.length) {
+              setActiveWordIdx(idx)
+            } else {
+              advanceAfterLine()
+            }
+          }, msPerWord)
+        )
+      }
+    },
+    [clearTimers, stopPlayback]
+  )
+
+  const handleTogglePlay = () => {
+    if (!currentSong) return
+    if (isPlaying) {
+      stopPlayback()
+    } else {
+      setStageMode('studio')
+      isPlayingRef.current = true
+      setIsPlaying(true)
+      if (ambientBeatEnabled) {
+        karaokeBeat.start(currentSong.id)
+      }
+      speakLineWithExactSync(activeLineIdx, currentSong)
+    }
+  }
+
+  const handleJumpToLine = (lineIndex: number) => {
+    if (!currentSong) return
+    setActiveLineIdx(lineIndex)
+    isPlayingRef.current = true
+    setIsPlaying(true)
+    if (stageMode === 'studio') {
+      if (ambientBeatEnabled) karaokeBeat.start(currentSong.id)
+      speakLineWithExactSync(lineIndex, currentSong)
+    }
+  }
+
+  const handlePrevLine = () => {
+    if (!currentSong) return
+    const prev = Math.max(0, activeLineIdx - 1)
+    if (isPlaying) {
+      speakLineWithExactSync(prev, currentSong)
+    } else {
+      setActiveLineIdx(prev)
+      setActiveWordIdx(-1)
+    }
+  }
+
+  const handleNextLine = () => {
+    if (!currentSong) return
+    const next = Math.min(currentSong.subtitles.length - 1, activeLineIdx + 1)
+    if (isPlaying) {
+      speakLineWithExactSync(next, currentSong)
+    } else {
+      setActiveLineIdx(next)
+      setActiveWordIdx(-1)
+    }
+  }
+
+  const handleToggleBeat = () => {
+    const next = !ambientBeatEnabled
+    setAmbientBeatEnabled(next)
+    if (isPlaying && currentSong) {
+      if (next) karaokeBeat.start(currentSong.id)
+      else karaokeBeat.stop()
+    }
+  }
 
   // Auto-scroll active subtitle line smoothly inside its container only
   useEffect(() => {
@@ -492,104 +440,11 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
         })
       }
     }
-  }, [activeSubtitleId])
-
-  const executeSeekAndPlay = useCallback((targetTime: number, subId?: number) => {
-    seekingUntilRef.current = Date.now() + 500
-    currentTimeRef.current = targetTime
-    if (timeDisplayRef.current) {
-      timeDisplayRef.current.textContent = `${targetTime.toFixed(1)} сек`
-    }
-    if (subId !== undefined) {
-      activeSubIdRef.current = subId
-      setActiveSubtitleId(subId)
-    }
-
-    if (ytPlayerRef.current?.seekTo && ytPlayerReadyRef.current) {
-      try {
-        ytPlayerRef.current.seekTo(targetTime, true)
-        ytPlayerRef.current.playVideo?.()
-      } catch {
-        // ignore
-      }
-    }
-    setIsKaraokePlaying(true)
-  }, [])
-
-  const handlePlayWord = (e: React.MouseEvent, wordStart: number, subId: number) => {
-    e.stopPropagation()
-    executeSeekAndPlay(Math.max(0, wordStart - timingOffsetRef.current), subId)
-  }
-
-  const handleSkipIntro = () => {
-    if (!currentSong || currentSong.subtitles.length === 0) return
-    const firstVocalStart = Math.max(0, currentSong.subtitles[0].startSeconds - timingOffsetRef.current)
-    executeSeekAndPlay(firstVocalStart, currentSong.subtitles[0].id)
-  }
-
-  const handleToggleKaraoke = () => {
-    if (isKaraokePlaying) {
-      try {
-        ytPlayerRef.current?.pauseVideo?.()
-      } catch {
-        // ignore
-      }
-      setIsKaraokePlaying(false)
-    } else {
-      try {
-        ytPlayerRef.current?.playVideo?.()
-      } catch {
-        // ignore
-      }
-      setIsKaraokePlaying(true)
-    }
-  }
-
-  const handlePlayLine = (text: string, id: number, startSec: number) => {
-    executeSeekAndPlay(Math.max(0, startSec - timingOffsetRef.current), id)
-    soundService.speakText(text, 1.0)
-  }
-
-  // Smart Live Sync Lock: aligns the entire song's lyrics to the exact millisecond you hear this line!
-  const handleSyncToThisLine = (e: React.MouseEvent, subStartSeconds: number, subId: number) => {
-    e.stopPropagation()
-    let rawTime = currentTimeRef.current
-    if (ytPlayerRef.current?.getCurrentTime && ytPlayerReadyRef.current) {
-      try {
-        const yt = ytPlayerRef.current.getCurrentTime()
-        if (typeof yt === 'number' && !isNaN(yt)) rawTime = yt
-      } catch {
-        // use ref time
-      }
-    }
-    const newOffset = Math.round((subStartSeconds - rawTime) * 10) / 10
-    setTimingOffset(newOffset)
-    activeSubIdRef.current = subId
-    setActiveSubtitleId(subId)
-    setSyncFlashMsg(`Синхронизировано (${newOffset >= 0 ? '+' : ''}${newOffset}с)`)
-    setTimeout(() => setSyncFlashMsg(null), 2200)
-  }
-
-  const handleResetToStart = () => {
-    seekingUntilRef.current = Date.now() + 500
-    currentTimeRef.current = 0
-    if (timeDisplayRef.current) {
-      timeDisplayRef.current.textContent = '0.0 сек'
-    }
-    try {
-      ytPlayerRef.current?.seekTo?.(0, true)
-      ytPlayerRef.current?.pauseVideo?.()
-    } catch {
-      // ignore
-    }
-    setIsKaraokePlaying(false)
-    setActiveWordIdx(-1)
-    setIsInIntro(false)
-    setActiveSubtitleId(currentSong?.subtitles[0]?.id || 1)
-  }
+  }, [activeLineIdx])
 
   const handleStartTypingLesson = () => {
     if (!currentSong) return
+    stopPlayback()
 
     const lessonData: LessonData = {
       id: `music-${currentSong.id}`,
@@ -603,15 +458,29 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
   }
 
   const aiAnalysis = AI_SONG_ANALYSES[selectedSongId] || AI_SONG_ANALYSES['queen-champions']
+  const activeSub = currentSong?.subtitles[activeLineIdx] || currentSong?.subtitles[0]
+  const nextSub = currentSong?.subtitles[activeLineIdx + 1]
+  const activeWords = activeSub ? activeSub.textEn.split(' ').filter(Boolean) : []
+  const lineProgressPct =
+    activeWords.length > 0 && activeWordIdx >= 0
+      ? Math.min(100, Math.round(((activeWordIdx + 1) / activeWords.length) * 100))
+      : 0
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto w-full animate-fade-in" data-testid="music-clips-view">
-      {/* Header Banner - Linear Midnight Navy */}
+    <div
+      className="space-y-6 max-w-5xl mx-auto w-full animate-fade-in"
+      data-testid="music-clips-view"
+      onMouseUp={handleTextSelection}
+    >
+      {/* Header Banner */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-3xl bg-[#090d16]/85 backdrop-blur-2xl border border-white/[0.08] shadow-2xl shadow-black/80">
         <div className="flex items-center space-x-3.5">
           {onBack && (
             <button
-              onClick={onBack}
+              onClick={() => {
+                stopPlayback()
+                onBack()
+              }}
               className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] text-xs font-mono transition cursor-pointer active:scale-95"
               title="Назад к тренировке"
               data-testid="music-back-btn"
@@ -626,12 +495,12 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
           <div>
             <h1 className="text-lg font-bold text-white flex items-center gap-2">
               Музыкальные клипы & Разбор грамматики
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-sky-300 border border-white/[0.08] font-mono">
-                60fps Studio Sync
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-400/25 font-mono">
+                Exact Voice Sync
               </span>
             </h1>
             <p className="text-xs text-slate-400 mt-0.5">
-              Смотрите клип с пословной синхронизацией караоке, изучайте смысл от AI и тренируйте скоропечатание!
+              Точное пословное караоке без задержек, перевод любого слова в тексте, разбор смысла от AI и печать!
             </p>
           </div>
         </div>
@@ -679,41 +548,175 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
       {/* Song Detail Body: 2 Columns */}
       {currentSong && !isLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* LEFT COLUMN: Video Player & Synchronized Word-by-Word Karaoke Subtitles */}
+          {/* LEFT COLUMN: Reinvented Studio Karaoke Stage + Interactive Subtitles */}
           <div className="lg:col-span-7 space-y-4">
-            {/* Video Player Card */}
             <div className="rounded-3xl bg-[#090d16] border border-white/[0.08] overflow-hidden shadow-2xl shadow-black/80">
-              <div className="relative aspect-video w-full bg-[#050810] flex items-center justify-center">
-                {/* Official YouTube IFrame API stable mount container */}
-                <div ref={ytHostRef} className="w-full h-full" />
-              </div>
-
-              {/* Player Header bar & Karaoke Controls */}
-              <div className="p-3.5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
-                <div>
-                  <h3 className="text-xs font-bold text-white flex items-center gap-2">
-                    <span>
-                      {currentSong.artist} — {currentSong.title}
-                    </span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-normal border flex items-center gap-1 ${
-                      isYtConnected
-                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25'
-                        : 'bg-sky-500/15 text-sky-300 border-sky-500/20'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${isYtConnected ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-sky-400 animate-pulse'}`} />
-                      {isYtConnected ? 'YouTube Sync Active' : 'Studio Karaoke Sync'}
-                    </span>
-                  </h3>
-                  <p className="text-[11px] text-sky-400 font-mono mt-0.5">{currentSong.grammarFocus}</p>
+              {/* Stage Mode Switcher: Studio Exact Karaoke vs YouTube Clip */}
+              <div className="px-4 py-2.5 bg-white/[0.02] border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs font-mono">
+                  <button
+                    onClick={() => setStageMode('studio')}
+                    className={`px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      stageMode === 'studio'
+                        ? 'bg-sky-400 text-slate-950 font-bold shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    data-testid="mode-studio-karaoke"
+                  >
+                    <Mic className="w-3.5 h-3.5" />
+                    <span>Студийное караоке</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      stopPlayback()
+                      setStageMode('youtube')
+                    }}
+                    className={`px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      stageMode === 'youtube'
+                        ? 'bg-white/[0.12] text-white font-semibold border border-white/[0.1]'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    data-testid="mode-youtube-clip"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Клип YouTube</span>
+                  </button>
                 </div>
 
+                {/* Tempo Selector (for Studio Karaoke) */}
+                {stageMode === 'studio' && (
+                  <div className="flex items-center space-x-1 text-[11px] font-mono bg-white/[0.03] px-2 py-1 rounded-xl border border-white/[0.06]">
+                    <span className="text-slate-500 mr-1">Темп:</span>
+                    {[0.75, 0.9, 1.0, 1.15].map(rate => (
+                      <button
+                        key={rate}
+                        onClick={() => setTempo(rate)}
+                        className={`px-1.5 py-0.5 rounded-md transition cursor-pointer ${
+                          tempo === rate
+                            ? 'bg-sky-500/25 text-sky-300 font-bold'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {rate}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* STAGE CONTENT: STUDIO TELEPROMPTER OR YOUTUBE IFRAME */}
+              {stageMode === 'studio' ? (
+                <div
+                  className="relative px-6 py-8 bg-[radial-gradient(ellipse_90%_70%_at_50%_0%,rgba(56,189,248,0.14),rgba(5,8,16,0.98))] min-h-[250px] flex flex-col justify-between gap-5"
+                  data-testid="studio-karaoke-stage"
+                >
+                  {/* Top Row: Track info + Animated Equalizer */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse' : 'bg-slate-600'}`} />
+                      <span className="text-xs font-mono text-slate-300">
+                        {currentSong.artist} — <strong className="text-white">{currentSong.title}</strong>
+                      </span>
+                    </div>
+
+                    {/* Live Equalizer Bars */}
+                    <div className="flex items-end gap-1 h-4" aria-hidden="true">
+                      {[0.4, 0.85, 0.6, 1.0, 0.5, 0.75].map((h, i) => (
+                        <span
+                          key={i}
+                          className={`w-1 rounded-full bg-gradient-to-t from-sky-500 to-cyan-300 transition-all duration-150 ${
+                            isPlaying ? 'animate-pulse' : 'opacity-25'
+                          }`}
+                          style={{
+                            height: isPlaying ? `${Math.round(h * 16)}px` : '4px',
+                            animationDelay: `${i * 110}ms`
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Centerpiece: Big Glowing Word-by-Word Teleprompter */}
+                  {activeSub && (
+                    <div className="space-y-3 text-center my-auto">
+                      <div className="font-mono text-xl sm:text-2xl leading-relaxed flex flex-wrap justify-center gap-x-2.5 gap-y-2 select-text">
+                        {activeWords.map((w, wIdx) => {
+                          const isCurrent = isPlaying && wIdx === activeWordIdx
+                          const isPast = isPlaying && activeWordIdx > -1 && wIdx < activeWordIdx
+                          return (
+                            <span
+                              key={wIdx}
+                              onClick={() => selectWord(w)}
+                              className={`cursor-pointer rounded-xl transition-colors ${
+                                isCurrent
+                                  ? 'text-white font-black bg-sky-500/30 px-2.5 py-0.5 border border-sky-400/60 shadow-[0_0_24px_rgba(56,189,248,0.5)]'
+                                  : isPast
+                                    ? 'text-sky-300 font-bold px-0.5'
+                                    : 'text-slate-400 hover:text-sky-200 px-0.5'
+                              }`}
+                              title="Нажмите на слово для перевода"
+                            >
+                              {w}
+                            </span>
+                          )
+                        })}
+                      </div>
+
+                      <div className="text-sm text-slate-300 font-medium">
+                        {activeSub.textRu}
+                      </div>
+
+                      {nextSub && (
+                        <div className="text-xs font-mono text-slate-500 pt-1">
+                          Далее: {nextSub.textEn}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Line Progress Hairline */}
+                  <div className="space-y-1.5">
+                    <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 rounded-full transition-all duration-150"
+                        style={{ width: `${lineProgressPct}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                      <span>Строка {activeLineIdx + 1} из {currentSong.subtitles.length}</span>
+                      <span>100% синхронизация по слову</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative aspect-video w-full bg-[#050810]">
+                  <iframe
+                    className="w-full h-full"
+                    src={`${currentSong.videoUrl}?rel=0&modestbranding=1`}
+                    title={`${currentSong.artist} - ${currentSong.title}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+
+              {/* Transport Control Deck */}
+              <div className="p-3.5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={handleToggleKaraoke}
-                    className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 text-xs font-mono font-bold shadow-lg shadow-sky-500/20 transition cursor-pointer active:scale-[0.98]"
+                    onClick={handlePrevLine}
+                    className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer"
+                    title="Предыдущая строка"
+                  >
+                    <SkipBack className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    onClick={handleTogglePlay}
+                    className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 text-xs font-mono font-bold shadow-lg shadow-sky-500/20 transition cursor-pointer active:scale-[0.98]"
                     data-testid="karaoke-toggle-btn"
                   >
-                    {isKaraokePlaying ? (
+                    {isPlaying ? (
                       <>
                         <Pause className="w-3.5 h-3.5" />
                         <span>Пауза</span>
@@ -721,240 +724,167 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                     ) : (
                       <>
                         <Play className="w-3.5 h-3.5 fill-current" />
-                        <span>Включить караоке</span>
+                        <span>Старт караоке</span>
                       </>
                     )}
                   </button>
 
                   <button
-                    onClick={handleSkipIntro}
-                    className="px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] text-xs font-mono transition cursor-pointer"
-                    title="Перейти сразу к первому слову песни (без вступления)"
+                    onClick={handleNextLine}
+                    className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer"
+                    title="Следующая строка"
                   >
-                    К вокалу ⏩
+                    <SkipForward className="w-3.5 h-3.5" />
                   </button>
 
                   <button
-                    onClick={handleResetToStart}
-                    className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer"
-                    title="С начала видео (0:00)"
+                    onClick={() => {
+                      stopPlayback()
+                      setActiveLineIdx(0)
+                    }}
+                    className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer"
+                    title="В начало песни"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
 
-              {/* Apple-Music Style Live Karaoke Spotlight Teleprompter */}
-              {(() => {
-                const activeIdx = currentSong.subtitles.findIndex(s => s.id === activeSubtitleId)
-                const activeSub = currentSong.subtitles[activeIdx] || currentSong.subtitles[0]
-                const nextSub = activeIdx >= 0 ? currentSong.subtitles[activeIdx + 1] : currentSong.subtitles[1]
-                if (!activeSub) return null
-                const spotlightWords = activeSub.textEn.split(' ')
-                return (
-                  <div className="relative px-5 py-4 bg-gradient-to-b from-[#070b14] to-[#050810] border-t border-white/[0.06] space-y-2">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-base sm:text-lg leading-snug">
-                      {spotlightWords.map((w, idx) => {
-                        const isCur = isKaraokePlaying && !isInIntro && idx === activeWordIdx
-                        const isPast = isKaraokePlaying && !isInIntro && activeWordIdx > -1 && idx < activeWordIdx
-                        return (
-                          <span
-                            key={idx}
-                            className={
-                              isCur
-                                ? 'text-white font-black bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/60 shadow-[0_0_16px_rgba(56,189,248,0.45)]'
-                                : isPast
-                                  ? 'text-sky-300 font-bold'
-                                  : 'text-slate-400 font-medium'
-                            }
-                          >
-                            {w}
-                          </span>
-                        )
-                      })}
-                    </div>
-                    <div className="flex items-center justify-between gap-3 text-xs">
-                      <span className="text-slate-400">{activeSub.textRu}</span>
-                      {nextSub && (
-                        <span className="text-[11px] font-mono text-slate-600 truncate max-w-[45%] hidden sm:inline">
-                          Далее: {nextSub.textEn}
-                        </span>
-                      )}
-                    </div>
-                    {/* 60-FPS Spotlight Progress Hairline */}
-                    <div className="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden">
-                      <div
-                        ref={spotlightProgressRef}
-                        className="h-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 rounded-full"
-                        style={{ width: '0%' }}
-                      />
-                    </div>
-                  </div>
-                )
-              })()}
+                <div className="flex items-center space-x-2 text-xs font-mono">
+                  <button
+                    onClick={() => setLoopLine(l => !l)}
+                    className={`px-2.5 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1.5 ${
+                      loopLine
+                        ? 'bg-amber-500/15 text-amber-300 border-amber-400/35 font-semibold'
+                        : 'bg-white/[0.03] text-slate-400 border-white/[0.07] hover:text-white'
+                    }`}
+                    title="Зациклить текущую строку для отработки произношения"
+                  >
+                    <Repeat className="w-3.5 h-3.5" />
+                    <span>Повтор</span>
+                  </button>
+
+                  <button
+                    onClick={handleToggleBeat}
+                    className={`px-2.5 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1.5 ${
+                      ambientBeatEnabled
+                        ? 'bg-sky-500/15 text-sky-300 border-sky-400/35 font-semibold'
+                        : 'bg-white/[0.03] text-slate-400 border-white/[0.07] hover:text-white'
+                    }`}
+                    title="Мягкий фоновый аккомпанемент аккордов"
+                  >
+                    <Music className="w-3.5 h-3.5" />
+                    <span>Минус</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Synchronized Karaoke Subtitles with 60fps Direct DOM Progress & Live Sync Lock */}
-            <div className="p-5 rounded-3xl bg-[#090d16] border border-white/[0.08] space-y-3 shadow-2xl shadow-black/60">
+            {/* Interactive Lyrics List with Built-in Word Translation (Idea #4) */}
+            <div className="relative p-5 rounded-3xl bg-[#090d16] border border-white/[0.08] space-y-3 shadow-2xl shadow-black/60">
+              {selectedWord && (
+                <WordPopover
+                  word={selectedWord}
+                  onClose={clearSelectedWord}
+                  className="absolute -top-16 left-1/2 -translate-x-1/2"
+                />
+              )}
+
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                   <Headphones className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Караоке-субтитры</span>
-                  {syncFlashMsg ? (
-                    <span className="text-[10px] text-emerald-300 font-mono font-semibold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-400/30 animate-fade-in">
-                      ✓ {syncFlashMsg}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-sky-300 font-mono font-normal lowercase bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
-                      пословная синхронизация
-                    </span>
-                  )}
+                  <span>Текст песни</span>
+                  <span className="text-[10px] text-slate-400 font-normal lowercase">
+                    (выделите любое слово для перевода)
+                  </span>
                 </h4>
 
-                <div className="flex items-center space-x-3 font-mono text-xs">
-                  {/* Calibration offset controls */}
-                  <div
-                    className="flex items-center space-x-1 bg-white/[0.02] px-2 py-0.5 rounded-xl border border-white/[0.06] text-[11px]"
-                    title="Точная подстройка сдвига субтитров под звук"
-                  >
-                    <span className="text-slate-500 text-[10px]">Сдвиг:</span>
-                    <button
-                      onClick={() => setTimingOffset(prev => Math.round((prev - 0.2) * 10) / 10)}
-                      className="px-1.5 py-0.5 rounded hover:bg-sky-500/20 text-sky-300 transition cursor-pointer"
-                      title="-0.2с"
-                    >
-                      -0.2s
-                    </button>
-                    <button
-                      onClick={() => setTimingOffset(0)}
-                      className={`px-1.5 py-0.5 rounded transition cursor-pointer ${
-                        timingOffset === 0 ? 'text-slate-400' : 'text-sky-400 font-bold bg-sky-500/20'
-                      }`}
-                      title="Сбросить сдвиг"
-                    >
-                      {timingOffset === 0 ? '0.0s' : `${timingOffset > 0 ? '+' : ''}${timingOffset}s`}
-                    </button>
-                    <button
-                      onClick={() => setTimingOffset(prev => Math.round((prev + 0.2) * 10) / 10)}
-                      className="px-1.5 py-0.5 rounded hover:bg-sky-500/20 text-sky-300 transition cursor-pointer"
-                      title="+0.2с"
-                    >
-                      +0.2s
-                    </button>
-                  </div>
-
-                  <span ref={timeDisplayRef} className="text-sky-400 font-bold min-w-[54px] text-right">
-                    0.0 сек
-                  </span>
-                </div>
+                <button
+                  onClick={() => setTranslateOnClick(t => !t)}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-mono border transition cursor-pointer flex items-center gap-1.5 ${
+                    translateOnClick
+                      ? 'bg-sky-500/20 text-sky-300 border-sky-400/40 font-semibold'
+                      : 'bg-white/[0.03] text-slate-400 border-white/[0.07] hover:text-white'
+                  }`}
+                  data-testid="lyrics-translate-mode-btn"
+                  title="При включении клик по любому слову сразу показывает перевод и позволяет сохранить его в словарь"
+                >
+                  <Languages className="w-3.5 h-3.5" />
+                  <span>Перевод по клику: {translateOnClick ? 'ВКЛ' : 'ВЫКЛ'}</span>
+                </button>
               </div>
-
-              {/* Instrumental Intro Live Banner */}
-              {isKaraokePlaying && isInIntro && currentSong.subtitles[0] && (
-                <div className="p-3 rounded-2xl bg-sky-500/[0.07] border border-sky-400/30 flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-2 text-sky-300 font-mono">
-                    <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse" />
-                    <span>Вступление (инструментал) • Вокал через:</span>
-                    <span ref={introCountdownRef} className="font-bold text-white text-sm">
-                      {currentSong.subtitles[0].startSeconds.toFixed(1)}с
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleSkipIntro}
-                    className="px-3 py-1 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold font-mono text-[11px] transition shadow-md shadow-sky-500/20 cursor-pointer flex items-center space-x-1"
-                  >
-                    <span>Пропустить к пению</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
 
               <div
                 ref={subtitlesScrollContainerRef}
-                className="space-y-2.5 max-h-64 overflow-y-auto pr-1.5 scroll-smooth"
+                className="space-y-2 max-h-64 overflow-y-auto pr-1.5 scroll-smooth"
                 data-testid="subtitles-scroll-container"
               >
-                {currentSong.subtitles.map(sub => {
-                  const isActive = activeSubtitleId === sub.id
-                  const words = sub.textEn.split(' ')
+                {currentSong.subtitles.map((sub, lineIndex) => {
+                  const isActive = lineIndex === activeLineIdx
+                  const words = sub.textEn.split(' ').filter(Boolean)
 
                   return (
                     <div
                       key={sub.id}
                       ref={isActive ? activeSubtitleRef : null}
-                      onClick={() => handlePlayLine(sub.textEn, sub.id, sub.startSeconds)}
-                      className={`p-4 rounded-2xl border transition-colors cursor-pointer flex flex-col gap-2 ${
+                      onClick={() => {
+                        if (!translateOnClick) handleJumpToLine(lineIndex)
+                      }}
+                      className={`p-3.5 rounded-2xl border transition-colors cursor-pointer flex items-start justify-between gap-3 ${
                         isActive
-                          ? 'bg-white/[0.07] border-sky-400/50 text-white shadow-xl shadow-sky-500/10 ring-1 ring-sky-400/30'
+                          ? 'bg-white/[0.07] border-sky-400/50 text-white shadow-lg shadow-sky-500/10 ring-1 ring-sky-400/25'
                           : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] text-slate-400'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1.5 flex-1">
-                          {/* Word-by-word karaoke highlighting with clickable jump */}
-                          <div className="font-mono text-sm sm:text-base leading-relaxed flex flex-wrap gap-1.5">
-                            {words.map((w, wIdx) => {
-                              const isCurrentWord = isActive && isKaraokePlaying && wIdx === activeWordIdx
-                              const isPastWord =
-                                isActive && isKaraokePlaying && activeWordIdx > -1 && wIdx < activeWordIdx
-                              const wordTiming = sub.words?.[wIdx]
+                      <div className="space-y-1 flex-1">
+                        <div className="font-mono text-sm leading-relaxed flex flex-wrap gap-1.5 select-text">
+                          {words.map((w, wIdx) => {
+                            const cleaned = normalizeEnglishWord(w)
+                            const isCurrentWord = isActive && isPlaying && wIdx === activeWordIdx
+                            const isPastWord = isActive && isPlaying && activeWordIdx > -1 && wIdx < activeWordIdx
+                            const isTranslated = selectedWord === cleaned
 
-                              let wordStyle = 'text-slate-400 hover:text-sky-300 px-0.5'
-                              if (isCurrentWord) {
-                                wordStyle =
-                                  'text-white font-extrabold bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.35)] inline-block'
-                              } else if (isPastWord) {
-                                wordStyle = 'text-sky-300 font-medium px-0.5'
-                              }
+                            let wordStyle = 'text-slate-300 hover:text-sky-300 px-0.5 rounded'
+                            if (isCurrentWord) {
+                              wordStyle =
+                                'text-white font-extrabold bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.35)]'
+                            } else if (isTranslated) {
+                              wordStyle = 'bg-sky-400/25 text-sky-200 underline decoration-sky-400 px-1 rounded'
+                            } else if (isPastWord) {
+                              wordStyle = 'text-sky-300 font-medium px-0.5'
+                            }
 
-                              return (
-                                <span
-                                  key={wIdx}
-                                  onClick={e =>
-                                    wordTiming ? handlePlayWord(e, wordTiming.start, sub.id) : undefined
+                            return (
+                              <span
+                                key={wIdx}
+                                onClick={e => {
+                                  if (translateOnClick) {
+                                    e.stopPropagation()
+                                    selectWord(w)
                                   }
-                                  className={`${wordStyle} cursor-pointer`}
-                                  title={wordTiming ? `Перейти к ${wordTiming.start}с` : undefined}
-                                >
-                                  {w}
-                                </span>
-                              )
-                            })}
-                          </div>
-
-                          <div className="text-xs text-slate-400">{sub.textRu}</div>
+                                }}
+                                className={`${wordStyle} cursor-pointer`}
+                                data-testid={`lyric-word-${sub.id}-${cleaned}`}
+                                title={translateOnClick ? 'Нажмите для перевода' : 'Кликните строку для воспроизведения'}
+                              >
+                                {w}
+                              </span>
+                            )
+                          })}
                         </div>
 
-                        <div className="flex items-center space-x-1 shrink-0">
-                          {/* Smart Live Sync Button: tap when you hear this line start */}
-                          {isKaraokePlaying && (
-                            <button
-                              onClick={e => handleSyncToThisLine(e, sub.startSeconds, sub.id)}
-                              className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-sky-500/20 text-slate-400 hover:text-sky-300 transition cursor-pointer"
-                              title="Поймать ритм: нажмите в момент, когда звучит начало этой строки"
-                            >
-                              <Crosshair className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                          <button
-                            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-sky-400 transition cursor-pointer"
-                            title="Прослушать строку"
-                          >
-                            <Volume2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <div className="text-xs text-slate-400">{sub.textRu}</div>
                       </div>
 
-                      {/* 60-FPS Direct DOM Progress Fill Bar */}
-                      {isActive && isKaraokePlaying && (
-                        <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
-                          <div
-                            ref={activeProgressBarRef}
-                            className="h-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 rounded-full"
-                            style={{ width: '0%' }}
-                          />
-                        </div>
-                      )}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleJumpToLine(lineIndex)
+                        }}
+                        className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-sky-400 shrink-0 transition cursor-pointer"
+                        title="Озвучить и синхронизировать с этой строки"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )
                 })}

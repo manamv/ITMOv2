@@ -11,6 +11,7 @@ import { LeaderboardView } from './components/leaderboard/LeaderboardView'
 import { MusicClipsView } from './components/music/MusicClipsView'
 import { AchievementsModal } from './components/achievements/AchievementsModal'
 import { achievementsService } from './services/achievements'
+import { weakKeysService } from './services/weakKeys'
 import { LoadingState } from './components/states/LoadingState'
 import { EmptyState } from './components/states/EmptyState'
 import { ErrorState } from './components/states/ErrorState'
@@ -113,6 +114,12 @@ export function App() {
   // Finish typing session
   const handleFinishTyping = async (stats: SessionStats) => {
     setLastStats(stats)
+    weakKeysService.recordSession({
+      wpm: stats.wpm,
+      accuracy: stats.accuracy,
+      errors: stats.errors,
+      topicTitle: currentLesson?.title || stats.topicId
+    })
     try {
       await api.saveStats(stats)
       // Refresh summary
@@ -344,6 +351,11 @@ export function App() {
                     onRepeat={() => setPracticeMode('TYPING')}
                     onNext={() => setPracticeMode('TOPICS')}
                     onOpenLeaderboard={() => setActiveTab('LEADERBOARD')}
+                    onStartErrorSprint={(weakKeys, weakBigrams) => {
+                      const sprintLesson = weakKeysService.buildErrorRecoverySprint(weakKeys, weakBigrams)
+                      setCurrentLesson(sprintLesson)
+                      setPracticeMode('TYPING')
+                    }}
                   />
                 )}
               </>
