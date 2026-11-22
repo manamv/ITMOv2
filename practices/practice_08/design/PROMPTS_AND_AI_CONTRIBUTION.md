@@ -1,6 +1,7 @@
 # Документация макета и вклад AI (Практика 8)
 
-* **Ссылка на актуальный макет v2 в Figma / FigJam:** [Открыть макет LinguaType v2 в Figma](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56)
+* **Редактируемый векторный макет v2 в Figma Design (Auto-Layout, карточки, кнопки, клавиатура):** [Открыть LinguaType v2 в Figma Design](https://www.figma.com/design/dYHPWWFFS32L5aauUlI8Rw)
+* **Доска сценария (User Flow) и состояний в FigJam:** [Открыть доску LinguaType v2 в FigJam](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56)
 
 ## 1. Описание основного пользовательского сценария
 

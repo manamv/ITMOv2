@@ -5,9 +5,10 @@
 
 ---
 
-## 🎨 Макет интерфейса (Figma / FigJam)
+## 🎨 Макет интерфейса (Figma Design + FigJam)
 
-* 👉 **[Открыть актуальный макет LinguaType v2 в Figma / FigJam](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56)**
+* 👉 **[Открыть редактируемый векторный макет LinguaType v2 в Figma Design (Auto-Layout слои, карточки, кнопки, клавиатура)](https://www.figma.com/design/dYHPWWFFS32L5aauUlI8Rw)**
+* 👉 **[Открыть доску пользовательского сценария (User Flow) и состояний в FigJam](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56)**
 * **Локальный интерактивный прототип всех 7 экранов и состояний (v2):** `design/mockup.html`
 * **Документация промптов, вклада AI и эволюции дизайна (v1 → v2):** `design/PROMPTS_AND_AI_CONTRIBUTION.md`
 
@@ -136,7 +137,7 @@ npm test
 
 | # | Критерий | Как реализовано в проекте | Баллы |
 |---|---|---|:---:|
-| 1 | **Макет или прототип** | Создан и обновлён макет v2 в [Figma / FigJam](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56) и локальный прототип `design/mockup.html`. Описан вклад AI и эволюция v1 → v2 в `design/PROMPTS_AND_AI_CONTRIBUTION.md`. | **3** |
+| 1 | **Макет или прототип** | Создан редактируемый векторный макет в [Figma Design](https://www.figma.com/design/dYHPWWFFS32L5aauUlI8Rw), доска сценария в [FigJam](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56) и локальный прототип `design/mockup.html`. Описан вклад AI в `design/PROMPTS_AND_AI_CONTRIBUTION.md`. | **3** |
 | 2 | **Библиотека компонентов** | Использованы компоненты дизайн-системы shadcn/ui: `Button`, `Card`, `Badge`, `Modal` с переиспользованием токенов. | **0.5** |
 | 3 | **Единое оформление** | Цвета (глубокий сланцевый `#0b0f17`, изумрудный, циан), шрифты (`JetBrains Mono`, `Inter`) и отступы унифицированы в `index.css`. | **0.5** |
 | 4 | **Реальный сценарий и API** | Выбор темы в Bento-меню → слепая печать с озвучкой → статистика с хлопушками и AI-разбором → грамматический квиз → сохранение прогресса на C# бэкенде. | **1** |
