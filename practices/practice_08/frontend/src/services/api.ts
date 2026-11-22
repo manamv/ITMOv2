@@ -224,6 +224,22 @@ const FALLBACK_LESSONS: Record<string, LessonData> = {
   }
 }
 
+function makeSub(id: number, startSeconds: number, endSeconds: number, textEn: string, textRu: string) {
+  const tokens = textEn.split(' ').filter(Boolean)
+  const weights = tokens.map(w => Math.max(2.0, w.length + 1.5))
+  const totalWeight = weights.reduce((acc, v) => acc + v, 0)
+  const duration = Math.max(0.4, endSeconds - startSeconds)
+  let cursor = startSeconds
+  const words = tokens.map((word, idx) => {
+    const wDur = duration * (weights[idx] / totalWeight)
+    const wEnd = idx === tokens.length - 1 ? endSeconds : Math.round((cursor + wDur) * 100) / 100
+    const entry = { word, start: Math.round(cursor * 100) / 100, end: wEnd }
+    cursor = wEnd
+    return entry
+  })
+  return { id, startSeconds, endSeconds, textEn, textRu, words }
+}
+
 const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
   {
     id: 'queen-champions',
@@ -234,140 +250,23 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Present Perfect vs Past Simple, gerunds and colloquial contractions',
     subtitles: [
-      {
-        id: 1,
-        startSeconds: 8.5,
-        endSeconds: 14.0,
-        textEn: 'i have paid my dues time after time',
-        textRu: 'я платил по счетам снова и снова',
-        words: [
-          { word: 'i', start: 8.5, end: 8.9 },
-          { word: 'have', start: 8.9, end: 9.4 },
-          { word: 'paid', start: 9.4, end: 10.3 },
-          { word: 'my', start: 10.3, end: 10.8 },
-          { word: 'dues', start: 10.8, end: 11.8 },
-          { word: 'time', start: 11.8, end: 12.5 },
-          { word: 'after', start: 12.5, end: 13.1 },
-          { word: 'time', start: 13.1, end: 14.0 }
-        ]
-      },
-      {
-        id: 2,
-        startSeconds: 14.0,
-        endSeconds: 19.5,
-        textEn: 'i did my sentence but committed no crime',
-        textRu: 'я отбыл свой срок но не совершал преступления',
-        words: [
-          { word: 'i', start: 14.0, end: 14.4 },
-          { word: 'did', start: 14.4, end: 15.0 },
-          { word: 'my', start: 15.0, end: 15.4 },
-          { word: 'sentence', start: 15.4, end: 16.9 },
-          { word: 'but', start: 16.9, end: 17.3 },
-          { word: 'committed', start: 17.3, end: 18.4 },
-          { word: 'no', start: 18.4, end: 18.8 },
-          { word: 'crime', start: 18.8, end: 19.5 }
-        ]
-      },
-      {
-        id: 3,
-        startSeconds: 19.5,
-        endSeconds: 25.0,
-        textEn: 'and bad mistakes i have made a few',
-        textRu: 'и тяжких ошибок я совершил немного',
-        words: [
-          { word: 'and', start: 19.5, end: 20.0 },
-          { word: 'bad', start: 20.0, end: 20.7 },
-          { word: 'mistakes', start: 20.7, end: 22.0 },
-          { word: 'i', start: 22.0, end: 22.3 },
-          { word: 'have', start: 22.3, end: 22.7 },
-          { word: 'made', start: 22.7, end: 23.4 },
-          { word: 'a', start: 23.4, end: 23.8 },
-          { word: 'few', start: 23.8, end: 25.0 }
-        ]
-      },
-      {
-        id: 4,
-        startSeconds: 25.0,
-        endSeconds: 37.0,
-        textEn: 'i have had my share of sand kicked in my face but i have come through',
-        textRu: 'мне тоже швыряли песок в лицо но я выстоял',
-        words: [
-          { word: 'i', start: 25.0, end: 25.4 },
-          { word: 'have', start: 25.4, end: 25.8 },
-          { word: 'had', start: 25.8, end: 26.3 },
-          { word: 'my', start: 26.3, end: 26.8 },
-          { word: 'share', start: 26.8, end: 28.2 },
-          { word: 'of', start: 28.2, end: 28.6 },
-          { word: 'sand', start: 28.6, end: 29.8 },
-          { word: 'kicked', start: 29.8, end: 30.7 },
-          { word: 'in', start: 30.7, end: 31.0 },
-          { word: 'my', start: 31.0, end: 31.4 },
-          { word: 'face', start: 31.4, end: 33.2 },
-          { word: 'but', start: 33.2, end: 33.7 },
-          { word: 'i', start: 33.7, end: 34.0 },
-          { word: 'have', start: 34.0, end: 34.5 },
-          { word: 'come', start: 34.5, end: 35.4 },
-          { word: 'through', start: 35.4, end: 37.0 }
-        ]
-      },
-      {
-        id: 5,
-        startSeconds: 37.0,
-        endSeconds: 50.0,
-        textEn: 'we are the champions my friends and we will keep on fighting till the end',
-        textRu: 'мы чемпионы друзья мои и мы продолжим бороться до конца',
-        words: [
-          { word: 'we', start: 37.0, end: 37.9 },
-          { word: 'are', start: 37.9, end: 38.6 },
-          { word: 'the', start: 38.6, end: 39.2 },
-          { word: 'champions', start: 39.2, end: 42.6 },
-          { word: 'my', start: 42.6, end: 43.4 },
-          { word: 'friends', start: 43.4, end: 45.6 },
-          { word: 'and', start: 45.6, end: 46.1 },
-          { word: 'we', start: 46.1, end: 46.6 },
-          { word: 'will', start: 46.6, end: 47.1 },
-          { word: 'keep', start: 47.1, end: 47.7 },
-          { word: 'on', start: 47.7, end: 48.2 },
-          { word: 'fighting', start: 48.2, end: 49.0 },
-          { word: 'till', start: 49.0, end: 49.3 },
-          { word: 'the', start: 49.3, end: 49.6 },
-          { word: 'end', start: 49.6, end: 50.5 }
-        ]
-      },
-      {
-        id: 6,
-        startSeconds: 50.5,
-        endSeconds: 64.0,
-        textEn: 'we are the champions no time for losers because we are the champions of the world',
-        textRu: 'мы чемпионы не время для проигравших потому что мы чемпионы мира',
-        words: [
-          { word: 'we', start: 50.5, end: 51.3 },
-          { word: 'are', start: 51.3, end: 52.0 },
-          { word: 'the', start: 52.0, end: 52.5 },
-          { word: 'champions', start: 52.5, end: 55.6 },
-          { word: 'no', start: 55.6, end: 56.2 },
-          { word: 'time', start: 56.2, end: 56.9 },
-          { word: 'for', start: 56.9, end: 57.3 },
-          { word: 'losers', start: 57.3, end: 58.7 },
-          { word: 'because', start: 58.7, end: 59.5 },
-          { word: 'we', start: 59.5, end: 60.0 },
-          { word: 'are', start: 60.0, end: 60.5 },
-          { word: 'the', start: 60.5, end: 61.0 },
-          { word: 'champions', start: 61.0, end: 62.8 },
-          { word: 'of', start: 62.8, end: 63.1 },
-          { word: 'the', start: 63.1, end: 63.4 },
-          { word: 'world', start: 63.4, end: 64.5 }
-        ]
-      }
+      makeSub(1, 10.0, 18.1, 'i have paid my dues time after time', 'я платил по счетам снова и снова'),
+      makeSub(2, 18.1, 25.8, 'i have done my sentence but committed no crime', 'я отбыл свой срок но не совершал преступления'),
+      makeSub(3, 25.8, 33.6, 'and bad mistakes i have made a few', 'и тяжких ошибок я совершил немного'),
+      makeSub(4, 33.6, 44.1, 'i have had my share of sand kicked in my face but i have come through', 'мне тоже швыряли песок в лицо но я выстоял'),
+      makeSub(5, 44.1, 51.4, 'we are the champions my friends', 'мы чемпионы друзья мои'),
+      makeSub(6, 51.4, 59.3, 'and we will keep on fighting till the end', 'и мы продолжим бороться до конца'),
+      makeSub(7, 59.3, 66.9, 'we are the champions we are the champions', 'мы чемпионы мы чемпионы'),
+      makeSub(8, 66.9, 77.5, 'no time for losers because we are the champions of the world', 'не время для проигравших потому что мы чемпионы мира')
     ],
     grammarBreakdown: [
       { ruleTitle: 'Present Perfect for Life Experience', lyricQuote: 'i have paid my dues time after time', explanation: 'have paid (V3) выражает жизненный опыт до момента речи с фокусом на результат в настоящем.', grammarTag: 'present-perfect' },
-      { ruleTitle: 'Past Simple for Definite Events', lyricQuote: 'i did my sentence but committed no crime', explanation: 'did и committed в Past Simple выражают завершенные действия в прошлом.', grammarTag: 'past-simple' },
+      { ruleTitle: 'Past Simple for Definite Events', lyricQuote: 'i have done my sentence but committed no crime', explanation: 'committed в Past Simple выражает завершенное действие в прошлом в контрасте с Present Perfect.', grammarTag: 'past-simple' },
       { ruleTitle: 'Keep on + Gerund', lyricQuote: 'we will keep on fighting till the end', explanation: 'фразовый глагол keep on в сочетании с герундием fighting означает непрерывное продолжение действия.', grammarTag: 'phrasal-verbs' },
       { ruleTitle: 'Colloquial Contraction', lyricQuote: 'no time for losers because we are the champions', explanation: 'в песне часто используется cause как разговорное сокращение от because.', grammarTag: 'informal-english' }
     ],
     typingSentences: [
-      { id: 'qc-1', english: 'i have paid my dues time after time and i did my sentence but committed no crime', russian: 'я платил по счетам снова и снова и я отбыл свой срок но не совершал преступления', grammarTip: 'контраст present perfect have paid и past simple did committed' },
+      { id: 'qc-1', english: 'i have paid my dues time after time and i have done my sentence but committed no crime', russian: 'я платил по счетам снова и снова и я отбыл свой срок но не совершал преступления', grammarTip: 'контраст present perfect have paid и past simple committed' },
       { id: 'qc-2', english: 'and bad mistakes i have made a few i have had my share of sand kicked in my face', russian: 'и тяжких ошибок я совершил немного мне тоже швыряли песок в лицо', grammarTip: 'present perfect have made have had для жизненного опыта' },
       { id: 'qc-3', english: 'we are the champions my friends and we will keep on fighting till the end', russian: 'мы чемпионы друзья мои и мы продолжим бороться до конца', grammarTip: 'keep on fighting конструкция продолжения действия' },
       { id: 'qc-4', english: 'we are the champions no time for losers because we are the champions of the world', russian: 'мы чемпионы не время для проигравших потому что мы чемпионы мира', grammarTip: 'утвердительные конструкции и ритм песни' }
@@ -382,76 +281,15 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Infinitive of purpose, modal verbs and expressions of regret',
     subtitles: [
-      {
-        id: 1,
-        startSeconds: 15.5,
-        endSeconds: 23.0,
-        textEn: 'come up to meet you tell you i am sorry',
-        textRu: 'прийти чтобы встретиться с тобой сказать что мне жаль',
-        words: [
-          { word: 'come', start: 15.5, end: 16.2 },
-          { word: 'up', start: 16.2, end: 16.8 },
-          { word: 'to', start: 16.8, end: 17.3 },
-          { word: 'meet', start: 17.3, end: 18.2 },
-          { word: 'you', start: 18.2, end: 19.5 },
-          { word: 'tell', start: 19.5, end: 20.3 },
-          { word: 'you', start: 20.3, end: 21.0 },
-          { word: 'i', start: 21.0, end: 21.4 },
-          { word: 'am', start: 21.4, end: 21.8 },
-          { word: 'sorry', start: 21.8, end: 23.0 }
-        ]
-      },
-      {
-        id: 2,
-        startSeconds: 23.0,
-        endSeconds: 31.0,
-        textEn: 'you do not know how lovely you are',
-        textRu: 'ты даже не знаешь насколько ты прекрасна',
-        words: [
-          { word: 'you', start: 23.0, end: 23.6 },
-          { word: 'do', start: 23.6, end: 24.1 },
-          { word: 'not', start: 24.1, end: 24.8 },
-          { word: 'know', start: 24.8, end: 26.0 },
-          { word: 'how', start: 26.0, end: 26.8 },
-          { word: 'lovely', start: 26.8, end: 28.2 },
-          { word: 'you', start: 28.2, end: 29.2 },
-          { word: 'are', start: 29.2, end: 31.0 }
-        ]
-      },
-      {
-        id: 3,
-        startSeconds: 31.0,
-        endSeconds: 39.0,
-        textEn: 'i had to find you tell you i need you',
-        textRu: 'я должен был найти тебя сказать что ты мне нужна',
-        words: [
-          { word: 'i', start: 31.0, end: 31.6 },
-          { word: 'had', start: 31.6, end: 32.3 },
-          { word: 'to', start: 32.3, end: 32.8 },
-          { word: 'find', start: 32.8, end: 34.0 },
-          { word: 'you', start: 34.0, end: 35.0 },
-          { word: 'tell', start: 35.0, end: 35.8 },
-          { word: 'you', start: 35.8, end: 36.5 },
-          { word: 'i', start: 36.5, end: 37.0 },
-          { word: 'need', start: 37.0, end: 37.8 },
-          { word: 'you', start: 37.8, end: 39.0 }
-        ]
-      },
-      {
-        id: 4,
-        startSeconds: 39.0,
-        endSeconds: 47.0,
-        textEn: 'tell you i set you apart',
-        textRu: 'сказать что ты для меня особенная',
-        words: [
-          { word: 'tell', start: 39.0, end: 39.8 },
-          { word: 'you', start: 39.8, end: 40.8 },
-          { word: 'i', start: 40.8, end: 41.5 },
-          { word: 'set', start: 41.5, end: 42.5 },
-          { word: 'you', start: 42.5, end: 43.5 },
-          { word: 'apart', start: 43.5, end: 47.0 }
-        ]
-      }
+      makeSub(1, 31.0, 36.5, 'come up to meet you tell you i am sorry', 'прийти чтобы встретиться с тобой сказать что мне жаль'),
+      makeSub(2, 36.5, 44.3, 'you do not know how lovely you are', 'ты даже не знаешь насколько ты прекрасна'),
+      makeSub(3, 44.3, 50.5, 'i had to find you tell you i need you', 'я должен был найти тебя сказать что ты мне нужна'),
+      makeSub(4, 50.5, 57.2, 'tell you i set you apart', 'сказать что ты для меня особенная'),
+      makeSub(5, 57.2, 63.6, 'tell me your secrets and ask me your questions', 'открой мне свои секреты и задай свои вопросы'),
+      makeSub(6, 63.6, 70.7, 'oh let us go back to the start', 'давай вернемся к самому началу'),
+      makeSub(7, 70.7, 76.7, 'running in circles coming up tails', 'бежим по кругу выпадает решка'),
+      makeSub(8, 76.7, 83.1, 'heads on a science apart', 'головы погружены в отдельную науку'),
+      makeSub(9, 83.1, 96.2, 'nobody said it was easy it is such a shame for us to part', 'никто не говорил что будет легко так жаль что нам пришлось расстаться')
     ],
     grammarBreakdown: [
       { ruleTitle: 'Infinitive of Purpose', lyricQuote: 'come up to meet you tell you i am sorry', explanation: 'Инфинитив с частицей to (to meet, to tell) указывает на цель действия: зачем пришёл.', grammarTag: 'infinitive' },
@@ -471,84 +309,14 @@ const FALLBACK_MUSIC_LESSONS: MusicLesson[] = [
     thumbnailUrl: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80',
     grammarFocus: 'Past Simple, Used to and contrast with present',
     subtitles: [
-      {
-        id: 1,
-        startSeconds: 0.5,
-        endSeconds: 5.5,
-        textEn: 'yesterday all my troubles seemed so far away',
-        textRu: 'вчера все мои невзгоды казались такими далекими',
-        words: [
-          { word: 'yesterday', start: 0.5, end: 2.0 },
-          { word: 'all', start: 2.0, end: 2.5 },
-          { word: 'my', start: 2.5, end: 2.8 },
-          { word: 'troubles', start: 2.8, end: 3.8 },
-          { word: 'seemed', start: 3.8, end: 4.4 },
-          { word: 'so', start: 4.4, end: 4.7 },
-          { word: 'far', start: 4.7, end: 5.1 },
-          { word: 'away', start: 5.1, end: 5.8 }
-        ]
-      },
-      {
-        id: 2,
-        startSeconds: 5.8,
-        endSeconds: 11.0,
-        textEn: 'now it looks as though they are here to stay',
-        textRu: 'теперь кажется будто они останутся навсегда',
-        words: [
-          { word: 'now', start: 5.8, end: 6.5 },
-          { word: 'it', start: 6.5, end: 6.9 },
-          { word: 'looks', start: 6.9, end: 7.6 },
-          { word: 'as', start: 7.6, end: 8.0 },
-          { word: 'though', start: 8.0, end: 8.5 },
-          { word: 'they', start: 8.5, end: 8.9 },
-          { word: 'are', start: 8.9, end: 9.3 },
-          { word: 'here', start: 9.3, end: 9.8 },
-          { word: 'to', start: 9.8, end: 10.1 },
-          { word: 'stay', start: 10.1, end: 11.2 }
-        ]
-      },
-      {
-        id: 3,
-        startSeconds: 11.2,
-        endSeconds: 17.0,
-        textEn: 'suddenly i am not half the man i used to be',
-        textRu: 'вдруг я больше не тот человек кем был раньше',
-        words: [
-          { word: 'suddenly', start: 11.2, end: 12.5 },
-          { word: 'i', start: 12.5, end: 12.9 },
-          { word: 'am', start: 12.9, end: 13.3 },
-          { word: 'not', start: 13.3, end: 13.8 },
-          { word: 'half', start: 13.8, end: 14.5 },
-          { word: 'the', start: 14.5, end: 14.8 },
-          { word: 'man', start: 14.8, end: 15.4 },
-          { word: 'i', start: 15.4, end: 15.7 },
-          { word: 'used', start: 15.7, end: 16.3 },
-          { word: 'to', start: 16.3, end: 16.6 },
-          { word: 'be', start: 16.6, end: 17.5 }
-        ]
-      },
-      {
-        id: 4,
-        startSeconds: 17.5,
-        endSeconds: 24.0,
-        textEn: 'why she had to go i do not know she would not say',
-        textRu: 'почему она должна была уйти я не знаю она не сказала',
-        words: [
-          { word: 'why', start: 17.5, end: 18.2 },
-          { word: 'she', start: 18.2, end: 18.7 },
-          { word: 'had', start: 18.7, end: 19.2 },
-          { word: 'to', start: 19.2, end: 19.5 },
-          { word: 'go', start: 19.5, end: 20.3 },
-          { word: 'i', start: 20.3, end: 20.7 },
-          { word: 'do', start: 20.7, end: 21.1 },
-          { word: 'not', start: 21.1, end: 21.5 },
-          { word: 'know', start: 21.5, end: 22.3 },
-          { word: 'she', start: 22.3, end: 22.7 },
-          { word: 'would', start: 22.7, end: 23.1 },
-          { word: 'not', start: 23.1, end: 23.5 },
-          { word: 'say', start: 23.5, end: 24.5 }
-        ]
-      }
+      makeSub(1, 4.0, 11.6, 'yesterday all my troubles seemed so far away', 'вчера все мои невзгоды казались такими далекими'),
+      makeSub(2, 11.6, 16.5, 'now it looks as though they are here to stay', 'теперь кажется будто они останутся навсегда'),
+      makeSub(3, 16.5, 22.0, 'oh i believe in yesterday', 'о я верю во вчерашний день'),
+      makeSub(4, 22.0, 29.2, 'suddenly i am not half the man i used to be', 'вдруг я больше не тот человек кем был раньше'),
+      makeSub(5, 29.2, 34.1, 'there is a shadow hanging over me', 'надо мной нависла тень'),
+      makeSub(6, 34.1, 39.2, 'oh yesterday came suddenly', 'о вчерашний день ушел внезапно'),
+      makeSub(7, 39.2, 47.5, 'why she had to go i do not know she would not say', 'почему она должна была уйти я не знаю она не сказала'),
+      makeSub(8, 47.5, 56.0, 'i said something wrong now i long for yesterday', 'я сказал что то не так теперь я тоскую по вчерашнему дню')
     ],
     grammarBreakdown: [
       { ruleTitle: 'Past Simple for Past States', lyricQuote: 'all my troubles seemed so far away', explanation: 'seemed правильный глагол в Past Simple указывает на состояние в прошлом.', grammarTag: 'past-simple' },

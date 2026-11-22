@@ -150,6 +150,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
 
   // Minimal reactive karaoke state (only updates on line/word transitions — zero per-frame lag!)
   const [isKaraokePlaying, setIsKaraokePlaying] = useState<boolean>(false)
+  const [isYtConnected, setIsYtConnected] = useState<boolean>(false)
   const [activeSubtitleId, setActiveSubtitleId] = useState<number>(1)
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1)
   const [isInIntro, setIsInIntro] = useState<boolean>(false)
@@ -163,6 +164,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
   const activeSubtitleRef = useRef<HTMLDivElement>(null)
   const subtitlesScrollContainerRef = useRef<HTMLDivElement>(null)
   const activeProgressBarRef = useRef<HTMLDivElement>(null)
+  const spotlightProgressRef = useRef<HTMLDivElement>(null)
   const timeDisplayRef = useRef<HTMLSpanElement>(null)
   const introCountdownRef = useRef<HTMLSpanElement>(null)
 
@@ -245,9 +247,10 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
     }
   }, [selectedSongId])
 
-  // Initialize official YouTube IFrame Player API cleanly once
+  // Initialize official YouTube IFrame Player API cleanly once host div is mounted (!isLoading && currentSong)
   useEffect(() => {
-    if (typeof window === 'undefined' || !currentSong) return
+    if (typeof window === 'undefined' || !currentSong || isLoading) return
+    if (ytPlayerRef.current) return
 
     let cancelled = false
     const videoId = extractYouTubeId(currentSong.videoUrl)
@@ -256,7 +259,14 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
       if (cancelled || !window.YT?.Player || !ytHostRef.current || ytPlayerRef.current) return
 
       try {
-        ytPlayerRef.current = new window.YT.Player(ytHostRef.current, {
+        // Create an isolated child slot so YouTube replacing it with <iframe> never breaks React's ref
+        ytHostRef.current.innerHTML = ''
+        const slot = document.createElement('div')
+        slot.style.width = '100%'
+        slot.style.height = '100%'
+        ytHostRef.current.appendChild(slot)
+
+        ytPlayerRef.current = new window.YT.Player(slot, {
           width: '100%',
           height: '100%',
           videoId,
@@ -269,9 +279,13 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
           },
           events: {
             onReady: () => {
-              ytPlayerReadyRef.current = true
+              if (!cancelled) {
+                ytPlayerReadyRef.current = true
+                setIsYtConnected(true)
+              }
             },
             onStateChange: (event) => {
+              if (cancelled) return
               // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
               if (event.data === 1) {
                 setIsKaraokePlaying(true)
@@ -302,10 +316,25 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
       }
     }
 
+    // Safety poll in case YT script finished loading between effect setup and callback assignment
+    let attempts = 0
+    const poll = setInterval(() => {
+      attempts++
+      if (ytPlayerRef.current || attempts > 40) {
+        clearInterval(poll)
+        return
+      }
+      if (window.YT?.Player && ytHostRef.current) {
+        mountPlayer()
+        clearInterval(poll)
+      }
+    }, 150)
+
     return () => {
       cancelled = true
+      clearInterval(poll)
     }
-  }, [currentSong !== null])
+  }, [currentSong, isLoading])
 
   // Cleanup player on unmount
   useEffect(() => {
@@ -425,11 +454,14 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
           setActiveWordIdx(nextWordIdx)
         }
 
-        // Direct DOM update for silky 60fps progress bar (zero React re-renders!)
+        // Direct DOM update for silky 60fps progress bars (zero React re-renders!)
+        const dur = Math.max(0.1, match.endSeconds - match.startSeconds)
+        const pct = `${Math.max(0, Math.min(100, ((effTime - match.startSeconds) / dur) * 100)).toFixed(1)}%`
         if (activeProgressBarRef.current) {
-          const dur = Math.max(0.1, match.endSeconds - match.startSeconds)
-          const pct = Math.max(0, Math.min(100, ((effTime - match.startSeconds) / dur) * 100))
-          activeProgressBarRef.current.style.width = `${pct.toFixed(1)}%`
+          activeProgressBarRef.current.style.width = pct
+        }
+        if (spotlightProgressRef.current) {
+          spotlightProgressRef.current.style.width = pct
         }
       } else if (activeWordIdxRef.current !== -1) {
         activeWordIdxRef.current = -1
@@ -663,8 +695,13 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                     <span>
                       {currentSong.artist} — {currentSong.title}
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 font-mono font-normal border border-sky-500/20">
-                      Studio Karaoke Sync
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-normal border flex items-center gap-1 ${
+                      isYtConnected
+                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25'
+                        : 'bg-sky-500/15 text-sky-300 border-sky-500/20'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isYtConnected ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-sky-400 animate-pulse'}`} />
+                      {isYtConnected ? 'YouTube Sync Active' : 'Studio Karaoke Sync'}
                     </span>
                   </h3>
                   <p className="text-[11px] text-sky-400 font-mono mt-0.5">{currentSong.grammarFocus}</p>
@@ -706,6 +743,55 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                   </button>
                 </div>
               </div>
+
+              {/* Apple-Music Style Live Karaoke Spotlight Teleprompter */}
+              {(() => {
+                const activeIdx = currentSong.subtitles.findIndex(s => s.id === activeSubtitleId)
+                const activeSub = currentSong.subtitles[activeIdx] || currentSong.subtitles[0]
+                const nextSub = activeIdx >= 0 ? currentSong.subtitles[activeIdx + 1] : currentSong.subtitles[1]
+                if (!activeSub) return null
+                const spotlightWords = activeSub.textEn.split(' ')
+                return (
+                  <div className="relative px-5 py-4 bg-gradient-to-b from-[#070b14] to-[#050810] border-t border-white/[0.06] space-y-2">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-base sm:text-lg leading-snug">
+                      {spotlightWords.map((w, idx) => {
+                        const isCur = isKaraokePlaying && !isInIntro && idx === activeWordIdx
+                        const isPast = isKaraokePlaying && !isInIntro && activeWordIdx > -1 && idx < activeWordIdx
+                        return (
+                          <span
+                            key={idx}
+                            className={
+                              isCur
+                                ? 'text-white font-black bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/60 shadow-[0_0_16px_rgba(56,189,248,0.45)]'
+                                : isPast
+                                  ? 'text-sky-300 font-bold'
+                                  : 'text-slate-400 font-medium'
+                            }
+                          >
+                            {w}
+                          </span>
+                        )
+                      })}
+                    </div>
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                      <span className="text-slate-400">{activeSub.textRu}</span>
+                      {nextSub && (
+                        <span className="text-[11px] font-mono text-slate-600 truncate max-w-[45%] hidden sm:inline">
+                          Далее: {nextSub.textEn}
+                        </span>
+                      )}
+                    </div>
+                    {/* 60-FPS Spotlight Progress Hairline */}
+                    <div className="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                      <div
+                        ref={spotlightProgressRef}
+                        className="h-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 rounded-full"
+                        style={{ width: '0%' }}
+                      />
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Synchronized Karaoke Subtitles with 60fps Direct DOM Progress & Live Sync Lock */}
