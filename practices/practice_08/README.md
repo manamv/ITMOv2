@@ -99,6 +99,21 @@ npm test
 
 ---
 
+## 📸 Скриншоты работы интерфейса и всех состояний
+
+| Экран / Состояние | Скриншот |
+|---|---|
+| **1. Главная (Bento Command Dashboard, 16 тем A1–C1)** | ![Bento Dashboard](design/screenshots/01_bento_dashboard.png) |
+| **2. Слепая печать + Cyber-Glass руки и 8 зон пальцев** | ![Typing & Cyber-Glass Hands](design/screenshots/02_typing_hands.png) |
+| **3. Состояние загрузки (`Loading`)** | ![Loading State](design/screenshots/06_loading_state.png) |
+| **4. Статистика, хлопушки и AI-разбор перед тестом (`Success`)** | ![Success Scoreboard](design/screenshots/07_success_scoreboard.png) |
+| **5. Квиз с двойным разбором ошибки и звуками** | ![Quiz Dual Feedback](design/screenshots/08_quiz_dual_feedback.png) |
+| **6. Караоке по музыкальным клипам (YouTube + LRC)** | ![Karaoke Clips](design/screenshots/03_karaoke_clips.png) |
+| **7. Пустое состояние (`Empty State`)** | ![Empty State](design/screenshots/05_empty_state.png) |
+| **8. Состояние ошибки с `Retry` (`Error State`)** | ![Error State](design/screenshots/04_error_state.png) |
+
+---
+
 ## 🧪 Результат запуска клиентских тестов (36 из 36 успешно)
 
 ```text
