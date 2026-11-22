@@ -5,6 +5,13 @@
 
 ---
 
+## 📦 Репозиторий с исходным кодом фронтенда, бэкенда и клиентскими тестами
+
+* 👉 **[https://github.com/manamv/linguatype](https://github.com/manamv/linguatype)** — полный исходный код приложения (`frontend/`, `backend/`, `docker-compose.yml`, 36 клиентских тестов Vitest + React Testing Library и полная история коммитов разработки).
+* В данной папке `practices/practice_08` собраны все отчётные артефакты для проверки: задание `ASSIGNMENT.md`, локальный интерактивный прототип `design/mockup.html`, документация промптов и вклада AI `design/PROMPTS_AND_AI_CONTRIBUTION.md`, скриншоты всех состояний `design/screenshots/` и SDD-спецификации `specs/`.
+
+---
+
 ## 🎨 Макет интерфейса (Figma Design + FigJam)
 
 * 👉 **[Открыть редактируемый векторный макет LinguaType v2 в Figma Design (Auto-Layout слои, карточки, кнопки, клавиатура)](https://www.figma.com/design/dYHPWWFFS32L5aauUlI8Rw)**
@@ -60,7 +67,8 @@
 > Для сборки и запуска приложения и бэкенда в изолированных контейнерах без установки SDK:
 
 ```bash
-cd practices/practice_08
+git clone https://github.com/manamv/linguatype.git
+cd linguatype
 
 # Запуск бэкенда (C#) и фронтенда (Nginx + React)
 docker compose up --build
