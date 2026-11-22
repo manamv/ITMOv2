@@ -8,6 +8,7 @@
 ## 📦 Репозиторий с исходным кодом фронтенда, бэкенда и клиентскими тестами
 
 * 👉 **[https://github.com/manamv/linguatype](https://github.com/manamv/linguatype)** — полный исходный код приложения (`frontend/`, `backend/`, `docker-compose.yml`, 36 клиентских тестов Vitest + React Testing Library и полная история коммитов разработки).
+* 👉 **[GitHub Actions CI/CD Pipeline (автозапуск 36 тестов, сборка .NET 10, Docker E2E и публикация в GHCR)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)** — [![LinguaType CI/CD Pipeline](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)
 * В данной папке `practices/practice_08` собраны все отчётные артефакты для проверки: задание `ASSIGNMENT.md`, локальный интерактивный прототип `design/mockup.html`, документация промптов и вклада AI `design/PROMPTS_AND_AI_CONTRIBUTION.md`, скриншоты всех состояний `design/screenshots/` и SDD-спецификации `specs/`.
 
 ---
