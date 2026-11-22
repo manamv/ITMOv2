@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Volume2, Pause, Play, RotateCcw, AlertCircle, Timer, Headphones, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { Volume2, VolumeX, Pause, Play, RotateCcw, AlertCircle, Timer, Headphones, Eye, EyeOff, ArrowLeft, Flame } from 'lucide-react'
 import type { LessonData, SessionStats } from '../../types'
 import { VirtualKeyboard } from '../keyboard/VirtualKeyboard'
 import { WordPopover } from './WordPopover'
 import { soundService } from '../../services/sound'
 import { weakKeysService } from '../../services/weakKeys'
+import { useWordSelection } from '../../hooks/useWordSelection'
 
 interface TypingEngineProps {
   lesson: LessonData
@@ -20,13 +21,16 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0)
   const [typedChars, setTypedChars] = useState<string>('')
   const [errorsCount, setErrorsCount] = useState(0)
+  const [combo, setCombo] = useState(0)
   const [sessionWeakKeys, setSessionWeakKeys] = useState<Set<string>>(new Set())
   const [startTime, setStartTime] = useState<number | null>(null)
   const [sentenceStartTime, setSentenceStartTime] = useState<number | null>(null)
   const [sentenceElapsedTime, setSentenceElapsedTime] = useState<number>(0)
   const [isPaused, setIsPaused] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedWord, setSelectedWord] = useState<string | null>(null)
+  const [keySoundEnabled, setKeySoundEnabled] = useState<boolean>(() => soundService.isKeySoundEnabled())
+
+  const { selectedWord, setSelectedWord, handleTextSelection: handleSelectionTranslate } = useWordSelection()
 
   // Speech & Visual options
   const [speechRate, setSpeechRate] = useState<number>(1.0)
@@ -37,7 +41,7 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   const currentSentence = lesson.sentences[currentSentenceIndex] || lesson.sentences[0]
   // Normalize target text: strictly lowercase, no punctuation
   const targetText = currentSentence ? currentSentence.english.toLowerCase() : ''
-  const targetWords = targetText.split(' ').filter(Boolean)
+  const targetWords = useMemo(() => targetText.split(' ').filter(Boolean), [targetText])
 
   // Double-submit prevention ref
   const submitLockRef = useRef(false)
@@ -194,10 +198,12 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           if (isCorrect) {
             soundService.playKeyClick(false)
             weakKeysService.recordKey(expected, false)
+            setCombo(prev => prev + 1)
           } else {
             // Mistake: letter lights up in red, user can continue or erase with Backspace
             soundService.playKeyClick(true)
             setErrorsCount(prev => prev + 1)
+            setCombo(0)
             weakKeysService.recordKey(expected, true)
             setSessionWeakKeys(prev => new Set(prev).add(expected))
           }
@@ -250,7 +256,6 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
   }, [
     isPaused,
     isSubmitting,
-    typedChars,
     targetText,
     targetWords,
     currentSentenceIndex,
@@ -259,19 +264,18 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
     startTime,
     wordByWordMode,
     speechRate,
-    handleCompleteLesson
+    handleCompleteLesson,
+    setSelectedWord
   ])
 
-  // Handle word selection directly inside the main text box
-  const handleSelectionTranslate = () => {
-    if (typeof window === 'undefined') return
-    const sel = window.getSelection()
-    if (!sel || sel.isCollapsed) return
-    const raw = sel.toString().trim().toLowerCase()
-    const cleaned = raw.replace(/[^a-zA-Z'-]/g, '')
-    if (cleaned.length >= 2) {
-      setSelectedWord(cleaned)
-    }
+  const sentenceProgressPct = targetText.length > 0
+    ? Math.min(100, Math.round((typedChars.length / targetText.length) * 100))
+    : 0
+
+  const handleToggleKeySound = () => {
+    const next = !keySoundEnabled
+    setKeySoundEnabled(next)
+    soundService.setKeySoundEnabled(next)
   }
 
   return (
@@ -301,8 +305,8 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           </span>
         </div>
 
-        {/* Live Metrics: Stopwatch, WPM, Accuracy, Errors */}
-        <div className="flex items-center space-x-4 font-mono text-xs">
+        {/* Live Metrics: Stopwatch, WPM, Accuracy, Errors, Combo */}
+        <div className="flex items-center space-x-3.5 font-mono text-xs">
           <div className="flex items-center space-x-1" data-testid="metric-stopwatch">
             <Timer className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-slate-500 text-[10px]">ВРЕМЯ</span>
@@ -320,9 +324,19 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             <span className="text-slate-500 text-[10px]">ОШИБКИ</span>
             <span className="text-rose-400 font-bold text-sm">{errorsCount}</span>
           </div>
+          {combo >= 5 && (
+            <div
+              className="flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-400/30 text-amber-300 font-bold text-[11px] animate-fade-in"
+              title="Серия безошибочных нажатий"
+              data-testid="metric-combo"
+            >
+              <Flame className="w-3 h-3 text-amber-400" />
+              <span>{combo}x</span>
+            </div>
+          )}
         </div>
 
-        {/* Controls: Audio, Speech Rate, Word-by-Word, Hide Text, Pause, Reset */}
+        {/* Controls: Audio, Mechanical Clicks, Speech Rate, Word-by-Word, Hide Text, Pause, Reset */}
         <div className="flex items-center space-x-1.5">
           {/* Full Sentence Pronounce */}
           <button
@@ -333,6 +347,21 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
             data-testid="audio-pronounce-btn"
           >
             <Volume2 className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Mechanical Key Clicks Toggle */}
+          <button
+            onClick={handleToggleKeySound}
+            className={`p-1.5 rounded-xl border transition cursor-pointer ${
+              keySoundEnabled
+                ? 'bg-sky-500/15 text-sky-300 border-sky-400/30'
+                : 'bg-white/[0.03] text-slate-500 border-white/[0.06] hover:text-slate-300'
+            }`}
+            title={keySoundEnabled ? 'Звук клавиш: ВКЛ' : 'Звук клавиш: ВЫКЛ'}
+            aria-label="Переключить звук клавиш"
+            data-testid="key-sound-toggle"
+          >
+            {keySoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
           </button>
 
           {/* Speech Rate Selector */}
@@ -434,12 +463,14 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
           {/* Reset */}
           <button
             onClick={() => {
+              typedCharsRef.current = ''
               setTypedChars('')
+              setCombo(0)
               setSelectedWord(null)
               setSentenceStartTime(null)
               setSentenceElapsedTime(0)
             }}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+            className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white border border-white/[0.08] transition cursor-pointer"
             title="Сбросить предложение"
             aria-label="Сбросить предложение"
           >
@@ -449,7 +480,14 @@ export const TypingEngine: React.FC<TypingEngineProps> = ({
       </div>
 
       {/* 2. Main Text Display Box (Selection-based Word Translation, No-Scroll) */}
-      <div className="relative p-4 sm:p-5 rounded-2xl bg-[#090d16]/95 border border-white/[0.08] shadow-2xl shrink-0 space-y-2">
+      <div className="relative p-4 sm:p-5 rounded-2xl bg-[#090d16]/95 border border-white/[0.08] shadow-2xl shrink-0 space-y-2 overflow-visible">
+        {/* Live Sentence Completion Progress Hairline */}
+        <div className="absolute inset-x-4 top-0 h-[2px] bg-white/[0.05] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 transition-all duration-150"
+            style={{ width: `${sentenceProgressPct}%` }}
+          />
+        </div>
         {/* Pause Overlay with Resume button and instructions */}
         {isPaused && (
           <div

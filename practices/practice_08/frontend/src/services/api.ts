@@ -81,6 +81,41 @@ const FALLBACK_TOPICS: GrammarTopic[] = [
     level: 'B1',
     description: 'косвенная речь и согласование времен в командных обсуждениях',
     sentenceCount: 3
+  },
+  {
+    id: 'a1-articles',
+    title: 'articles a an the and zero article',
+    level: 'A1',
+    description: 'определенный неопределенный и нулевой артикль в повседневной речи',
+    sentenceCount: 3
+  },
+  {
+    id: 'a2-prepositions',
+    title: 'prepositions of time and place in on at',
+    level: 'A2',
+    description: 'точное употребление предлогов времени и места в рабочих ситуациях',
+    sentenceCount: 3
+  },
+  {
+    id: 'b1-gerund-inf',
+    title: 'gerund vs infinitive after verbs',
+    level: 'B1',
+    description: 'когда после глагола ставить форму с ing а когда инфинитив с to',
+    sentenceCount: 3
+  },
+  {
+    id: 'c1-mixed-cond',
+    title: 'mixed conditionals and wish clauses',
+    level: 'C1',
+    description: 'смешанные условные предложения связь прошлого с настоящим и сожаления',
+    sentenceCount: 3
+  },
+  {
+    id: 'c1-cleft-sentences',
+    title: 'cleft sentences and academic emphasis',
+    level: 'C1',
+    description: 'расщепленные предложения it is that и what is для смыслового акцента',
+    sentenceCount: 3
   }
 ]
 
@@ -108,6 +143,82 @@ const FALLBACK_LESSONS: Record<string, LessonData> = {
         english: 'we have never observed such an innovative microservice architecture before in any enterprise software system because the latency was always extremely low',
         russian: 'мы никогда раньше не наблюдали столь инновационной микросервисной архитектуры ни в одной корпоративной системе потому что задержка была низкой',
         grammarTip: 'never в контексте жизненного опыта до настоящего момента present perfect'
+      }
+    ]
+  },
+  'a1-articles': {
+    id: 'a1-articles',
+    title: 'articles a an the and zero article',
+    level: 'A1',
+    description: 'определенный неопределенный и нулевой артикль в повседневной речи',
+    sentences: [
+      {
+        id: 'art1',
+        english: 'an experienced developer always writes a clear commit message before pushing the changes to the remote repository',
+        russian: 'опытный разработчик всегда пишет понятное сообщение коммита перед отправкой изменений в удаленный репозиторий',
+        grammarTip: 'an перед гласным звуком experienced a перед согласным the для конкретных изменений'
+      },
+      {
+        id: 'art2',
+        english: 'the laptop on the wooden desk has an aluminum body and runs a fast linux distribution for daily software development',
+        russian: 'ноутбук на деревянном столе имеет алюминиевый корпус и работает на быстрой сборке линукс для ежедневной разработки',
+        grammarTip: 'the для конкретного предмета на столе an aluminum body'
+      }
+    ]
+  },
+  'a2-prepositions': {
+    id: 'a2-prepositions',
+    title: 'prepositions of time and place in on at',
+    level: 'A2',
+    description: 'точное употребление предлогов времени и места в рабочих ситуациях',
+    sentences: [
+      {
+        id: 'prep1',
+        english: 'our sprint planning meeting starts at nine oclock on monday morning in the main glass conference room',
+        russian: 'наше планирование спринта начинается в девять часов в понедельник утром в главной стеклянной переговорной',
+        grammarTip: 'at с точным временем on с днями недели in с помещениями'
+      }
+    ]
+  },
+  'b1-gerund-inf': {
+    id: 'b1-gerund-inf',
+    title: 'gerund vs infinitive after verbs',
+    level: 'B1',
+    description: 'когда после глагола ставить форму с ing а когда инфинитив с to',
+    sentences: [
+      {
+        id: 'gi1',
+        english: 'we decided to postpone deploying the experimental feature because the team wanted to avoid introducing subtle race conditions',
+        russian: 'мы решили отложить деплой экспериментальной фичи потому что команда хотела избежать появления тонких состояний гонки',
+        grammarTip: 'decide to v1 postpone plus ving avoid plus ving'
+      }
+    ]
+  },
+  'c1-mixed-cond': {
+    id: 'c1-mixed-cond',
+    title: 'mixed conditionals and wish clauses',
+    level: 'C1',
+    description: 'смешанные условные предложения связь прошлого с настоящим и сожаления',
+    sentences: [
+      {
+        id: 'mc1',
+        english: 'if we had adopted strict type safety two years ago our production codebase would be far more maintainable right now',
+        russian: 'если бы мы внедрили строгую типизацию два года назад наша кодовая база была бы гораздо более поддерживаемой прямо сейчас',
+        grammarTip: 'смешанный тип if плюс had v3 прошлое и would v1 результат в настоящем'
+      }
+    ]
+  },
+  'c1-cleft-sentences': {
+    id: 'c1-cleft-sentences',
+    title: 'cleft sentences and academic emphasis',
+    level: 'C1',
+    description: 'расщепленные предложения it is that и what is для смыслового акцента',
+    sentences: [
+      {
+        id: 'cs1',
+        english: 'it was the memory allocation bottleneck that caused the sudden drop in throughput during the peak black friday traffic',
+        russian: 'именно узкое место выделения памяти вызвало внезапное падение пропускной способности во время пикового трафика',
+        grammarTip: 'расщепленное предложение it was x that для усиления фокуса на причине'
       }
     ]
   }

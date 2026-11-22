@@ -107,6 +107,46 @@ var topics = new List<GrammarTopic>
             new("rs1", "the lead architect explained that the distributed system would scale horizontally once the cache invalidation bug was fixed", "главный архитектор объяснил что распределенная система будет масштабироваться по горизонтали как только баг будет исправлен", "согласование времен в косвенной речи will переходит в would"),
             new("rs2", "she said that the frontend developers had already verified all accessibility guidelines before submitting the pull request", "она сказала что фронтенд разработчики уже проверили все правила доступности перед отправкой пулл реквеста", "предшествующее действие в косвенной речи past perfect had verified"),
             new("rs3", "our scrum master asked whether the engineering team could complete the database migration before the scheduled maintenance window", "наш скрам мастер спросил сможет ли команда завершить миграцию базы данных до запланированного окна обслуживания", "косвенный вопрос со словом whether и модальным could")
+        ]),
+
+    new("a1-articles", "articles a an the and zero article", "A1",
+        "определенный неопределенный и нулевой артикль в повседневной речи",
+        [
+            new("art1", "an experienced developer always writes a clear commit message before pushing the changes to the remote repository", "опытный разработчик всегда пишет понятное сообщение коммита перед отправкой изменений в удаленный репозиторий", "an перед гласным звуком experienced a перед согласным the для конкретных изменений"),
+            new("art2", "the laptop on the wooden desk has an aluminum body and runs a fast linux distribution for daily software development", "ноутбук на деревянном столе имеет алюминиевый корпус и работает на быстрой сборке линукс для ежедневной разработки", "the для конкретного предмета на столе an aluminum body"),
+            new("art3", "clean code is essential for software engineering because programmers spend hours reading documentation every week", "чистый код необходим для программной инженерии так как программисты тратят часы на чтение документации каждую неделю", "нулевой артикль перед неисчисляемыми и обобщенными понятиями software engineering documentation")
+        ]),
+
+    new("a2-prepositions", "prepositions of time and place in on at", "A2",
+        "точное употребление предлогов времени и места в рабочих ситуациях",
+        [
+            new("prep1", "our sprint planning meeting starts at nine oclock on monday morning in the main glass conference room", "наше планирование спринта начинается в девять часов в понедельник утром в главной стеклянной переговорной", "at с точным временем on с днями недели in с помещениями"),
+            new("prep2", "the security patch was released in november on the fifteenth day right at midnight without any service downtime", "патч безопасности был выпущен в ноябре пятнадцатого числа ровно в полночь без простоя сервиса", "in с месяцами on с конкретными датами at midnight"),
+            new("prep3", "she works at a fintech startup in london and usually reviews architecture diagrams on the train ride home", "она работает в финтех стартапе в лондоне и обычно просматривает схемы архитектуры в поезде по дороге домой", "at с организацией in с городом on the train с общественным транспортом")
+        ]),
+
+    new("b1-gerund-inf", "gerund vs infinitive after verbs", "B1",
+        "когда после глагола ставить форму с ing а когда инфинитив с to",
+        [
+            new("gi1", "we decided to postpone deploying the experimental feature because the team wanted to avoid introducing subtle race conditions", "мы решили отложить деплой экспериментальной фичи потому что команда хотела избежать появления тонких состояний гонки", "decide to v1 postpone plus ving avoid plus ving"),
+            new("gi2", "the senior engineer suggested refactoring the authentication middleware before attempting to integrate the third party oauth provider", "сеньор инженер предложил отрефакторить прослойку аутентификации перед попыткой интегрировать стороннего провайдера", "suggest plus ving attempt to v1"),
+            new("gi3", "she managed to optimize the sql query by indexing the primary columns and stopped running expensive full table scans", "она сумела оптимизировать запрос проиндексировав основные столбцы и прекратила выполнять дорогие полные сканирования таблиц", "manage to v1 stop plus ving прекратить действие")
+        ]),
+
+    new("c1-mixed-cond", "mixed conditionals and wish clauses", "C1",
+        "смешанные условные предложения связь прошлого с настоящим и сожаления",
+        [
+            new("mc1", "if we had adopted strict type safety two years ago our production codebase would be far more maintainable right now", "если бы мы внедрили строгую типизацию два года назад наша кодовая база была бы гораздо более поддерживаемой прямо сейчас", "смешанный тип if плюс had v3 прошлое и would v1 результат в настоящем"),
+            new("mc2", "i wish we had documented the legacy encryption algorithm thoroughly before the original systems architect left the company", "жаль что мы не задокументировали устаревший алгоритм шифрования подробно до ухода первоначального системного архитектора", "wish плюс past perfect had documented сожаление о прошлом"),
+            new("mc3", "if the core server were not under heavy load right now the benchmark suite would have finished ten minutes ago", "если бы основной сервер не был под высокой нагрузкой сейчас набор бенчмарков завершился бы десять минут назад", "смешанный тип постоянное условие в настоящем if were и результат в прошлом would have v3")
+        ]),
+
+    new("c1-cleft-sentences", "cleft sentences and academic emphasis", "C1",
+        "расщепленные предложения it is that и what is для смыслового акцента",
+        [
+            new("cs1", "it was the memory allocation bottleneck that caused the sudden drop in throughput during the peak black friday traffic", "именно узкое место выделения памяти вызвало внезапное падение пропускной способности во время пикового трафика", "расщепленное предложение it was x that для усиления фокуса на причине"),
+            new("cs2", "what distinguishes a great systems engineer from an average coder is the ability to anticipate hidden failure modes", "что отличает выдающегося системного инженера от обычного кодера так это способность предвидеть скрытые сценарии сбоев", "what cleft sentence what distinguishes ... is ..."),
+            new("cs3", "all that the migration script needs is a valid connection string and read only permissions on the staging replica", "все что нужно скрипту миграции это валидная строка подключения и права на чтение для тестовой реплики", "эмфатическая конструкция all that ... is ...")
         ])
 };
 

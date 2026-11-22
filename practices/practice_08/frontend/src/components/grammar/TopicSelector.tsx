@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Sparkles, ArrowRight, Zap, Target } from 'lucide-react'
+import React, { useState, useMemo } from 'react'
+import { Sparkles, ArrowRight, Zap, Target, Search, X } from 'lucide-react'
 import type { GrammarTopic } from '../../types'
 import { Card } from '../ui/Card'
 import { Badge } from '../ui/Badge'
@@ -18,44 +18,84 @@ export const TopicSelector: React.FC<TopicSelectorProps> = ({
   onSelectAdaptive
 }) => {
   const [selectedLevel, setSelectedLevel] = useState<string>('ALL')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const levels = ['ALL', 'A1', 'A2', 'B1', 'B2', 'C1']
 
   const weakKeys = weakKeysService.getWeakKeys()
 
-  const filtered = selectedLevel === 'ALL'
-    ? topics
-    : topics.filter(t => t.level.toUpperCase() === selectedLevel)
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return topics.filter(t => {
+      const matchesLevel = selectedLevel === 'ALL' || t.level.toUpperCase() === selectedLevel
+      const matchesQuery =
+        !q ||
+        t.title.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.level.toLowerCase().includes(q)
+      return matchesLevel && matchesQuery
+    })
+  }, [topics, selectedLevel, searchQuery])
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto w-full animate-fade-in" data-testid="topic-selector">
       {/* Hero Headline */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">
+      <div className="text-center max-w-2xl mx-auto space-y-2.5">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight bg-gradient-to-b from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
           Интеллектуальный тренажер слепой печати
         </h1>
-        <p className="text-slate-400 text-xs leading-relaxed">
+        <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
           Прокачивайте скорость слепой печати десятипальцевым методом, параллельно доводя до автоматизма грамматику английского языка.
         </p>
       </div>
 
-      {/* Level Filter Pills */}
-      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Фильтр по уровню языка">
-        {levels.map(level => {
-          const isCurrent = selectedLevel === level
-          return (
+      {/* Level Filter Pills + Instant Search */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label="Фильтр по уровню языка">
+          {levels.map(level => {
+            const isCurrent = selectedLevel === level
+            const count =
+              level === 'ALL'
+                ? topics.length
+                : topics.filter(t => t.level.toUpperCase() === level).length
+            return (
+              <button
+                key={level}
+                onClick={() => setSelectedLevel(level)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isCurrent
+                    ? 'bg-white/[0.1] text-white shadow-sm border border-sky-400/40 ring-1 ring-sky-400/20'
+                    : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.06]'
+                }`}
+              >
+                <span>{level === 'ALL' ? 'Все уровни' : level}</span>
+                <span className="text-[10px] font-mono text-slate-500">{count}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Sleek Search Input */}
+        <div className="relative w-full sm:w-60">
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Поиск темы..."
+            aria-label="Поиск грамматической темы"
+            className="w-full pl-9 pr-8 py-2 rounded-xl bg-white/[0.03] border border-white/[0.07] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-sky-400/50 focus:bg-white/[0.05] transition"
+            data-testid="topic-search-input"
+          />
+          {searchQuery && (
             <button
-              key={level}
-              onClick={() => setSelectedLevel(level)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                isCurrent
-                  ? 'bg-white/[0.1] text-white font-semibold shadow-sm border border-white/[0.15]'
-                  : 'bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.06]'
-              }`}
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white cursor-pointer"
+              aria-label="Очистить поиск"
             >
-              {level === 'ALL' ? 'Все уровни' : `${level}`}
+              <X className="w-3.5 h-3.5" />
             </button>
-          )
-        })}
+          )}
+        </div>
       </div>
 
       {/* Recommended Adaptive Card (Weak Keys) */}

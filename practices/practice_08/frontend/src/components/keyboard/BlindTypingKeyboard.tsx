@@ -27,67 +27,218 @@ const KEY_H = 48
 const GAP = 6
 
 // Dedicated ergonomic color scheme for the 8 touch-typing finger zones + thumbs
-const FINGER_ZONE_COLORS: Record<FingerType, {
-  border: string
-  bg: string
-  text: string
-  glow: string
-}> = {
+const FINGER_ZONE_COLORS: Record<
+  FingerType,
+  {
+    border: string
+    bg: string
+    text: string
+    glow: string
+    activeFill: string
+  }
+> = {
   'pinky-l': {
-    border: 'rgba(244, 63, 94, 0.45)',
-    bg: 'rgba(244, 63, 94, 0.12)',
+    border: 'rgba(244, 63, 94, 0.38)',
+    bg: 'rgba(244, 63, 94, 0.09)',
     text: '#fda4af',
-    glow: '#f43f5e'
+    glow: '#f43f5e',
+    activeFill: 'rgba(244, 63, 94, 0.28)'
   },
   'ring-l': {
-    border: 'rgba(249, 115, 22, 0.45)',
-    bg: 'rgba(249, 115, 22, 0.12)',
+    border: 'rgba(249, 115, 22, 0.38)',
+    bg: 'rgba(249, 115, 22, 0.09)',
     text: '#fdba74',
-    glow: '#f97316'
+    glow: '#f97316',
+    activeFill: 'rgba(249, 115, 22, 0.28)'
   },
   'mid-l': {
-    border: 'rgba(234, 179, 8, 0.45)',
-    bg: 'rgba(234, 179, 8, 0.12)',
+    border: 'rgba(234, 179, 8, 0.38)',
+    bg: 'rgba(234, 179, 8, 0.09)',
     text: '#fde047',
-    glow: '#eab308'
+    glow: '#eab308',
+    activeFill: 'rgba(234, 179, 8, 0.28)'
   },
   'index-l': {
-    border: 'rgba(16, 185, 129, 0.45)',
-    bg: 'rgba(16, 185, 129, 0.12)',
+    border: 'rgba(16, 185, 129, 0.38)',
+    bg: 'rgba(16, 185, 129, 0.09)',
     text: '#6ee7b7',
-    glow: '#10b981'
+    glow: '#10b981',
+    activeFill: 'rgba(16, 185, 129, 0.28)'
   },
-  'thumb': {
-    border: 'rgba(56, 189, 248, 0.35)',
-    bg: 'rgba(56, 189, 248, 0.08)',
+  thumb: {
+    border: 'rgba(56, 189, 248, 0.32)',
+    bg: 'rgba(56, 189, 248, 0.07)',
     text: '#7dd3fc',
-    glow: '#38bdf8'
+    glow: '#38bdf8',
+    activeFill: 'rgba(56, 189, 248, 0.28)'
   },
   'index-r': {
-    border: 'rgba(6, 182, 212, 0.45)',
-    bg: 'rgba(6, 182, 212, 0.12)',
+    border: 'rgba(6, 182, 212, 0.38)',
+    bg: 'rgba(6, 182, 212, 0.09)',
     text: '#67e8f9',
-    glow: '#06b6d4'
+    glow: '#06b6d4',
+    activeFill: 'rgba(6, 182, 212, 0.28)'
   },
   'mid-r': {
-    border: 'rgba(59, 130, 246, 0.45)',
-    bg: 'rgba(59, 130, 246, 0.12)',
+    border: 'rgba(59, 130, 246, 0.38)',
+    bg: 'rgba(59, 130, 246, 0.09)',
     text: '#93c5fd',
-    glow: '#3b82f6'
+    glow: '#3b82f6',
+    activeFill: 'rgba(59, 130, 246, 0.28)'
   },
   'ring-r': {
-    border: 'rgba(168, 85, 247, 0.45)',
-    bg: 'rgba(168, 85, 247, 0.12)',
+    border: 'rgba(168, 85, 247, 0.38)',
+    bg: 'rgba(168, 85, 247, 0.09)',
     text: '#d8b4fe',
-    glow: '#a855f7'
+    glow: '#a855f7',
+    activeFill: 'rgba(168, 85, 247, 0.28)'
   },
   'pinky-r': {
-    border: 'rgba(236, 72, 153, 0.45)',
-    bg: 'rgba(236, 72, 153, 0.12)',
+    border: 'rgba(236, 72, 153, 0.38)',
+    bg: 'rgba(236, 72, 153, 0.09)',
     text: '#f9a8d4',
-    glow: '#ec4899'
+    glow: '#ec4899',
+    activeFill: 'rgba(236, 72, 153, 0.28)'
   }
 }
+
+const FINGER_NAMES_RU: Record<FingerType, string> = {
+  'pinky-l': 'Левый мизинец',
+  'ring-l': 'Левый безымянный',
+  'mid-l': 'Левый средний',
+  'index-l': 'Левый указательный',
+  'index-r': 'Правый указательный',
+  'mid-r': 'Правый средний',
+  'ring-r': 'Правый безымянный',
+  'pinky-r': 'Правый мизинец',
+  thumb: 'Большой палец'
+}
+
+// Palm knuckle base anchors (ergonomically arched)
+const LEFT_KNUCKLES = {
+  pinky: { x: 152, y: 222 },
+  ring: { x: 198, y: 204 },
+  mid: { x: 244, y: 198 },
+  index: { x: 290, y: 204 },
+  thumb: { x: 326, y: 256 }
+} as const
+
+const RIGHT_KNUCKLES = {
+  thumb: { x: 454, y: 256 },
+  index: { x: 490, y: 204 },
+  mid: { x: 536, y: 198 },
+  ring: { x: 582, y: 204 },
+  pinky: { x: 628, y: 222 }
+} as const
+
+// Precomputed keyboard geometry (constant across all renders)
+const KEYBOARD_KEYS: KeyModel[] = (() => {
+  const list: KeyModel[] = []
+
+  const rows: Array<{
+    y: number
+    keys: Array<{ id: string; label: string; finger: FingerType }>
+  }> = [
+    {
+      y: 26,
+      keys: [
+        { id: 'q', label: 'Q', finger: 'pinky-l' },
+        { id: 'w', label: 'W', finger: 'ring-l' },
+        { id: 'e', label: 'E', finger: 'mid-l' },
+        { id: 'r', label: 'R', finger: 'index-l' },
+        { id: 't', label: 'T', finger: 'index-l' },
+        { id: 'y', label: 'Y', finger: 'index-r' },
+        { id: 'u', label: 'U', finger: 'index-r' },
+        { id: 'i', label: 'I', finger: 'mid-r' },
+        { id: 'o', label: 'O', finger: 'ring-r' },
+        { id: 'p', label: 'P', finger: 'pinky-r' },
+        { id: '[', label: '[', finger: 'pinky-r' },
+        { id: ']', label: ']', finger: 'pinky-r' }
+      ]
+    },
+    {
+      y: 80,
+      keys: [
+        { id: 'a', label: 'A', finger: 'pinky-l' },
+        { id: 's', label: 'S', finger: 'ring-l' },
+        { id: 'd', label: 'D', finger: 'mid-l' },
+        { id: 'f', label: 'F', finger: 'index-l' },
+        { id: 'g', label: 'G', finger: 'index-l' },
+        { id: 'h', label: 'H', finger: 'index-r' },
+        { id: 'j', label: 'J', finger: 'index-r' },
+        { id: 'k', label: 'K', finger: 'mid-r' },
+        { id: 'l', label: 'L', finger: 'ring-r' },
+        { id: ';', label: ';', finger: 'pinky-r' },
+        { id: "'", label: "'", finger: 'pinky-r' }
+      ]
+    },
+    {
+      y: 134,
+      keys: [
+        { id: 'z', label: 'Z', finger: 'pinky-l' },
+        { id: 'x', label: 'X', finger: 'ring-l' },
+        { id: 'c', label: 'C', finger: 'mid-l' },
+        { id: 'v', label: 'V', finger: 'index-l' },
+        { id: 'b', label: 'B', finger: 'index-l' },
+        { id: 'n', label: 'N', finger: 'index-r' },
+        { id: 'm', label: 'M', finger: 'index-r' },
+        { id: ',', label: ',', finger: 'mid-r' },
+        { id: '.', label: '.', finger: 'ring-r' },
+        { id: '/', label: '/', finger: 'pinky-r' }
+      ]
+    }
+  ]
+
+  for (const row of rows) {
+    const startX = (780 - (row.keys.length * KEY_W + (row.keys.length - 1) * GAP)) / 2
+    row.keys.forEach((k, idx) => {
+      const x = startX + idx * (KEY_W + GAP)
+      list.push({
+        id: k.id,
+        label: k.label,
+        x,
+        y: row.y,
+        w: KEY_W,
+        h: KEY_H,
+        cx: x + KEY_W / 2,
+        cy: row.y + KEY_H / 2,
+        finger: k.finger
+      })
+    })
+  }
+
+  const spaceW = 264
+  const spaceX = (780 - spaceW) / 2
+  const spaceY = 188
+  list.push({
+    id: ' ',
+    label: 'SPACE',
+    x: spaceX,
+    y: spaceY,
+    w: spaceW,
+    h: KEY_H,
+    cx: spaceX + spaceW / 2,
+    cy: spaceY + KEY_H / 2,
+    finger: 'thumb'
+  })
+
+  return list
+})()
+
+const REST_POSITIONS: Record<FingerType, { x: number; y: number }> = (() => {
+  const byId = (id: string) => KEYBOARD_KEYS.find(k => k.id === id)!
+  return {
+    'pinky-l': { x: byId('a').cx, y: byId('a').cy },
+    'ring-l': { x: byId('s').cx, y: byId('s').cy },
+    'mid-l': { x: byId('d').cx, y: byId('d').cy },
+    'index-l': { x: byId('f').cx, y: byId('f').cy },
+    thumb: { x: 342, y: 214 },
+    'index-r': { x: byId('j').cx, y: byId('j').cy },
+    'mid-r': { x: byId('k').cx, y: byId('k').cy },
+    'ring-r': { x: byId('l').cx, y: byId('l').cy },
+    'pinky-r': { x: byId(';').cx, y: byId(';').cy }
+  }
+})()
 
 export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
   activeChar,
@@ -98,158 +249,15 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
 }) => {
   const normalizedActive = (activeChar || '').toLowerCase()
 
-  // Build key layout grid
-  const keys = useMemo<KeyModel[]>(() => {
-    const list: KeyModel[] = []
-
-    // Row 0: QWERTY (12 keys)
-    const r0Keys: Array<{ id: string; label: string; finger: FingerType }> = [
-      { id: 'q', label: 'Q', finger: 'pinky-l' },
-      { id: 'w', label: 'W', finger: 'ring-l' },
-      { id: 'e', label: 'E', finger: 'mid-l' },
-      { id: 'r', label: 'R', finger: 'index-l' },
-      { id: 't', label: 'T', finger: 'index-l' },
-      { id: 'y', label: 'Y', finger: 'index-r' },
-      { id: 'u', label: 'U', finger: 'index-r' },
-      { id: 'i', label: 'I', finger: 'mid-r' },
-      { id: 'o', label: 'O', finger: 'ring-r' },
-      { id: 'p', label: 'P', finger: 'pinky-r' },
-      { id: '[', label: '[', finger: 'pinky-r' },
-      { id: ']', label: ']', finger: 'pinky-r' }
-    ]
-    const r0StartX = (780 - (r0Keys.length * KEY_W + (r0Keys.length - 1) * GAP)) / 2
-    r0Keys.forEach((k, idx) => {
-      const x = r0StartX + idx * (KEY_W + GAP)
-      const y = 30
-      list.push({
-        id: k.id,
-        label: k.label,
-        x,
-        y,
-        w: KEY_W,
-        h: KEY_H,
-        cx: x + KEY_W / 2,
-        cy: y + KEY_H / 2,
-        finger: k.finger
-      })
-    })
-
-    // Row 1: ASDF (11 keys)
-    const r1Keys: Array<{ id: string; label: string; finger: FingerType }> = [
-      { id: 'a', label: 'A', finger: 'pinky-l' },
-      { id: 's', label: 'S', finger: 'ring-l' },
-      { id: 'd', label: 'D', finger: 'mid-l' },
-      { id: 'f', label: 'F', finger: 'index-l' },
-      { id: 'g', label: 'G', finger: 'index-l' },
-      { id: 'h', label: 'H', finger: 'index-r' },
-      { id: 'j', label: 'J', finger: 'index-r' },
-      { id: 'k', label: 'K', finger: 'mid-r' },
-      { id: 'l', label: 'L', finger: 'ring-r' },
-      { id: ';', label: ';', finger: 'pinky-r' },
-      { id: "'", label: "'", finger: 'pinky-r' }
-    ]
-    const r1StartX = (780 - (r1Keys.length * KEY_W + (r1Keys.length - 1) * GAP)) / 2
-    r1Keys.forEach((k, idx) => {
-      const x = r1StartX + idx * (KEY_W + GAP)
-      const y = 84
-      list.push({
-        id: k.id,
-        label: k.label,
-        x,
-        y,
-        w: KEY_W,
-        h: KEY_H,
-        cx: x + KEY_W / 2,
-        cy: y + KEY_H / 2,
-        finger: k.finger
-      })
-    })
-
-    // Row 2: ZXCV (10 keys)
-    const r2Keys: Array<{ id: string; label: string; finger: FingerType }> = [
-      { id: 'z', label: 'Z', finger: 'pinky-l' },
-      { id: 'x', label: 'X', finger: 'ring-l' },
-      { id: 'c', label: 'C', finger: 'mid-l' },
-      { id: 'v', label: 'V', finger: 'index-l' },
-      { id: 'b', label: 'B', finger: 'index-l' },
-      { id: 'n', label: 'N', finger: 'index-r' },
-      { id: 'm', label: 'M', finger: 'index-r' },
-      { id: ',', label: ',', finger: 'mid-r' },
-      { id: '.', label: '.', finger: 'ring-r' },
-      { id: '/', label: '/', finger: 'pinky-r' }
-    ]
-    const r2StartX = (780 - (r2Keys.length * KEY_W + (r2Keys.length - 1) * GAP)) / 2
-    r2Keys.forEach((k, idx) => {
-      const x = r2StartX + idx * (KEY_W + GAP)
-      const y = 138
-      list.push({
-        id: k.id,
-        label: k.label,
-        x,
-        y,
-        w: KEY_W,
-        h: KEY_H,
-        cx: x + KEY_W / 2,
-        cy: y + KEY_H / 2,
-        finger: k.finger
-      })
-    })
-
-    // Row 3: Spacebar (1 key)
-    const spaceW = 260
-    const spaceX = (780 - spaceW) / 2
-    const spaceY = 192
-    list.push({
-      id: ' ',
-      label: 'SPACE',
-      x: spaceX,
-      y: spaceY,
-      w: spaceW,
-      h: KEY_H,
-      cx: spaceX + spaceW / 2,
-      cy: spaceY + KEY_H / 2,
-      finger: 'thumb'
-    })
-
-    return list
-  }, [])
-
-  // Find active key coordinate
   const activeKey = useMemo(() => {
     if (!normalizedActive) return null
-    return keys.find(k => k.id.toLowerCase() === normalizedActive) || null
-  }, [keys, normalizedActive])
+    return KEYBOARD_KEYS.find(k => k.id.toLowerCase() === normalizedActive) || null
+  }, [normalizedActive])
 
-  // Rest positions of the 10 fingertips
-  const leftF = keys.find(k => k.id === 'f')!
-  const leftD = keys.find(k => k.id === 'd')!
-  const leftS = keys.find(k => k.id === 's')!
-  const leftA = keys.find(k => k.id === 'a')!
-
-  const rightJ = keys.find(k => k.id === 'j')!
-  const rightK = keys.find(k => k.id === 'k')!
-  const rightL = keys.find(k => k.id === 'l')!
-  const rightSemi = keys.find(k => k.id === ';')!
-
-  // Default rest coordinates
-  const restPositions: Record<FingerType, { x: number; y: number }> = {
-    'pinky-l': { x: leftA.cx, y: leftA.cy },
-    'ring-l': { x: leftS.cx, y: leftS.cy },
-    'mid-l': { x: leftD.cx, y: leftD.cy },
-    'index-l': { x: leftF.cx, y: leftF.cy },
-    'thumb': { x: 335, y: 216 },
-    'index-r': { x: rightJ.cx, y: rightJ.cy },
-    'mid-r': { x: rightK.cx, y: rightK.cy },
-    'ring-r': { x: rightL.cx, y: rightL.cy },
-    'pinky-r': { x: rightSemi.cx, y: rightSemi.cy }
-  }
-
-  // Active finger calculation
   const targetFinger: FingerType | null = activeKey ? activeKey.finger : null
 
-  // Target positions: if finger is active, it moves smoothly to activeKey.cx, activeKey.cy
   const fingerPositions = useMemo(() => {
-    const res = { ...restPositions }
+    const res = { ...REST_POSITIONS }
     if (activeKey && targetFinger) {
       if (targetFinger === 'thumb') {
         res.thumb = { x: 390, y: activeKey.cy }
@@ -258,35 +266,24 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
       }
     }
     return res
-  }, [activeKey, targetFinger, restPositions])
+  }, [activeKey, targetFinger])
 
-  // Palm knuckle base anchors
-  const leftKnuckles = {
-    pinky: { x: 155, y: 220 },
-    ring: { x: 200, y: 205 },
-    mid: { x: 245, y: 200 },
-    index: { x: 290, y: 205 },
-    thumb: { x: 325, y: 250 }
-  }
-
-  const rightKnuckles = {
-    thumb: { x: 455, y: 250 },
-    index: { x: 490, y: 205 },
-    mid: { x: 535, y: 200 },
-    ring: { x: 580, y: 205 },
-    pinky: { x: 625, y: 220 }
-  }
-
-  // Realistic Anatomical Finger Renderer
+  /**
+   * Cyber-Glass Anatomical Finger Renderer
+   * Features: sculpted phalanges, dorsal 3D specular highlight, curved nail with lunula,
+   * and zone-matched active contact halo.
+   */
   const renderAnatomicalFinger = (
     knuckle: { x: number; y: number },
     tip: { x: number; y: number },
+    fingerType: FingerType,
     isActive: boolean,
-    baseW: number = 24,
-    tipW: number = 19,
-    gradientId: string = 'handGradientLeft',
+    baseW: number = 23,
+    tipW: number = 17.5,
+    gradientId: string = 'handGlassLeft',
     isThumb: boolean = false
   ) => {
+    const zone = FINGER_ZONE_COLORS[fingerType]
     const dx = tip.x - knuckle.x
     const dy = tip.y - knuckle.y
     const len = Math.hypot(dx, dy) || 1
@@ -295,19 +292,19 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
     const nx = -uy
     const ny = ux
 
-    // Joint 1: Proximal Interphalangeal (PIP) at ~42%
-    const j1Len = len * 0.42
+    // Joint 1: Proximal Interphalangeal (PIP) at 40%
+    const j1Len = len * 0.4
     const j1x = knuckle.x + ux * j1Len
     const j1y = knuckle.y + uy * j1Len
-    const j1W = (baseW + tipW) * 0.54 // Knuckle swelling
+    const j1W = (baseW + tipW) * 0.52
 
-    // Joint 2: Distal Interphalangeal (DIP) at ~74%
-    const j2Len = len * 0.74
+    // Joint 2: Distal Interphalangeal (DIP) at 73%
+    const j2Len = len * 0.73
     const j2x = knuckle.x + ux * j2Len
     const j2y = knuckle.y + uy * j2Len
-    const j2W = tipW * 1.05
+    const j2W = tipW * 1.04
 
-    // Side contours
+    // Outer organic silhouette points
     const bL = { x: knuckle.x + nx * (baseW / 2), y: knuckle.y + ny * (baseW / 2) }
     const bR = { x: knuckle.x - nx * (baseW / 2), y: knuckle.y - ny * (baseW / 2) }
 
@@ -319,104 +316,130 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
 
     const tL = { x: tip.x + nx * (tipW / 2), y: tip.y + ny * (tipW / 2) }
     const tR = { x: tip.x - nx * (tipW / 2), y: tip.y - ny * (tipW / 2) }
-    const cap = { x: tip.x + ux * (tipW / 1.7), y: tip.y + uy * (tipW / 1.7) }
+    const cap = { x: tip.x + ux * (tipW * 0.58), y: tip.y + uy * (tipW * 0.58) }
 
-    // Organic spline path with natural finger curves
     const fingerPath = `M ${bL.x} ${bL.y}
-      Q ${(bL.x + j1L.x) / 2 + nx * 0.8} ${(bL.y + j1L.y) / 2 + ny * 0.8} ${j1L.x} ${j1L.y}
-      Q ${(j1L.x + j2L.x) / 2 - nx * 0.5} ${(j1L.y + j2L.y) / 2 - ny * 0.5} ${j2L.x} ${j2L.y}
+      Q ${(bL.x + j1L.x) / 2 + nx * 0.6} ${(bL.y + j1L.y) / 2 + ny * 0.6} ${j1L.x} ${j1L.y}
+      Q ${(j1L.x + j2L.x) / 2 - nx * 0.45} ${(j1L.y + j2L.y) / 2 - ny * 0.45} ${j2L.x} ${j2L.y}
       L ${tL.x} ${tL.y}
       Q ${cap.x} ${cap.y} ${tR.x} ${tR.y}
       L ${j2R.x} ${j2R.y}
-      Q ${(j1R.x + j2R.x) / 2 + nx * 0.5} ${(j1R.y + j2R.y) / 2 + ny * 0.5} ${j1R.x} ${j1R.y}
-      Q ${(bR.x + j1R.x) / 2 - nx * 0.8} ${(bR.y + j1R.y) / 2 - ny * 0.8} ${bR.x} ${bR.y}
+      Q ${(j1R.x + j2R.x) / 2 + nx * 0.45} ${(j1R.y + j2R.y) / 2 + ny * 0.45} ${j1R.x} ${j1R.y}
+      Q ${(bR.x + j1R.x) / 2 - nx * 0.6} ${(bR.y + j1R.y) / 2 - ny * 0.6} ${bR.x} ${bR.y}
       Z`
 
-    // Subtle anatomical crease arcs across joints
-    const crease1Path = `M ${j1x + nx * (j1W * 0.36)} ${j1y + ny * (j1W * 0.36)}
-      Q ${j1x - ux * 1.5} ${j1y - uy * 1.5} ${j1x - nx * (j1W * 0.36)} ${j1y - ny * (j1W * 0.36)}`
+    // Dorsal 3D specular ridge highlight along finger spine
+    const ridgeStart = { x: knuckle.x + ux * (len * 0.14), y: knuckle.y + uy * (len * 0.14) }
+    const ridgeEnd = { x: knuckle.x + ux * (len * 0.72), y: knuckle.y + uy * (len * 0.72) }
 
-    const crease2Path = `M ${j2x + nx * (j2W * 0.33)} ${j2y + ny * (j2W * 0.33)}
-      Q ${j2x - ux * 1.2} ${j2y - uy * 1.2} ${j2x - nx * (j2W * 0.33)} ${j2y - ny * (j2W * 0.33)}`
+    // Subtle phalangeal joint crease arcs
+    const crease1Path = `M ${j1x + nx * (j1W * 0.34)} ${j1y + ny * (j1W * 0.34)}
+      Q ${j1x - ux * 1.4} ${j1y - uy * 1.4} ${j1x - nx * (j1W * 0.34)} ${j1y - ny * (j1W * 0.34)}`
+    const crease2Path = `M ${j2x + nx * (j2W * 0.3)} ${j2y + ny * (j2W * 0.3)}
+      Q ${j2x - ux * 1.1} ${j2y - uy * 1.1} ${j2x - nx * (j2W * 0.3)} ${j2y - ny * (j2W * 0.3)}`
 
-    // Natural curved fingernail at the distal phalanx
-    const nailBaseLen = len * 0.82
+    // Natural curved fingernail at distal phalanx
+    const nailBaseLen = len * 0.8
     const nBx = knuckle.x + ux * nailBaseLen
     const nBy = knuckle.y + uy * nailBaseLen
-    const nTipX = tip.x + ux * (tipW * 0.18)
-    const nTipY = tip.y + uy * (tipW * 0.18)
+    const nTipX = tip.x + ux * (tipW * 0.22)
+    const nTipY = tip.y + uy * (tipW * 0.22)
     const nW = tipW * 0.56
 
     const nailPath = `M ${nBx + nx * (nW / 2)} ${nBy + ny * (nW / 2)}
       Q ${nTipX + nx * (nW / 2)} ${nTipY + ny * (nW / 2)} ${nTipX} ${nTipY}
       Q ${nTipX - nx * (nW / 2)} ${nTipY - ny * (nW / 2)} ${nBx - nx * (nW / 2)} ${nBy - ny * (nW / 2)}
-      Q ${nBx} ${nBy - uy * 1.5} ${nBx + nx * (nW / 2)} ${nBy + ny * (nW / 2)}`
+      Q ${nBx - ux * 1.5} ${nBy - uy * 1.5} ${nBx + nx * (nW / 2)} ${nBy + ny * (nW / 2)}`
 
     return (
-      <g style={{ transition: 'all 0.14s cubic-bezier(0.2, 0.8, 0.2, 1)', pointerEvents: 'none' }}>
-        {/* Main finger body with soft translucent shading */}
+      <g
+        key={`${fingerType}-${gradientId}`}
+        style={{ transition: 'all 0.13s cubic-bezier(0.22, 1, 0.36, 1)', pointerEvents: 'none' }}
+      >
+        {/* Active zone-colored outer aura under the finger */}
+        {isActive && (
+          <path
+            d={fingerPath}
+            fill={zone.activeFill}
+            stroke={zone.glow}
+            strokeWidth={3.5}
+            opacity={0.45}
+            filter="url(#activeFingerGlow)"
+          />
+        )}
+
+        {/* Main cyber-glass finger body */}
         <path
           d={fingerPath}
-          fill={`url(#${gradientId})`}
-          stroke={isActive ? '#38bdf8' : 'rgba(255, 255, 255, 0.22)'}
-          strokeWidth={isActive ? 2.2 : 1.2}
-          filter={isActive ? 'url(#activeFingerGlow)' : undefined}
+          fill={isActive ? zone.activeFill : `url(#${gradientId})`}
+          stroke={isActive ? zone.glow : 'rgba(255, 255, 255, 0.2)'}
+          strokeWidth={isActive ? 1.8 : 1.05}
         />
 
-        {/* Anatomical phalangeal crease lines */}
+        {/* Dorsal 3D specular glass ridge */}
+        <line
+          x1={ridgeStart.x}
+          y1={ridgeStart.y}
+          x2={ridgeEnd.x}
+          y2={ridgeEnd.y}
+          stroke={isActive ? 'rgba(255, 255, 255, 0.38)' : 'rgba(255, 255, 255, 0.12)'}
+          strokeWidth={isActive ? 2.4 : 1.6}
+          strokeLinecap="round"
+        />
+
+        {/* Subtle anatomical phalangeal creases */}
         {!isThumb && (
           <>
             <path
               d={crease1Path}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.16)"
+              stroke={isActive ? 'rgba(255,255,255,0.3)' : 'rgba(255, 255, 255, 0.13)'}
               strokeWidth="0.9"
               strokeLinecap="round"
             />
             <path
               d={crease2Path}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.2)"
+              stroke={isActive ? 'rgba(255,255,255,0.35)' : 'rgba(255, 255, 255, 0.16)'}
               strokeWidth="0.9"
               strokeLinecap="round"
             />
           </>
         )}
 
-        {/* Natural curved fingernail */}
+        {/* Sculpted curved fingernail with glass reflection */}
         <path
           d={nailPath}
-          fill={isActive ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.04)'}
-          stroke={isActive ? '#38bdf8' : 'rgba(255, 255, 255, 0.28)'}
-          strokeWidth={isActive ? 1.4 : 0.8}
+          fill={isActive ? 'rgba(255, 255, 255, 0.28)' : 'rgba(255, 255, 255, 0.06)'}
+          stroke={isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.25)'}
+          strokeWidth={isActive ? 1.2 : 0.75}
         />
 
-        {/* Active glowing contact pad ring */}
+        {/* Active fingertip contact pulse rings */}
         {isActive && (
-          <ellipse
-            cx={tip.x}
-            cy={tip.y}
-            rx={tipW * 0.44}
-            ry={tipW * 0.36}
-            fill="rgba(56, 189, 248, 0.3)"
-            stroke="#ffffff"
-            strokeWidth="1.5"
-          />
+          <>
+            <circle
+              cx={tip.x}
+              cy={tip.y}
+              r={tipW * 0.72}
+              fill="none"
+              stroke={zone.glow}
+              strokeWidth="1.2"
+              opacity="0.55"
+            />
+            <ellipse
+              cx={tip.x}
+              cy={tip.y}
+              rx={tipW * 0.4}
+              ry={tipW * 0.34}
+              fill="rgba(255, 255, 255, 0.35)"
+              stroke="#ffffff"
+              strokeWidth="1.4"
+            />
+          </>
         )}
       </g>
     )
-  }
-
-  const fingerNamesRu: Record<FingerType, string> = {
-    'pinky-l': 'Левый мизинец',
-    'ring-l': 'Левый безымянный',
-    'mid-l': 'Левый средний',
-    'index-l': 'Левый указательный',
-    'index-r': 'Правый указательный',
-    'mid-r': 'Правый средний',
-    'ring-r': 'Правый безымянный',
-    'pinky-r': 'Правый мизинец',
-    'thumb': 'Большой палец'
   }
 
   return (
@@ -433,7 +456,7 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
             <button
               onClick={onToggleMode}
               className="text-[11px] font-mono px-2.5 py-1 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] transition cursor-pointer flex items-center space-x-1"
-              title="Переключить в 3D режим"
+              title="Переключить режим отображения клавиатуры"
             >
               <span>{mode === 'blindtyping' ? '🖐 Силуэты рук' : '🧊 Режим 3D'}</span>
             </button>
@@ -450,50 +473,65 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
               {normalizedActive === ' ' ? '␣ SPACE' : normalizedActive.toUpperCase()}
             </span>
             <span
-              className="font-medium text-xs"
+              className="font-semibold text-xs"
               style={{ color: FINGER_ZONE_COLORS[targetFinger].glow }}
             >
-              ← {fingerNamesRu[targetFinger]}
+              ← {FINGER_NAMES_RU[targetFinger]}
             </span>
           </div>
         )}
       </div>
 
-      {/* SVG Blind Typing Keyboard with Anatomical Hand Silhouette Overlay */}
-      <div className="relative w-full overflow-hidden rounded-3xl bg-[#060911] border border-white/[0.08] shadow-2xl shadow-black/80 p-2 sm:p-4 flex justify-center">
+      {/* SVG Blind Typing Keyboard with Cyber-Glass Anatomical Hand Overlay */}
+      <div className="relative w-full overflow-hidden rounded-3xl bg-[#050810] border border-white/[0.08] shadow-2xl shadow-black/90 p-2 sm:p-4 flex justify-center">
+        {/* Subtle ambient top deck glow */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/25 to-transparent" />
+
         <svg
           viewBox="0 0 780 320"
-          className="w-full h-auto max-h-[380px] drop-shadow-2xl"
+          className="w-full h-auto max-h-[385px] drop-shadow-2xl"
         >
           <defs>
             {/* Glow filter for active illuminated key */}
-            <filter id="activeKeyGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ffffff" floodOpacity="0.85" />
+            <filter id="activeKeyGlow" x="-25%" y="-25%" width="150%" height="150%">
+              <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#ffffff" floodOpacity="0.85" />
               <feDropShadow dx="0" dy="2" stdDeviation="12" floodColor="#38bdf8" floodOpacity="0.55" />
             </filter>
 
-            {/* Active finger aura glow */}
-            <filter id="activeFingerGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#38bdf8" floodOpacity="0.6" />
+            {/* Soft volumetric aura for active finger */}
+            <filter id="activeFingerGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="4.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
             </filter>
 
-            {/* Hand gradient for 3D translucent skin tone */}
-            <linearGradient id="handGradientLeft" x1="0%" y1="100%" x2="50%" y2="0%">
-              <stop offset="0%" stopColor="#0b0f19" stopOpacity="0.95" />
-              <stop offset="50%" stopColor="#1e293b" stopOpacity="0.78" />
-              <stop offset="100%" stopColor="#334155" stopOpacity="0.68" />
+            {/* Translucent Cyber-Glass Hand Gradients with smooth wrist fade-out */}
+            <linearGradient id="handGlassLeft" x1="20%" y1="100%" x2="55%" y2="0%">
+              <stop offset="0%" stopColor="#070b14" stopOpacity="0.05" />
+              <stop offset="28%" stopColor="#0f172a" stopOpacity="0.72" />
+              <stop offset="68%" stopColor="#1e293b" stopOpacity="0.62" />
+              <stop offset="100%" stopColor="#475569" stopOpacity="0.55" />
             </linearGradient>
 
-            <linearGradient id="handGradientRight" x1="100%" y1="100%" x2="50%" y2="0%">
-              <stop offset="0%" stopColor="#0b0f19" stopOpacity="0.95" />
-              <stop offset="50%" stopColor="#1e293b" stopOpacity="0.78" />
-              <stop offset="100%" stopColor="#334155" stopOpacity="0.68" />
+            <linearGradient id="handGlassRight" x1="80%" y1="100%" x2="45%" y2="0%">
+              <stop offset="0%" stopColor="#070b14" stopOpacity="0.05" />
+              <stop offset="28%" stopColor="#0f172a" stopOpacity="0.72" />
+              <stop offset="68%" stopColor="#1e293b" stopOpacity="0.62" />
+              <stop offset="100%" stopColor="#475569" stopOpacity="0.55" />
+            </linearGradient>
+
+            <linearGradient id="palmRimFade" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+              <stop offset="35%" stopColor="#ffffff" stopOpacity="0.16" />
+              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.28" />
             </linearGradient>
           </defs>
 
-          {/* LAYER 1: KEYS */}
+          {/* LAYER 1: KEYS WITH 3D BEVEL & F/J HOMING BARS */}
           <g id="keyboard-keys">
-            {keys.map(k => {
+            {KEYBOARD_KEYS.map(k => {
               const isMatch = normalizedActive === k.id.toLowerCase()
               const errRate = heatmapData[k.id.toLowerCase()]
               const zone = FINGER_ZONE_COLORS[k.finger]
@@ -501,8 +539,8 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
               let fill = zone.bg
               let stroke = zone.border
               let textFill = zone.text
-              let strokeWidth = 1.2
-              let filter = undefined
+              let strokeWidth = 1.15
+              let filter: string | undefined
 
               if (heatmapMode && errRate !== undefined) {
                 if (errRate > 0.25) {
@@ -521,10 +559,12 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
               } else if (isMatch) {
                 fill = '#ffffff'
                 stroke = zone.glow
-                textFill = '#0f172a'
-                strokeWidth = 2.5
+                textFill = '#090d16'
+                strokeWidth = 2.4
                 filter = 'url(#activeKeyGlow)'
               }
+
+              const isHomeKey = k.id === 'f' || k.id === 'j'
 
               return (
                 <g
@@ -532,82 +572,129 @@ export const BlindTypingKeyboard: React.FC<BlindTypingKeyboardProps> = ({
                   data-testid={k.id === ' ' ? 'key-space' : `key-${k.id.toLowerCase()}`}
                   className="cursor-default"
                 >
+                  {/* Subtle keycap under-shadow */}
                   <rect
                     x={k.x}
-                    y={k.y}
+                    y={k.y + 2}
                     width={k.w}
                     height={k.h}
-                    rx={8}
-                    ry={8}
+                    rx={9}
+                    ry={9}
+                    fill="rgba(0,0,0,0.55)"
+                  />
+
+                  {/* Main keycap face */}
+                  <rect
+                    x={k.x}
+                    y={isMatch ? k.y + 1 : k.y}
+                    width={k.w}
+                    height={k.h}
+                    rx={9}
+                    ry={9}
                     fill={fill}
                     stroke={stroke}
                     strokeWidth={strokeWidth}
                     filter={filter}
-                    style={{ transition: 'all 0.12s ease' }}
+                    style={{ transition: 'all 0.11s ease' }}
                   />
+
+                  {/* Subtle top specular glass edge */}
+                  {!isMatch && (
+                    <line
+                      x1={k.x + 8}
+                      y1={k.y + 1.5}
+                      x2={k.x + k.w - 8}
+                      y2={k.y + 1.5}
+                      stroke="rgba(255,255,255,0.12)"
+                      strokeWidth="1"
+                      strokeLinecap="round"
+                    />
+                  )}
+
+                  {/* Key label */}
                   <text
                     x={k.cx}
-                    y={k.cy + 5}
+                    y={(isMatch ? k.cy + 1 : k.cy) + 5}
                     textAnchor="middle"
                     fill={textFill}
                     fontSize={k.w > 100 ? '11' : '15'}
-                    fontWeight={isMatch ? 'bold' : '600'}
+                    fontWeight={isMatch ? '800' : '600'}
                     fontFamily="monospace"
-                    style={{ transition: 'all 0.12s ease', pointerEvents: 'none' }}
+                    style={{ transition: 'all 0.11s ease', pointerEvents: 'none' }}
                   >
                     {k.label}
                   </text>
+
+                  {/* Authentic touch-typing homing bar on F and J */}
+                  {isHomeKey && (
+                    <rect
+                      x={k.cx - 6}
+                      y={k.y + k.h - 7}
+                      width={12}
+                      height={2}
+                      rx={1}
+                      fill={isMatch ? '#0f172a' : 'rgba(255,255,255,0.45)'}
+                    />
+                  )}
                 </g>
               )
             })}
           </g>
 
-          {/* LAYER 2: TRANSLUCENT ANATOMICAL HAND SILHOUETTES */}
-          {/* LEFT HAND PALM & WRIST */}
-          <path
-            d="M 120 320 
-               Q 135 260 155 220 
-               Q 175 210 200 205 
-               Q 222 202 245 200 
-               Q 268 202 290 205 
-               Q 310 220 325 250 
-               Q 335 270 330 300 
-               L 270 320 Z"
-            fill="url(#handGradientLeft)"
-            stroke="rgba(255, 255, 255, 0.2)"
-            strokeWidth="1.2"
-            style={{ pointerEvents: 'none' }}
-          />
+          {/* LAYER 2: CYBER-GLASS ANATOMICAL HAND SILHOUETTES */}
+          {/* LEFT HAND PALM & WRIST (with smooth fade-out) */}
+          <g style={{ pointerEvents: 'none' }}>
+            <path
+              d="M 118 322
+                 Q 132 262 152 222
+                 Q 174 209 198 204
+                 Q 221 200 244 198
+                 Q 267 200 290 204
+                 Q 312 222 326 256
+                 Q 334 282 324 322 Z"
+              fill="url(#handGlassLeft)"
+              stroke="url(#palmRimFade)"
+              strokeWidth="1.25"
+            />
+            {/* Subtle dorsal metacarpal contour lines */}
+            <path d="M 178 290 Q 186 248 198 214" stroke="rgba(255,255,255,0.07)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M 218 292 Q 230 246 244 208" stroke="rgba(255,255,255,0.08)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M 258 292 Q 272 248 288 214" stroke="rgba(255,255,255,0.07)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          </g>
 
           {/* LEFT HAND FINGERS */}
-          {renderAnatomicalFinger(leftKnuckles.pinky, fingerPositions['pinky-l'], targetFinger === 'pinky-l', 20, 17, 'handGradientLeft')}
-          {renderAnatomicalFinger(leftKnuckles.ring, fingerPositions['ring-l'], targetFinger === 'ring-l', 22, 18, 'handGradientLeft')}
-          {renderAnatomicalFinger(leftKnuckles.mid, fingerPositions['mid-l'], targetFinger === 'mid-l', 23, 19, 'handGradientLeft')}
-          {renderAnatomicalFinger(leftKnuckles.index, fingerPositions['index-l'], targetFinger === 'index-l', 24, 19, 'handGradientLeft')}
-          {renderAnatomicalFinger(leftKnuckles.thumb, fingerPositions.thumb, targetFinger === 'thumb', 25, 21, 'handGradientLeft', true)}
+          {renderAnatomicalFinger(LEFT_KNUCKLES.pinky, fingerPositions['pinky-l'], 'pinky-l', targetFinger === 'pinky-l', 19, 15.5, 'handGlassLeft')}
+          {renderAnatomicalFinger(LEFT_KNUCKLES.ring, fingerPositions['ring-l'], 'ring-l', targetFinger === 'ring-l', 21, 17, 'handGlassLeft')}
+          {renderAnatomicalFinger(LEFT_KNUCKLES.mid, fingerPositions['mid-l'], 'mid-l', targetFinger === 'mid-l', 22.5, 18, 'handGlassLeft')}
+          {renderAnatomicalFinger(LEFT_KNUCKLES.index, fingerPositions['index-l'], 'index-l', targetFinger === 'index-l', 23, 18, 'handGlassLeft')}
+          {renderAnatomicalFinger(LEFT_KNUCKLES.thumb, fingerPositions.thumb, 'thumb', targetFinger === 'thumb', 24, 19.5, 'handGlassLeft', true)}
 
           {/* RIGHT HAND PALM & WRIST */}
-          <path
-            d="M 660 320 
-               Q 645 260 625 220 
-               Q 605 210 580 205 
-               Q 558 202 535 200 
-               Q 512 202 490 205 
-               Q 470 220 455 250 
-               Q 445 270 450 300 
-               L 510 320 Z"
-            fill="url(#handGradientRight)"
-            stroke="rgba(255, 255, 255, 0.2)"
-            strokeWidth="1.2"
-            style={{ pointerEvents: 'none' }}
-          />
+          <g style={{ pointerEvents: 'none' }}>
+            <path
+              d="M 662 322
+                 Q 648 262 628 222
+                 Q 606 209 582 204
+                 Q 559 200 536 198
+                 Q 513 200 490 204
+                 Q 468 222 454 256
+                 Q 446 282 456 322 Z"
+              fill="url(#handGlassRight)"
+              stroke="url(#palmRimFade)"
+              strokeWidth="1.25"
+            />
+            {/* Subtle dorsal metacarpal contour lines */}
+            <path d="M 602 290 Q 594 248 582 214" stroke="rgba(255,255,255,0.07)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M 562 292 Q 550 246 536 208" stroke="rgba(255,255,255,0.08)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            <path d="M 522 292 Q 508 248 492 214" stroke="rgba(255,255,255,0.07)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          </g>
 
           {/* RIGHT HAND FINGERS */}
-          {renderAnatomicalFinger(rightKnuckles.thumb, { x: 445, y: fingerPositions.thumb.y }, targetFinger === 'thumb', 25, 21, 'handGradientRight', true)}
-          {renderAnatomicalFinger(rightKnuckles.index, fingerPositions['index-r'], targetFinger === 'index-r', 24, 19, 'handGradientRight')}
-          {renderAnatomicalFinger(rightKnuckles.mid, fingerPositions['mid-r'], targetFinger === 'mid-r', 23, 19, 'handGradientRight')}
-          {renderAnatomicalFinger(rightKnuckles.ring, fingerPositions['ring-r'], targetFinger === 'ring-r', 22, 18, 'handGradientRight')}
-          {renderAnatomicalFinger(rightKnuckles.pinky, fingerPositions['pinky-r'], targetFinger === 'pinky-r', 20, 17, 'handGradientRight')}
+          {renderAnatomicalFinger(RIGHT_KNUCKLES.thumb, { x: 438, y: fingerPositions.thumb.y }, 'thumb', targetFinger === 'thumb', 24, 19.5, 'handGlassRight', true)}
+          {renderAnatomicalFinger(RIGHT_KNUCKLES.index, fingerPositions['index-r'], 'index-r', targetFinger === 'index-r', 23, 18, 'handGlassRight')}
+          {renderAnatomicalFinger(RIGHT_KNUCKLES.mid, fingerPositions['mid-r'], 'mid-r', targetFinger === 'mid-r', 22.5, 18, 'handGlassRight')}
+          {renderAnatomicalFinger(RIGHT_KNUCKLES.ring, fingerPositions['ring-r'], 'ring-r', targetFinger === 'ring-r', 21, 17, 'handGlassRight')}
+          {renderAnatomicalFinger(RIGHT_KNUCKLES.pinky, fingerPositions['pinky-r'], 'pinky-r', targetFinger === 'pinky-r', 19, 15.5, 'handGlassRight')}
         </svg>
       </div>
     </div>

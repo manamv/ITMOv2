@@ -500,4 +500,52 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     expect(unlocked.length).toBeGreaterThan(0)
     expect(achievementsService.getUnlockedCount()).toBeGreaterThan(0)
   })
+
+  it('TopicQuizView: clicking any word in the quiz question opens inline WordPopover with translation', async () => {
+    const lesson = {
+      id: 'pres-perf',
+      title: 'present perfect vs past simple',
+      level: 'B1',
+      description: 'Test',
+      sentences: []
+    }
+    render(<TopicQuizView lesson={lesson} onComplete={vi.fn()} onSkip={vi.fn()} />)
+
+    // Click the word "database" inside the quiz sentence
+    const wordEl = screen.getByTestId('quiz-word-database')
+    fireEvent.click(wordEl)
+
+    const popover = await screen.findByTestId('word-popover')
+    expect(popover).toBeInTheDocument()
+    expect(popover).toHaveTextContent('база данных')
+  })
+
+  it('TopicSelector: filters topics using instant search input', () => {
+    const topics = [
+      { id: 'a1-articles', title: 'articles a an the', level: 'A1', description: 'артикли', sentenceCount: 3 },
+      { id: 'c1-mixed-cond', title: 'mixed conditionals', level: 'C1', description: 'смешанные условные', sentenceCount: 3 }
+    ]
+    render(<TopicSelector topics={topics} onSelectTopic={vi.fn()} onSelectAdaptive={vi.fn()} />)
+
+    const searchInput = screen.getByTestId('topic-search-input')
+    fireEvent.change(searchInput, { target: { value: 'mixed' } })
+
+    expect(screen.getByTestId('topic-card-c1-mixed-cond')).toBeInTheDocument()
+    expect(screen.queryByTestId('topic-card-a1-articles')).not.toBeInTheDocument()
+  })
+
+  it('TypingEngine: Back button calls onBack callback', () => {
+    const handleBack = vi.fn()
+    const lesson = {
+      id: 'a1-articles',
+      title: 'articles a an the',
+      level: 'A1',
+      description: 'Test',
+      sentences: [{ id: 's1', english: 'clean code', russian: 'чистый код' }]
+    }
+    render(<TypingEngine lesson={lesson} onFinish={vi.fn()} onBack={handleBack} />)
+
+    fireEvent.click(screen.getByTestId('typing-back-btn'))
+    expect(handleBack).toHaveBeenCalledTimes(1)
+  })
 })

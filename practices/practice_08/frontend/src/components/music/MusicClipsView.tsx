@@ -1,13 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Music, Play, Pause, Volume2, BookOpen, Sparkles, ChevronRight, Headphones, Bot, Flame, RotateCcw, ArrowLeft } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  Music,
+  Play,
+  Pause,
+  Volume2,
+  BookOpen,
+  Sparkles,
+  ChevronRight,
+  Headphones,
+  Bot,
+  Flame,
+  RotateCcw,
+  ArrowLeft,
+  Crosshair
+} from 'lucide-react'
 import type { MusicLesson, LessonData } from '../../types'
 import { api } from '../../services/api'
 import { soundService } from '../../services/sound'
 
+interface YTPlayerInstance {
+  playVideo?: () => void
+  pauseVideo?: () => void
+  seekTo?: (seconds: number, allowSeekAhead?: boolean) => void
+  getCurrentTime?: () => number
+  getPlayerState?: () => number
+  cueVideoById?: (videoId: string) => void
+  loadVideoById?: (videoId: string) => void
+  destroy?: () => void
+}
+
 declare global {
   interface Window {
     onYouTubeIframeAPIReady?: () => void
-    YT?: any
+    YT?: {
+      Player: new (
+        element: HTMLElement | string,
+        options: {
+          width?: string | number
+          height?: string | number
+          videoId?: string
+          playerVars?: Record<string, string | number>
+          events?: {
+            onReady?: () => void
+            onStateChange?: (event: { data: number }) => void
+          }
+        }
+      ) => YTPlayerInstance
+    }
   }
 }
 
@@ -16,62 +55,72 @@ interface MusicClipsViewProps {
   onBack?: () => void
 }
 
+function extractYouTubeId(url: string): string {
+  const match = url.match(/embed\/([a-zA-Z0-9_-]+)/)
+  return match ? match[1] : '04854XqcfCY'
+}
+
 // Deep AI Meaning Analysis for famous tracks
-const AI_SONG_ANALYSES: Record<string, {
-  mainTheme: string
-  culturalContext: string
-  metaphors: Array<{ quote: string; meaning: string }>
-  emotionalTone: string
-}> = {
+const AI_SONG_ANALYSES: Record<
+  string,
+  {
+    mainTheme: string
+    culturalContext: string
+    metaphors: Array<{ quote: string; meaning: string }>
+    emotionalTone: string
+  }
+> = {
   'queen-champions': {
-    mainTheme: 'Триумф несгибаемой воли через преодоление боли, несправедливости и сомнений.',
-    culturalContext: 'Написанная Фредди Меркьюри в 1977 году, песня создавалась как стадионный манифест единства. Меркьюри подчеркивал, что это гимн не элитарных победителей, а каждого простого человека, выдержавшего удары судьбы.',
+    mainTheme:
+      'Гимн преодоления, упорства и триумфа вопреки критике и поражениям. Фредди Меркьюри написал эту песню как манифест внутренней победы, объединяющий слушателей.',
+    culturalContext:
+      'Выпущена в 1977 году на альбоме «News of the World». Вошла в историю как главный стадионный гимн мира, где фраза «we are» намеренно стирает грань между артистом и залом.',
     metaphors: [
       {
         quote: 'i have paid my dues time after time',
-        meaning: 'Метафора «оплаты членских взносов» в контексте жизни: тяжелый труд, жертвы и испытания, которые человек прошел, чтобы заслужить свое место.'
+        meaning: '«Заплатил по счетам» — идиома: прошёл через все трудности и заслужил право на успех.'
       },
       {
-        quote: 'sand kicked in my face but i have come through',
-        meaning: 'Отсылка к американской идиоме о слабаке на пляже, которому хулиганы сыплют песок в лицо. Символизирует унижение и насмешки завистников, преодоленные с достоинством.'
+        quote: 'sand kicked in my face',
+        meaning: 'Метафора публичного унижения, насмешек и недооценки со стороны окружающих.'
       },
       {
-        quote: 'no time for losers because we are the champions',
-        meaning: 'Фредди отвергает позицию жертвы: в борьбе за свою мечту нельзя опускать руки и застревать в поражениях.'
+        quote: 'no bed of roses',
+        meaning: '«Не ложе из роз» — признание того, что путь к вершине никогда не был лёгким.'
       }
     ],
-    emotionalTone: 'Героический, монументальный, вдохновляющий.'
+    emotionalTone: 'Триумфальный, воодушевляющий, величественный.'
   },
   'coldplay-scientist': {
-    mainTheme: 'Парадокс рационализма: попытка просчитать любовь законами науки и невозможность отмотать время назад.',
-    culturalContext: 'Клип, снятый задом наперед (in reverse), идеально визуализирует главную идею песни: отчаянное желание вернуть всё к моменту до роковой ошибки («let us go back to the start»).',
+    mainTheme:
+      'Конфликт между рациональной наукой (логикой) и иррациональными человеческими чувствами. Герой осознаёт, что любовь нельзя просчитать формулами.',
+    culturalContext:
+      'Написана Крисом Мартином в Ливерпуле после прослушивания Джорджа Харрисона. Знаменитый клип снят в обратном времени (reverse motion), символизируя желание «вернуться к началу».',
     metaphors: [
       {
-        quote: 'running in circles coming up tails heads on a science apart',
-        meaning: 'Метафора подбрасывания монетки и бега по кругу: попытка применить холодную теорию вероятностей к иррациональным чувствам.'
+        quote: 'questions of science... do not speak as loud as my heart',
+        meaning: 'Рациональный анализ бессилен перед эмоциональной болью и искренним раскаянием.'
       },
       {
-        quote: 'i had to find you tell you i set you apart',
-        meaning: '«Set apart» — выделить среди всей вселенной, признать единственной ценностью перед лицом пустоты.'
+        quote: 'running in circles, coming up tails',
+        meaning: 'Бег по кругу без выхода и «выпала решка» — ощущение проигрыша в игре с судьбой.'
       },
       {
-        quote: 'nobody said it was easy it is such a shame for us to part',
-        meaning: 'Принятие горькой правды: отношения требуют душевной работы, а расставание оставляет незаживающий след.'
+        quote: 'take me back to the start',
+        meaning: 'Тоска по моменту до совершения роковой ошибки.'
       }
     ],
-    emotionalTone: 'Меланхоличный, интимный, исповедальный.'
+    emotionalTone: 'Меланхоличный, искренний, ностальгический.'
   },
   'beatles-yesterday': {
-    mainTheme: 'Ностальгия по утраченной юношеской невинности и внезапное столкновение со взрослой уязвимостью.',
-    culturalContext: 'Мелодия пришла Полу Маккартни во сне. Песня стала одной из самых исполняемых в истории музыки благодаря универсальности чувства внезапной потери опоры под ногами.',
+    mainTheme:
+      'Внезапная утрата гармонии и шок от того, как быстро беззаботное «вчера» сменяется тревогой настоящего.',
+    culturalContext:
+      'Пол Маккартни услышал мелодию во сне в 1965 году. Одна из самых записываемых песен в истории мировой музыки (более 2200 кавер-версий).',
     metaphors: [
       {
-        quote: 'yesterday all my troubles seemed so far away',
-        meaning: '«Вчера» здесь — не просто прошлые сутки, а целая эпоха безмятежности и душевного покоя до роковой ошибки.'
-      },
-      {
-        quote: 'suddenly i am not half the man i used to be',
-        meaning: 'Метафора потери целостности личности: без любимого человека герой чувствует себя лишь тенью прежнего себя.'
+        quote: 'i am not half the man i used to be',
+        meaning: 'Гипербола эмоционального опустошения после разрыва.'
       },
       {
         quote: 'there is a shadow hanging over me',
@@ -83,167 +132,53 @@ const AI_SONG_ANALYSES: Record<string, {
 }
 
 export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, onBack }) => {
-  const [songsList, setSongsList] = useState<Array<{ id: string; title: string; artist: string; level: string; thumbnailUrl: string; grammarFocus: string; sentenceCount: number }>>([])
+  const [songsList, setSongsList] = useState<
+    Array<{
+      id: string
+      title: string
+      artist: string
+      level: string
+      thumbnailUrl: string
+      grammarFocus: string
+      sentenceCount: number
+    }>
+  >([])
   const [selectedSongId, setSelectedSongId] = useState<string>('queen-champions')
   const [currentSong, setCurrentSong] = useState<MusicLesson | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [activeSubtitleId, setActiveSubtitleId] = useState<number>(1)
   const [activeTab, setActiveTab] = useState<'grammar' | 'ai-meaning'>('grammar')
 
-  // Real-time Karaoke Playback State
+  // Minimal reactive karaoke state (only updates on line/word transitions — zero per-frame lag!)
   const [isKaraokePlaying, setIsKaraokePlaying] = useState<boolean>(false)
-  const [playbackTime, setPlaybackTime] = useState<number>(0.0)
+  const [activeSubtitleId, setActiveSubtitleId] = useState<number>(1)
+  const [activeWordIdx, setActiveWordIdx] = useState<number>(-1)
+  const [isInIntro, setIsInIntro] = useState<boolean>(false)
   const [timingOffset, setTimingOffset] = useState<number>(0.0)
+  const [syncFlashMsg, setSyncFlashMsg] = useState<string | null>(null)
 
+  // Direct DOM refs for buttery 60-FPS updates without React re-renders
+  const ytHostRef = useRef<HTMLDivElement>(null)
+  const ytPlayerRef = useRef<YTPlayerInstance | null>(null)
+  const ytPlayerReadyRef = useRef<boolean>(false)
   const activeSubtitleRef = useRef<HTMLDivElement>(null)
   const subtitlesScrollContainerRef = useRef<HTMLDivElement>(null)
-  const ytPlayerRef = useRef<any>(null)
+  const activeProgressBarRef = useRef<HTMLDivElement>(null)
+  const timeDisplayRef = useRef<HTMLSpanElement>(null)
+  const introCountdownRef = useRef<HTMLSpanElement>(null)
+
+  // Mutable high-precision clock refs
+  const currentTimeRef = useRef<number>(0)
   const seekingUntilRef = useRef<number>(0)
-  const seekTargetTimeRef = useRef<number>(0)
-  const activeSubtitleIdRef = useRef(activeSubtitleId)
-  activeSubtitleIdRef.current = activeSubtitleId
-  const timingOffsetRef = useRef(timingOffset)
+  const activeSubIdRef = useRef<number>(1)
+  const activeWordIdxRef = useRef<number>(-1)
+  const isInIntroRef = useRef<boolean>(false)
+  const timingOffsetRef = useRef<number>(0)
   timingOffsetRef.current = timingOffset
 
-  // Direct postMessage command to YouTube iframe with handshake
-  const sendYtCommand = (func: string, args: any[] = []) => {
-    if (typeof window === 'undefined') return
-    const iframe = document.getElementById('youtube-karaoke-iframe') as HTMLIFrameElement | null
-    if (iframe && iframe.contentWindow) {
-      try {
-        iframe.contentWindow.postMessage('{"event":"listening"}', '*')
-        iframe.contentWindow.postMessage(
-          JSON.stringify({
-            event: 'command',
-            func: func,
-            args: args
-          }),
-          '*'
-        )
-      } catch {}
-    }
-  }
-
-  // Safe seek and play helper that prevents postMessage race conditions and frame lag
-  const executeSeekAndPlay = (targetTime: number, subId?: number) => {
-    seekingUntilRef.current = Date.now() + 600
-    seekTargetTimeRef.current = targetTime
-    setPlaybackTime(targetTime)
-    if (subId !== undefined) {
-      setActiveSubtitleId(subId)
-    }
-
-    if (ytPlayerRef.current?.seekTo) {
-      try {
-        ytPlayerRef.current.seekTo(targetTime, true)
-        ytPlayerRef.current.playVideo()
-      } catch {}
-    } else {
-      sendYtCommand('seekTo', [targetTime, true])
-      sendYtCommand('playVideo')
-    }
-    setIsKaraokePlaying(true)
-  }
-
-  // Jump to specific word in the video
-  const handlePlayWord = (e: React.MouseEvent, wordStart: number, subId: number) => {
-    e.stopPropagation()
-    executeSeekAndPlay(wordStart, subId)
-  }
-
-  // Skip instrumental intro directly to the first singing word
-  const handleSkipIntro = () => {
-    if (!currentSong || currentSong.subtitles.length === 0) return
-    const firstVocalStart = currentSong.subtitles[0].startSeconds || 0.0
-    executeSeekAndPlay(firstVocalStart, currentSong.subtitles[0].id)
-  }
-
-  // Dynamically load YouTube IFrame API script once
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (!window.YT) {
-      const tag = document.createElement('script')
-      tag.src = 'https://www.youtube.com/iframe_api'
-      const firstScriptTag = document.getElementsByTagName('script')[0]
-      if (firstScriptTag && firstScriptTag.parentNode) {
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-      } else {
-        document.body.appendChild(tag)
-      }
-    }
-  }, [])
-
-  // Listen to real-time YouTube postMessage playback notifications (ONLY for state changes to avoid race conditions)
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        if (!event.data) return
-        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
-        if (data && data.event === 'infoDelivery' && data.info) {
-          if (data.info.playerState === 1) {
-            setIsKaraokePlaying(true)
-          } else if (data.info.playerState === 2 || data.info.playerState === 0) {
-            setIsKaraokePlaying(false)
-          }
-        }
-      } catch {
-        // ignore non-json messages
-      }
-    }
-
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [])
-
-  // Attach YouTube Player as soon as currentSong and iframe are rendered
-  useEffect(() => {
-    if (typeof window === 'undefined' || !currentSong) return
-
-    let cancelled = false
-
-    const tryInitPlayer = () => {
-      if (cancelled) return
-      if (!window.YT || !window.YT.Player) return
-      const iframeEl = document.getElementById('youtube-karaoke-iframe')
-      if (!iframeEl) return
-
-      try {
-        if (!ytPlayerRef.current) {
-          ytPlayerRef.current = new window.YT.Player('youtube-karaoke-iframe', {
-            events: {
-              onReady: () => {
-                sendYtCommand('listening')
-              },
-              onStateChange: (event: any) => {
-                // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
-                if (event.data === 1) {
-                  setIsKaraokePlaying(true)
-                } else if (event.data === 2 || event.data === 0) {
-                  setIsKaraokePlaying(false)
-                }
-              }
-            }
-          })
-        }
-      } catch {
-        // safe fallback
-      }
-    }
-
-    if (window.YT && window.YT.Player) {
-      tryInitPlayer()
-    } else {
-      window.onYouTubeIframeAPIReady = tryInitPlayer
-    }
-
-    const timer = setTimeout(tryInitPlayer, 400)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [currentSong?.id])
+  // Keep refs synced with React state
+  activeSubIdRef.current = activeSubtitleId
+  activeWordIdxRef.current = activeWordIdx
+  isInIntroRef.current = isInIntro
 
   // Load songs list on mount
   useEffect(() => {
@@ -265,7 +200,9 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
       }
     }
     load()
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Load selected song details
@@ -274,20 +211,28 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
     const loadSong = async () => {
       try {
         const song = await api.getMusicLesson(selectedSongId)
-        if (isMounted) {
-          setCurrentSong(song)
-          setPlaybackTime(0)
-          setIsKaraokePlaying(false)
-          if (song.subtitles.length > 0) {
-            setActiveSubtitleId(song.subtitles[0].id)
-          }
+        if (!isMounted) return
 
-          // If YT player exists, update video
-          if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
-            const match = song.videoUrl.match(/embed\/([a-zA-Z0-9_-]+)/)
-            if (match && match[1]) {
-              ytPlayerRef.current.loadVideoById(match[1])
-            }
+        setCurrentSong(song)
+        currentTimeRef.current = 0
+        setTimingOffset(0)
+        setIsKaraokePlaying(false)
+        setActiveWordIdx(-1)
+        setIsInIntro(false)
+        if (timeDisplayRef.current) {
+          timeDisplayRef.current.textContent = '0.0 сек'
+        }
+        if (song.subtitles.length > 0) {
+          setActiveSubtitleId(song.subtitles[0].id)
+        }
+
+        // Switch video cleanly on existing YT.Player instance without detaching API
+        const videoId = extractYouTubeId(song.videoUrl)
+        if (ytPlayerRef.current && ytPlayerReadyRef.current && typeof ytPlayerRef.current.cueVideoById === 'function') {
+          try {
+            ytPlayerRef.current.cueVideoById(videoId)
+          } catch {
+            // safe fallback
           }
         }
       } catch {
@@ -295,73 +240,210 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
       }
     }
     loadSong()
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [selectedSongId])
 
-  // Real-time karaoke sync loop connected directly with YouTube video timestamp
+  // Initialize official YouTube IFrame Player API cleanly once
+  useEffect(() => {
+    if (typeof window === 'undefined' || !currentSong) return
+
+    let cancelled = false
+    const videoId = extractYouTubeId(currentSong.videoUrl)
+
+    const mountPlayer = () => {
+      if (cancelled || !window.YT?.Player || !ytHostRef.current || ytPlayerRef.current) return
+
+      try {
+        ytPlayerRef.current = new window.YT.Player(ytHostRef.current, {
+          width: '100%',
+          height: '100%',
+          videoId,
+          playerVars: {
+            enablejsapi: 1,
+            modestbranding: 1,
+            rel: 0,
+            playsinline: 1,
+            origin: window.location.origin
+          },
+          events: {
+            onReady: () => {
+              ytPlayerReadyRef.current = true
+            },
+            onStateChange: (event) => {
+              // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
+              if (event.data === 1) {
+                setIsKaraokePlaying(true)
+              } else if (event.data === 2 || event.data === 0) {
+                setIsKaraokePlaying(false)
+              }
+            }
+          }
+        })
+      } catch {
+        // Safe fallback for environments where YT API is unavailable
+      }
+    }
+
+    if (window.YT?.Player) {
+      mountPlayer()
+    } else {
+      const prevCallback = window.onYouTubeIframeAPIReady
+      window.onYouTubeIframeAPIReady = () => {
+        prevCallback?.()
+        mountPlayer()
+      }
+
+      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        const tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        document.head.appendChild(tag)
+      }
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [currentSong !== null])
+
+  // Cleanup player on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        ytPlayerRef.current?.destroy?.()
+      } catch {
+        // ignore cleanup errors
+      }
+      ytPlayerRef.current = null
+      ytPlayerReadyRef.current = false
+    }
+  }, [])
+
+  // 60-FPS Zero-Lag requestAnimationFrame Karaoke Sync Loop with Sub-Tick Interpolation
   useEffect(() => {
     if (!isKaraokePlaying || !currentSong || currentSong.subtitles.length === 0) return
 
-    let lastTimestamp = performance.now()
+    let rafId = 0
+    let lastYtReading = -1
+    let anchorYtTime = currentTimeRef.current
+    let anchorPerfTime = performance.now()
+    let lastFallbackPerf = performance.now()
 
-    const interval = setInterval(() => {
-      // If we recently executed a seek, wait for YouTube to settle without rubber-banding
+    const tick = (now: number) => {
       if (Date.now() < seekingUntilRef.current) {
+        rafId = requestAnimationFrame(tick)
         return
       }
 
-      let currentTime = -1
+      let liveTime = currentTimeRef.current
 
-      // 1. Prioritize YouTube player's exact real-time playback position
-      if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
+      // 1. Read exact YouTube playback time & smoothly interpolate between YouTube's ~250ms clock ticks
+      if (ytPlayerRef.current && ytPlayerReadyRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
         try {
           const ytTime = ytPlayerRef.current.getCurrentTime()
           if (typeof ytTime === 'number' && !isNaN(ytTime) && ytTime >= 0) {
-            currentTime = ytTime
+            if (Math.abs(ytTime - lastYtReading) > 0.005) {
+              lastYtReading = ytTime
+              anchorYtTime = ytTime
+              anchorPerfTime = now
+              liveTime = ytTime
+            } else {
+              // Smoothly interpolate up to 0.35s between YT API ticks for silky 60fps progress
+              const elapsed = Math.min(0.35, (now - anchorPerfTime) / 1000)
+              liveTime = anchorYtTime + elapsed
+            }
           }
         } catch {
-          // fallback to high-precision wall clock ticker below
-        }
-      }
-
-      if (currentTime >= 0) {
-        lastTimestamp = performance.now()
-        setPlaybackTime(currentTime)
-
-        // Find matching subtitle line taking timing offset into account
-        const effTime = currentTime + timingOffsetRef.current
-        const match = currentSong.subtitles.find(s => effTime >= s.startSeconds && effTime <= s.endSeconds)
-        if (match && match.id !== activeSubtitleIdRef.current) {
-          setActiveSubtitleId(match.id)
+          // fallback below
         }
       } else {
-        // 2. High-precision wall-clock fallback if YouTube player is unavailable (tests or offline)
-        const now = performance.now()
-        const deltaSec = (now - lastTimestamp) / 1000
-        lastTimestamp = now
-
-        setPlaybackTime(prev => {
-          const next = Math.round((prev + deltaSec) * 100) / 100
-          const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
-          if (next > maxTime + 5.0) {
-            setIsKaraokePlaying(false)
-            return 0
-          }
-
-          const effNext = next + timingOffsetRef.current
-          const match = currentSong.subtitles.find(s => effNext >= s.startSeconds && effNext <= s.endSeconds)
-          if (match && match.id !== activeSubtitleIdRef.current) {
-            setActiveSubtitleId(match.id)
-          }
-          return next
-        })
+        // 2. Wall-clock fallback (offline / tests)
+        const deltaSec = (now - lastFallbackPerf) / 1000
+        lastFallbackPerf = now
+        liveTime = currentTimeRef.current + deltaSec
+        const maxTime = currentSong.subtitles[currentSong.subtitles.length - 1].endSeconds
+        if (liveTime > maxTime + 5.0) {
+          setIsKaraokePlaying(false)
+          currentTimeRef.current = 0
+          return
+        }
       }
-    }, 100)
 
-    return () => clearInterval(interval)
+      currentTimeRef.current = liveTime
+
+      // Direct DOM update for timer display (zero React re-renders!)
+      if (timeDisplayRef.current) {
+        timeDisplayRef.current.textContent = `${liveTime.toFixed(1)} сек`
+      }
+
+      const effTime = Math.max(0, liveTime + timingOffsetRef.current)
+      const firstStart = currentSong.subtitles[0].startSeconds
+      const nowInIntro = effTime < firstStart
+
+      if (nowInIntro !== isInIntroRef.current) {
+        isInIntroRef.current = nowInIntro
+        setIsInIntro(nowInIntro)
+      }
+
+      if (nowInIntro && introCountdownRef.current) {
+        introCountdownRef.current.textContent = `${Math.max(0, firstStart - effTime).toFixed(1)}с`
+      }
+
+      // Find active subtitle line
+      const match = currentSong.subtitles.find(
+        s => effTime >= s.startSeconds && effTime <= s.endSeconds
+      )
+
+      if (match) {
+        if (match.id !== activeSubIdRef.current) {
+          activeSubIdRef.current = match.id
+          setActiveSubtitleId(match.id)
+        }
+
+        // Compute exact active word index
+        let nextWordIdx = -1
+        if (match.words && match.words.length > 0) {
+          nextWordIdx = match.words.findIndex(w => effTime >= w.start && effTime <= w.end)
+          if (nextWordIdx === -1) {
+            for (let i = match.words.length - 1; i >= 0; i--) {
+              if (effTime >= match.words[i].start) {
+                nextWordIdx = i
+                break
+              }
+            }
+          }
+        } else {
+          const wordsCount = match.textEn.split(' ').length
+          const dur = Math.max(0.1, match.endSeconds - match.startSeconds)
+          const progress = Math.max(0, Math.min(1, (effTime - match.startSeconds) / dur))
+          nextWordIdx = Math.min(wordsCount - 1, Math.floor(progress * wordsCount))
+        }
+
+        if (nextWordIdx !== activeWordIdxRef.current) {
+          activeWordIdxRef.current = nextWordIdx
+          setActiveWordIdx(nextWordIdx)
+        }
+
+        // Direct DOM update for silky 60fps progress bar (zero React re-renders!)
+        if (activeProgressBarRef.current) {
+          const dur = Math.max(0.1, match.endSeconds - match.startSeconds)
+          const pct = Math.max(0, Math.min(100, ((effTime - match.startSeconds) / dur) * 100))
+          activeProgressBarRef.current.style.width = `${pct.toFixed(1)}%`
+        }
+      } else if (activeWordIdxRef.current !== -1) {
+        activeWordIdxRef.current = -1
+        setActiveWordIdx(-1)
+      }
+
+      rafId = requestAnimationFrame(tick)
+    }
+
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
   }, [isKaraokePlaying, currentSong])
 
-  // Auto-scroll active subtitle line smoothly inside container
+  // Auto-scroll active subtitle line smoothly inside its container only
   useEffect(() => {
     const container = subtitlesScrollContainerRef.current
     const activeEl = activeSubtitleRef.current
@@ -380,50 +462,100 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
     }
   }, [activeSubtitleId])
 
-  // Toggle video playback and karaoke synchronization simultaneously
+  const executeSeekAndPlay = useCallback((targetTime: number, subId?: number) => {
+    seekingUntilRef.current = Date.now() + 500
+    currentTimeRef.current = targetTime
+    if (timeDisplayRef.current) {
+      timeDisplayRef.current.textContent = `${targetTime.toFixed(1)} сек`
+    }
+    if (subId !== undefined) {
+      activeSubIdRef.current = subId
+      setActiveSubtitleId(subId)
+    }
+
+    if (ytPlayerRef.current?.seekTo && ytPlayerReadyRef.current) {
+      try {
+        ytPlayerRef.current.seekTo(targetTime, true)
+        ytPlayerRef.current.playVideo?.()
+      } catch {
+        // ignore
+      }
+    }
+    setIsKaraokePlaying(true)
+  }, [])
+
+  const handlePlayWord = (e: React.MouseEvent, wordStart: number, subId: number) => {
+    e.stopPropagation()
+    executeSeekAndPlay(Math.max(0, wordStart - timingOffsetRef.current), subId)
+  }
+
+  const handleSkipIntro = () => {
+    if (!currentSong || currentSong.subtitles.length === 0) return
+    const firstVocalStart = Math.max(0, currentSong.subtitles[0].startSeconds - timingOffsetRef.current)
+    executeSeekAndPlay(firstVocalStart, currentSong.subtitles[0].id)
+  }
+
   const handleToggleKaraoke = () => {
     if (isKaraokePlaying) {
-      if (ytPlayerRef.current?.pauseVideo) {
-        try { ytPlayerRef.current.pauseVideo() } catch {}
-      } else {
-        sendYtCommand('pauseVideo')
+      try {
+        ytPlayerRef.current?.pauseVideo?.()
+      } catch {
+        // ignore
       }
       setIsKaraokePlaying(false)
     } else {
-      if (ytPlayerRef.current?.playVideo) {
-        try { ytPlayerRef.current.playVideo() } catch {}
-      } else {
-        sendYtCommand('playVideo')
+      try {
+        ytPlayerRef.current?.playVideo?.()
+      } catch {
+        // ignore
       }
       setIsKaraokePlaying(true)
     }
   }
 
-  // Jump to subtitle line and start video playback from that second
   const handlePlayLine = (text: string, id: number, startSec: number) => {
-    executeSeekAndPlay(startSec, id)
+    executeSeekAndPlay(Math.max(0, startSec - timingOffsetRef.current), id)
     soundService.speakText(text, 1.0)
   }
 
-  // Reset video and karaoke to beginning
-  const handleResetToStart = () => {
-    seekingUntilRef.current = Date.now() + 600
-    seekTargetTimeRef.current = 0
-    if (ytPlayerRef.current?.seekTo) {
+  // Smart Live Sync Lock: aligns the entire song's lyrics to the exact millisecond you hear this line!
+  const handleSyncToThisLine = (e: React.MouseEvent, subStartSeconds: number, subId: number) => {
+    e.stopPropagation()
+    let rawTime = currentTimeRef.current
+    if (ytPlayerRef.current?.getCurrentTime && ytPlayerReadyRef.current) {
       try {
-        ytPlayerRef.current.seekTo(0, true)
-        ytPlayerRef.current.pauseVideo()
-      } catch {}
-    } else {
-      sendYtCommand('seekTo', [0, true])
-      sendYtCommand('pauseVideo')
+        const yt = ytPlayerRef.current.getCurrentTime()
+        if (typeof yt === 'number' && !isNaN(yt)) rawTime = yt
+      } catch {
+        // use ref time
+      }
     }
-    setPlaybackTime(0)
+    const newOffset = Math.round((subStartSeconds - rawTime) * 10) / 10
+    setTimingOffset(newOffset)
+    activeSubIdRef.current = subId
+    setActiveSubtitleId(subId)
+    setSyncFlashMsg(`Синхронизировано (${newOffset >= 0 ? '+' : ''}${newOffset}с)`)
+    setTimeout(() => setSyncFlashMsg(null), 2200)
+  }
+
+  const handleResetToStart = () => {
+    seekingUntilRef.current = Date.now() + 500
+    currentTimeRef.current = 0
+    if (timeDisplayRef.current) {
+      timeDisplayRef.current.textContent = '0.0 сек'
+    }
+    try {
+      ytPlayerRef.current?.seekTo?.(0, true)
+      ytPlayerRef.current?.pauseVideo?.()
+    } catch {
+      // ignore
+    }
     setIsKaraokePlaying(false)
+    setActiveWordIdx(-1)
+    setIsInIntro(false)
     setActiveSubtitleId(currentSong?.subtitles[0]?.id || 1)
   }
 
-  // Handle start typing session
   const handleStartTypingLesson = () => {
     if (!currentSong) return
 
@@ -463,11 +595,11 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
             <h1 className="text-lg font-bold text-white flex items-center gap-2">
               Музыкальные клипы & Разбор грамматики
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-sky-300 border border-white/[0.08] font-mono">
-                AI Cultural Lyrics + Touch Typing
+                60fps Studio Sync
               </span>
             </h1>
             <p className="text-xs text-slate-400 mt-0.5">
-              Смотрите клип с автопрокруткой караоке, изучайте смысл от AI и тренируйте скоропечатание!
+              Смотрите клип с пословной синхронизацией караоке, изучайте смысл от AI и тренируйте скоропечатание!
             </p>
           </div>
         </div>
@@ -519,22 +651,18 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
           <div className="lg:col-span-7 space-y-4">
             {/* Video Player Card */}
             <div className="rounded-3xl bg-[#090d16] border border-white/[0.08] overflow-hidden shadow-2xl shadow-black/80">
-              <div className="relative aspect-video w-full bg-[#050811] flex items-center justify-center">
-                <iframe
-                  id="youtube-karaoke-iframe"
-                  className="w-full h-full"
-                  src={`${currentSong.videoUrl}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
-                  title={`${currentSong.artist} - ${currentSong.title}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              <div className="relative aspect-video w-full bg-[#050810] flex items-center justify-center">
+                {/* Official YouTube IFrame API stable mount container */}
+                <div ref={ytHostRef} className="w-full h-full" />
               </div>
 
               {/* Player Header bar & Karaoke Controls */}
-              <div className="p-3.5 bg-white/[0.02] flex items-center justify-between border-t border-white/[0.06]">
+              <div className="p-3.5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
                 <div>
                   <h3 className="text-xs font-bold text-white flex items-center gap-2">
-                    <span>{currentSong.artist} — {currentSong.title}</span>
+                    <span>
+                      {currentSong.artist} — {currentSong.title}
+                    </span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 font-mono font-normal border border-sky-500/20">
                       Studio Karaoke Sync
                     </span>
@@ -580,58 +708,69 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
               </div>
             </div>
 
-            {/* Synchronized Karaoke Subtitles with Real-time Word-by-Word Highlighting & Calibration */}
+            {/* Synchronized Karaoke Subtitles with 60fps Direct DOM Progress & Live Sync Lock */}
             <div className="p-5 rounded-3xl bg-[#090d16] border border-white/[0.08] space-y-3 shadow-2xl shadow-black/60">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                   <Headphones className="w-3.5 h-3.5 text-sky-400" />
                   <span>Караоке-субтитры</span>
-                  <span className="text-[10px] text-sky-300 font-mono font-normal lowercase bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
-                    пословная синхронизация
-                  </span>
+                  {syncFlashMsg ? (
+                    <span className="text-[10px] text-emerald-300 font-mono font-semibold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-400/30 animate-fade-in">
+                      ✓ {syncFlashMsg}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-sky-300 font-mono font-normal lowercase bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                      пословная синхронизация
+                    </span>
+                  )}
                 </h4>
 
                 <div className="flex items-center space-x-3 font-mono text-xs">
                   {/* Calibration offset controls */}
-                  <div className="flex items-center space-x-1 bg-white/[0.02] px-2 py-0.5 rounded-xl border border-white/[0.06] text-[11px]" title="Калибровка сдвига тайминга под ваше аудио">
+                  <div
+                    className="flex items-center space-x-1 bg-white/[0.02] px-2 py-0.5 rounded-xl border border-white/[0.06] text-[11px]"
+                    title="Точная подстройка сдвига субтитров под звук"
+                  >
                     <span className="text-slate-500 text-[10px]">Сдвиг:</span>
                     <button
                       onClick={() => setTimingOffset(prev => Math.round((prev - 0.2) * 10) / 10)}
-                      className="px-1.5 py-0.2 rounded hover:bg-sky-500/20 text-sky-300 transition cursor-pointer"
+                      className="px-1.5 py-0.5 rounded hover:bg-sky-500/20 text-sky-300 transition cursor-pointer"
                       title="-0.2с"
                     >
                       -0.2s
                     </button>
                     <button
                       onClick={() => setTimingOffset(0)}
-                      className={`px-1.5 py-0.2 rounded transition cursor-pointer ${timingOffset === 0 ? 'text-slate-400' : 'text-sky-400 font-bold bg-sky-500/20'}`}
+                      className={`px-1.5 py-0.5 rounded transition cursor-pointer ${
+                        timingOffset === 0 ? 'text-slate-400' : 'text-sky-400 font-bold bg-sky-500/20'
+                      }`}
                       title="Сбросить сдвиг"
                     >
                       {timingOffset === 0 ? '0.0s' : `${timingOffset > 0 ? '+' : ''}${timingOffset}s`}
                     </button>
                     <button
                       onClick={() => setTimingOffset(prev => Math.round((prev + 0.2) * 10) / 10)}
-                      className="px-1.5 py-0.2 rounded hover:bg-sky-500/20 text-sky-300 transition cursor-pointer"
+                      className="px-1.5 py-0.5 rounded hover:bg-sky-500/20 text-sky-300 transition cursor-pointer"
                       title="+0.2с"
                     >
                       +0.2s
                     </button>
                   </div>
 
-                  <span className="text-sky-400 font-bold">
-                    {playbackTime.toFixed(1)} сек
+                  <span ref={timeDisplayRef} className="text-sky-400 font-bold min-w-[54px] text-right">
+                    0.0 сек
                   </span>
                 </div>
               </div>
 
               {/* Instrumental Intro Live Banner */}
-              {isKaraokePlaying && currentSong.subtitles[0] && (playbackTime + timingOffset) < currentSong.subtitles[0].startSeconds && (
-                <div className="p-3 rounded-2xl bg-sky-500/[0.06] border border-sky-400/30 flex items-center justify-between text-xs animate-pulse">
+              {isKaraokePlaying && isInIntro && currentSong.subtitles[0] && (
+                <div className="p-3 rounded-2xl bg-sky-500/[0.07] border border-sky-400/30 flex items-center justify-between text-xs">
                   <div className="flex items-center space-x-2 text-sky-300 font-mono">
-                    <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />
+                    <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse" />
                     <span>Вступление (инструментал) • Вокал через:</span>
-                    <span className="font-bold text-white text-sm">
-                      {Math.max(0, currentSong.subtitles[0].startSeconds - (playbackTime + timingOffset)).toFixed(1)}с
+                    <span ref={introCountdownRef} className="font-bold text-white text-sm">
+                      {currentSong.subtitles[0].startSeconds.toFixed(1)}с
                     </span>
                   </div>
                   <button
@@ -652,37 +791,13 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                 {currentSong.subtitles.map(sub => {
                   const isActive = activeSubtitleId === sub.id
                   const words = sub.textEn.split(' ')
-                  const effectiveTime = Math.max(0, playbackTime + timingOffset)
-
-                  // Determine active word index accurately using per-word intervals if available
-                  let activeWordIdx = -1
-                  if (isActive && isKaraokePlaying) {
-                    if (sub.words && sub.words.length > 0) {
-                      activeWordIdx = sub.words.findIndex(w => effectiveTime >= w.start && effectiveTime <= w.end)
-                      if (activeWordIdx === -1) {
-                        for (let i = sub.words.length - 1; i >= 0; i--) {
-                          if (effectiveTime >= sub.words[i].start) {
-                            activeWordIdx = i
-                            break
-                          }
-                        }
-                      }
-                    } else {
-                      const lineDuration = Math.max(0.1, sub.endSeconds - sub.startSeconds)
-                      const lineProgress = Math.max(0, Math.min(1, (effectiveTime - sub.startSeconds) / lineDuration))
-                      activeWordIdx = Math.min(words.length - 1, Math.floor(lineProgress * words.length))
-                    }
-                  }
-
-                  const lineDuration = Math.max(0.1, sub.endSeconds - sub.startSeconds)
-                  const lineProgress = Math.max(0, Math.min(1, (effectiveTime - sub.startSeconds) / lineDuration))
 
                   return (
                     <div
                       key={sub.id}
                       ref={isActive ? activeSubtitleRef : null}
                       onClick={() => handlePlayLine(sub.textEn, sub.id, sub.startSeconds)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                      className={`p-4 rounded-2xl border transition-colors cursor-pointer flex flex-col gap-2 ${
                         isActive
                           ? 'bg-white/[0.07] border-sky-400/50 text-white shadow-xl shadow-sky-500/10 ring-1 ring-sky-400/30'
                           : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] text-slate-400'
@@ -691,23 +806,27 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1.5 flex-1">
                           {/* Word-by-word karaoke highlighting with clickable jump */}
-                          <div className="font-mono text-sm sm:text-base leading-relaxed flex flex-wrap gap-2">
+                          <div className="font-mono text-sm sm:text-base leading-relaxed flex flex-wrap gap-1.5">
                             {words.map((w, wIdx) => {
-                              const isCurrentWord = isActive && wIdx === activeWordIdx
-                              const isPastWord = isActive && (activeWordIdx > -1 ? wIdx < activeWordIdx : false)
+                              const isCurrentWord = isActive && isKaraokePlaying && wIdx === activeWordIdx
+                              const isPastWord =
+                                isActive && isKaraokePlaying && activeWordIdx > -1 && wIdx < activeWordIdx
                               const wordTiming = sub.words?.[wIdx]
 
-                              let wordStyle = 'text-slate-400 hover:text-sky-300'
+                              let wordStyle = 'text-slate-400 hover:text-sky-300 px-0.5'
                               if (isCurrentWord) {
-                                wordStyle = 'text-white font-extrabold bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.35)] inline-block'
+                                wordStyle =
+                                  'text-white font-extrabold bg-sky-500/30 px-2 py-0.5 rounded-lg border border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.35)] inline-block'
                               } else if (isPastWord) {
-                                wordStyle = 'text-sky-300 font-medium'
+                                wordStyle = 'text-sky-300 font-medium px-0.5'
                               }
 
                               return (
                                 <span
                                   key={wIdx}
-                                  onClick={(e) => wordTiming ? handlePlayWord(e, wordTiming.start, sub.id) : undefined}
+                                  onClick={e =>
+                                    wordTiming ? handlePlayWord(e, wordTiming.start, sub.id) : undefined
+                                  }
                                   className={`${wordStyle} cursor-pointer`}
                                   title={wordTiming ? `Перейти к ${wordTiming.start}с` : undefined}
                                 >
@@ -717,25 +836,36 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                             })}
                           </div>
 
-                          <div className="text-xs text-slate-400">
-                            {sub.textRu}
-                          </div>
+                          <div className="text-xs text-slate-400">{sub.textRu}</div>
                         </div>
 
-                        <button
-                          className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-sky-400 shrink-0 transition"
-                          title="Прослушать строку"
-                        >
-                          <Volume2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center space-x-1 shrink-0">
+                          {/* Smart Live Sync Button: tap when you hear this line start */}
+                          {isKaraokePlaying && (
+                            <button
+                              onClick={e => handleSyncToThisLine(e, sub.startSeconds, sub.id)}
+                              className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-sky-500/20 text-slate-400 hover:text-sky-300 transition cursor-pointer"
+                              title="Поймать ритм: нажмите в момент, когда звучит начало этой строки"
+                            >
+                              <Crosshair className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-sky-400 transition cursor-pointer"
+                            title="Прослушать строку"
+                          >
+                            <Volume2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Line Progress Fill Bar */}
+                      {/* 60-FPS Direct DOM Progress Fill Bar */}
                       {isActive && isKaraokePlaying && (
                         <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
                           <div
-                            className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full"
-                            style={{ width: `${lineProgress * 100}%` }}
+                            ref={activeProgressBarRef}
+                            className="h-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-500 rounded-full"
+                            style={{ width: '0%' }}
                           />
                         </div>
                       )}
@@ -781,9 +911,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
               {/* TAB 1: GRAMMAR BREAKDOWN */}
               {activeTab === 'grammar' && (
                 <div className="space-y-2.5 animate-fade-in">
-                  <p className="text-xs text-slate-400">
-                    Грамматические конструкции из текста трека:
-                  </p>
+                  <p className="text-xs text-slate-400">Грамматические конструкции из текста трека:</p>
 
                   <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
                     {currentSong.grammarBreakdown.map((rule, idx) => (
@@ -792,9 +920,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                         className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-1.5 hover:border-white/[0.12] transition-all"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-sky-400">
-                            {rule.ruleTitle}
-                          </span>
+                          <span className="text-xs font-bold text-sky-400">{rule.ruleTitle}</span>
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] text-sky-300 border border-white/[0.08]">
                             {rule.grammarTag}
                           </span>
@@ -804,9 +930,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                           «{rule.lyricQuote}»
                         </div>
 
-                        <div className="text-xs text-slate-400 leading-relaxed">
-                          {rule.explanation}
-                        </div>
+                        <div className="text-xs text-slate-400 leading-relaxed">{rule.explanation}</div>
                       </div>
                     ))}
                   </div>
@@ -821,9 +945,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                       <Sparkles className="w-4 h-4 text-sky-400" />
                       <span>Главный философский посыл</span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      {aiAnalysis.mainTheme}
-                    </p>
+                    <p className="text-xs text-slate-300 leading-relaxed">{aiAnalysis.mainTheme}</p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-2">
@@ -831,9 +953,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                       <Flame className="w-4 h-4" />
                       <span>Культурный и исторический контекст</span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      {aiAnalysis.culturalContext}
-                    </p>
+                    <p className="text-xs text-slate-400 leading-relaxed">{aiAnalysis.culturalContext}</p>
                   </div>
 
                   {/* Metaphor Breakdown */}
@@ -853,9 +973,7 @@ export const MusicClipsView: React.FC<MusicClipsViewProps> = ({ onStartTyping, o
                             <span>{m.quote}</span>
                             <span className="text-sky-400 font-serif text-sm">”</span>
                           </div>
-                          <div className="text-xs text-slate-300 leading-relaxed pl-1">
-                            {m.meaning}
-                          </div>
+                          <div className="text-xs text-slate-300 leading-relaxed pl-1">{m.meaning}</div>
                         </div>
                       ))}
                     </div>
