@@ -1,6 +1,6 @@
 # Документация макета и вклад AI (Практика 8)
 
-* **Ссылка на актуальный макет v2 в Figma / FigJam:** [Открыть макет LinguaType v2 в Figma](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1005-3)
+* **Ссылка на актуальный макет v2 в Figma / FigJam:** [Открыть макет LinguaType v2 в Figma](https://www.figma.com/board/2rQa19fNwGGx5Grvy2Cfxc/Untitled?node-id=1009-56)
 
 ## 1. Описание основного пользовательского сценария
 
