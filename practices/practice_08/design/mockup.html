@@ -3,405 +3,469 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LinguaType — Интерактивный макет и прототип состояний (Практика 8)</title>
+  <title>LinguaType v2 — Интерактивный макет и прототип состояний (Практика 8)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
       background-color: #0b0f17;
       color: #e2e8f0;
     }
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .finger-pinky-l { background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.4); color: #fda4af; }
-    .finger-ring-l  { background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.4); color: #fdba74; }
-    .finger-mid-l   { background: rgba(234, 179, 8, 0.15); border-color: rgba(234, 179, 8, 0.4); color: #fde047; }
-    .finger-index-l { background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.4); color: #86efac; }
-    .finger-index-r { background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.4); color: #67e8f9; }
-    .finger-mid-r   { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); color: #93c5fd; }
-    .finger-ring-r  { background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.4); color: #d8b4fe; }
-    .finger-pinky-r { background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.4); color: #f472b6; }
-    .finger-thumb   { background: rgba(100, 116, 139, 0.15); border-color: rgba(100, 116, 139, 0.4); color: #cbd5e1; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .finger-pinky-l { background: rgba(244, 63, 94, 0.14); border-color: rgba(244, 63, 94, 0.35); color: #fda4af; }
+    .finger-ring-l  { background: rgba(249, 115, 22, 0.14); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }
+    .finger-mid-l   { background: rgba(234, 179, 8, 0.14); border-color: rgba(234, 179, 8, 0.35); color: #fde047; }
+    .finger-index-l { background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.35); color: #86efac; }
+    .finger-index-r { background: rgba(6, 182, 212, 0.14); border-color: rgba(6, 182, 212, 0.35); color: #67e8f9; }
+    .finger-mid-r   { background: rgba(59, 130, 246, 0.14); border-color: rgba(59, 130, 246, 0.35); color: #93c5fd; }
+    .finger-ring-r  { background: rgba(168, 85, 247, 0.14); border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; }
+    .finger-pinky-r { background: rgba(236, 72, 153, 0.14); border-color: rgba(236, 72, 153, 0.35); color: #f472b6; }
+    .finger-thumb   { background: rgba(100, 116, 139, 0.14); border-color: rgba(100, 116, 139, 0.35); color: #cbd5e1; }
     .key-active {
-      box-shadow: 0 0 16px 2px rgba(34, 197, 94, 0.6);
+      box-shadow: 0 0 20px 3px rgba(52, 211, 153, 0.55);
       transform: translateY(-2px);
-      border-color: #4ade80 !important;
-      background-color: rgba(34, 197, 94, 0.3) !important;
+      border-color: #34d399 !important;
+      background-color: rgba(16, 185, 129, 0.28) !important;
       color: #ffffff !important;
+    }
+    .glass-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.55));
+      backdrop-filter: blur(14px);
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Header / Navigation -->
-  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-6 py-3">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-mono font-bold text-black text-lg shadow-lg shadow-emerald-500/20">
+  <!-- App Header + Reviewer State Switcher -->
+  <header class="border-b border-slate-800/80 bg-[#0b0f17]/90 backdrop-blur-md sticky top-0 z-50 px-5 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Clean Brand Logo (without AI PRO badge) -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-mono font-bold text-slate-950 text-base shadow-lg shadow-emerald-500/20">
           LT
         </div>
         <div>
-          <span class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">LinguaType</span>
-          <span class="text-xs ml-2 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">AI Grammar + Touch Typing</span>
+          <span class="text-lg font-extrabold tracking-tight text-white">LinguaType</span>
+          <span class="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">v2 Prototype</span>
         </div>
       </div>
 
-      <!-- State Switcher Tabs (Demo Controls for Reviewer) -->
-      <div class="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-xs font-medium">
-        <button onclick="showState('default')" id="tab-default" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">1. Исходный/Выбор</button>
-        <button onclick="showState('input')" id="tab-input" class="px-3 py-1.5 rounded-lg transition-all bg-emerald-500 text-black font-semibold shadow">2. Ввод данных (Печать)</button>
-        <button onclick="showState('loading')" id="tab-loading" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">3. Загрузка (AI)</button>
-        <button onclick="showState('success')" id="tab-success" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">4. Результат / Успех</button>
-        <button onclick="showState('error')" id="tab-error" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">5. Ошибка</button>
-      </div>
+      <!-- Reviewer Switcher for All States & Screens -->
+      <nav aria-label="Переключатель состояний макета" class="flex flex-wrap items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-medium gap-1">
+        <button onclick="showState('default')" id="tab-default" class="px-2.5 py-1.5 rounded-lg transition-all bg-emerald-500 text-slate-950 font-semibold shadow">1. Главная (Bento)</button>
+        <button onclick="showState('input')" id="tab-input" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">2. Печать + Руки</button>
+        <button onclick="showState('loading')" id="tab-loading" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">3. Загрузка</button>
+        <button onclick="showState('success')" id="tab-success" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">4. Статистика + Хлопушки</button>
+        <button onclick="showState('quiz')" id="tab-quiz" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">5. Квиз + Разбор</button>
+        <button onclick="showState('karaoke')" id="tab-karaoke" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">6. Караоке</button>
+        <button onclick="showState('error')" id="tab-error" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">7. Ошибка / Пусто</button>
+      </nav>
 
-      <div class="flex items-center space-x-4">
-        <div class="text-xs text-slate-400 flex items-center">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-2"></span>
-          C# Minimal API: Connected
-        </div>
+      <div class="hidden xl:flex items-center gap-2 text-xs text-slate-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>36 / 36 тестов • .NET 10 API</span>
       </div>
     </div>
   </header>
 
-  <!-- Main Workspace -->
-  <main class="flex-1 max-w-7xl mx-auto w-full p-6 flex flex-col justify-center">
+  <main class="flex-1 max-w-7xl mx-auto w-full p-6">
 
-    <!-- STATE 1: DEFAULT / TOPIC SELECTION -->
-    <div id="state-default" class="hidden space-y-6">
-      <div class="text-center max-w-2xl mx-auto mb-8">
-        <h1 class="text-3xl font-extrabold text-white mb-2">Выберите уровень и тему грамматики</h1>
-        <p class="text-slate-400 text-sm">Прокачивайте мышечную память правильных языковых конструкций и осваивайте слепую печать без опечаток.</p>
-      </div>
-
-      <!-- Level Pills -->
-      <div class="flex justify-center gap-2 mb-6">
-        <button class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500">A1 Beginner</button>
-        <button class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500">A2 Elementary</button>
-        <button class="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm">B1 Intermediate</button>
-        <button class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500">B2 Upper-Int</button>
-        <button class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500">C1 Advanced</button>
-      </div>
-
-      <!-- Topics Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 transition cursor-pointer group">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 font-mono">B1 • 12 предложений</span>
-            <span class="text-xs text-slate-500">3 мин</span>
+    <!-- 1. DEFAULT STATE: BENTO COMMAND DASHBOARD -->
+    <section id="state-default" class="space-y-6">
+      <!-- Top Bento Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Hero Mission Card -->
+        <div class="lg:col-span-7 glass-card border border-slate-800 rounded-3xl p-6 relative overflow-hidden">
+          <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-emerald-500/10 blur-3xl"></div>
+          <div class="flex items-center gap-2 text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-3">
+            <span>Командный центр • 16 тем A1–C1</span>
           </div>
-          <h3 class="font-semibold text-lg text-white group-hover:text-emerald-400 transition mb-2">Present Perfect vs Past Simple</h3>
-          <p class="text-xs text-slate-400 mb-4">Отработка разницы между завершённым действием в прошлом и результатом в настоящем (have/has + V3).</p>
-          <button class="w-full py-2.5 rounded-xl bg-slate-800 group-hover:bg-emerald-500 group-hover:text-black font-medium text-xs transition">Начать тренировку</button>
-        </div>
-
-        <div class="p-5 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-lg shadow-emerald-500/5 cursor-pointer group relative">
-          <div class="absolute -top-2.5 right-4 bg-emerald-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Рекомендовано AI</div>
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 font-mono">Адаптивный режим</span>
-            <span class="text-xs text-slate-500">4 мин</span>
-          </div>
-          <h3 class="font-semibold text-lg text-white mb-2">Тренировка слабых букв: [R, T, P]</h3>
-          <p class="text-xs text-slate-400 mb-4">На основе вашей истории опечаток система сгенерировала фразы с максимальной концентрацией проблемных клавиш.</p>
-          <button class="w-full py-2.5 rounded-xl bg-emerald-500 text-black font-semibold text-xs shadow-md shadow-emerald-500/20">Тренировать слабые клавиши</button>
-        </div>
-
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition cursor-pointer group">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 font-mono">B1 • Словарь</span>
-            <span class="text-xs text-slate-500">8 слов</span>
-          </div>
-          <h3 class="font-semibold text-lg text-white group-hover:text-purple-400 transition mb-2">Словарь трудных слов</h3>
-          <p class="text-xs text-slate-400 mb-4">Повторение слов, в которых ранее были допущены опечатки (thoroughly, occurrence, comfortable...).</p>
-          <button class="w-full py-2.5 rounded-xl bg-slate-800 group-hover:bg-purple-500 group-hover:text-white font-medium text-xs transition">Повторить словарь</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STATE 2: ACTIVE INPUT STATE (TYPING SESSION) -->
-    <div id="state-input" class="space-y-6">
-      <!-- Session Header & Metrics Bar -->
-      <div class="flex items-center justify-between bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
-        <div class="flex items-center space-x-3">
-          <span class="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">Present Perfect • B1</span>
-          <span class="text-xs text-slate-400">Предложение 3 из 10</span>
-        </div>
-
-        <!-- Live Metrics -->
-        <div class="flex items-center space-x-6 font-mono text-sm">
-          <div class="flex items-center space-x-2">
-            <span class="text-amber-400 text-xs">⏱️ СЕКУНДОМЕР</span>
-            <span class="text-amber-400 font-bold text-lg">00:14.2</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-slate-500 text-xs">WPM</span>
-            <span class="text-emerald-400 font-bold text-lg">68</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-slate-500 text-xs">ТОЧНОСТЬ</span>
-            <span class="text-cyan-400 font-bold text-lg">98%</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="text-slate-500 text-xs">ОШИБКИ</span>
-            <span class="text-rose-400 font-bold text-lg">1</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Слепая печать + грамматика английского</h1>
+          <p class="text-sm text-slate-400 max-w-xl mb-5">
+            Выбирайте грамматическую тему, печатайте с 8-зонной клавиатурой и cyber-glass руками, получайте AI-разбор опечаток и закрепляйте правила в интерактивном тесте.
+          </p>
+          <div class="flex flex-wrap gap-2.5">
+            <button onclick="showState('input')" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs shadow-lg shadow-emerald-500/20">
+              ▶ Продолжить: Present Perfect
+            </button>
+            <button onclick="showState('input')" class="px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs">
+              🎲 Случайная тема
+            </button>
+            <button onclick="showState('karaoke')" class="px-4 py-2.5 rounded-xl bg-fuchsia-500/15 hover:bg-fuchsia-500/25 text-fuchsia-300 border border-fuchsia-500/30 font-medium text-xs">
+              🎵 Клипы &amp; Караоке
+            </button>
           </div>
         </div>
 
-        <!-- Sound & Shortcuts -->
-        <div class="flex items-center space-x-2">
-          <button class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition" title="Озвучить предложение (Web Speech API)">
-            🔊
-          </button>
-          <button class="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
-            Пауза (Esc)
-          </button>
-        </div>
-      </div>
-
-      <!-- Text Typing Area -->
-      <div class="relative p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl">
-        <!-- Interactive Word Popover (Showing Translation on Click) -->
-        <div class="absolute -top-12 left-64 bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-xl z-20 flex items-center space-x-3 animate-fade-in">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="font-bold text-white text-xs">already</span>
-              <span class="text-[11px] text-slate-400 font-mono">/ɔːlˈrɛdi/</span>
+        <!-- WPM Sparkline + Weak Keys Bento Card -->
+        <div class="lg:col-span-5 glass-card border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-xs text-slate-400">Динамика скорости</div>
+              <div class="text-2xl font-extrabold font-mono text-white">68 <span class="text-xs text-emerald-400 font-sans font-semibold">WPM • Рекорд</span></div>
             </div>
-            <div class="text-[11px] text-emerald-400">уже, ранее (наречие)</div>
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-mono">98% точность</span>
           </div>
-          <button class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-slate-200">⭐ В словарь</button>
+          <!-- SVG Sparkline -->
+          <svg viewBox="0 0 280 68" class="w-full h-16 mb-3" aria-label="График прогресса WPM">
+            <defs>
+              <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0 54 L40 48 L80 42 L120 45 L160 30 L200 22 L240 18 L280 10 L280 68 L0 68 Z" fill="url(#sparkFill)"/>
+            <polyline fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" points="0,54 40,48 80,42 120,45 160,30 200,22 240,18 280,10"/>
+            <circle cx="280" cy="10" r="4" fill="#34d399"/>
+          </svg>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400">Слабые клавиши: <strong class="font-mono text-amber-300">r, t, p</strong></span>
+            <button onclick="showState('input')" class="text-cyan-400 hover:text-cyan-300 font-semibold">Спринт на слабые →</button>
+          </div>
         </div>
+      </div>
 
-        <!-- Translation Hint (Russian Context for Grammar) -->
-        <div class="text-xs font-medium text-slate-400 mb-3 flex items-center space-x-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-          <span>Перевод: «она уже завершила этот сложный инженерный отчёт вовремя и главный архитектор проверил все изменения схемы базы данных со всей командой»</span>
+      <!-- CEFR Filter + Grid/List Toggle -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap gap-2">
+          <button class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold">Все уровни (16)</button>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-900 text-slate-400 border border-slate-800 text-xs">A1–A2 База</button>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-900 text-slate-400 border border-slate-800 text-xs">B1–B2 Средний</button>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-900 text-slate-400 border border-slate-800 text-xs">C1 Продвинутый</button>
         </div>
+        <div class="text-xs text-slate-400 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5">
+          Вид: <span class="text-white font-semibold">Сетка</span> / Список
+        </div>
+      </div>
 
-        <!-- 3-line height sentence with correct, red error, and untyped letters -->
-        <div class="font-mono text-2xl tracking-wide select-none leading-relaxed h-[6.5rem] overflow-hidden">
+      <!-- Grouped CEFR Curriculum Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <article class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-emerald-500/40 transition">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 font-mono">B1 • 4 теста</span>
+            <span class="text-[11px] text-slate-500">have/has + V3</span>
+          </div>
+          <h3 class="font-bold text-white mb-1.5">Present Perfect vs Past Simple</h3>
+          <p class="text-xs text-slate-400 mb-4">Результат в настоящем против завершённого факта в прошлом. 3-строчные предложения без пунктуации.</p>
+          <button onclick="showState('input')" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-xs font-semibold transition">Открыть урок</button>
+        </article>
+
+        <article class="glass-card p-5 rounded-2xl border border-cyan-500/35 shadow-lg shadow-cyan-500/5">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 font-mono">B2 • 4 теста</span>
+            <span class="text-[11px] text-cyan-400 font-semibold">Новое</span>
+          </div>
+          <h3 class="font-bold text-white mb-1.5">Mixed Conditionals</h3>
+          <p class="text-xs text-slate-400 mb-4">Смешанные условные предложения: связь прошлого условия с настоящим результатом (if + had V3, would + V1).</p>
+          <button onclick="showState('input')" class="w-full py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 hover:text-slate-950 text-cyan-200 text-xs font-semibold transition">Открыть урок</button>
+        </article>
+
+        <article class="glass-card p-5 rounded-2xl border border-slate-800 hover:border-purple-500/40 transition">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-[11px] px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-300 font-mono">C1 • 4 теста</span>
+            <span class="text-[11px] text-slate-500">Negative Inversion</span>
+          </div>
+          <h3 class="font-bold text-white mb-1.5">Inversion &amp; Emphatic Structures</h3>
+          <p class="text-xs text-slate-400 mb-4">Продвинутая инверсия (never have i seen, rarely does she) для выразительного академического английского.</p>
+          <button onclick="showState('input')" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-purple-500 hover:text-white text-xs font-semibold transition">Открыть урок</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- 2. ACTIVE INPUT STATE: TYPING + CYBER-GLASS HANDS + WORD POPOVER -->
+    <section id="state-input" class="hidden space-y-4">
+      <!-- Top Bar with Back Button + Live Metrics -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 rounded-2xl px-4 py-2.5">
+        <div class="flex items-center gap-3">
+          <button onclick="showState('default')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-medium">← Назад</button>
+          <span class="text-xs font-semibold text-white">Present Perfect vs Past Simple</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 font-mono">Предложение 2 / 3</span>
+        </div>
+        <div class="flex items-center gap-3 font-mono text-xs">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-emerald-400">64 WPM</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-cyan-400">98%</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">00:18.4</span>
+          <button class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 font-sans">🔊 Озвучка</button>
+          <button class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 font-sans">👁 Текст: ВИДЕН</button>
+        </div>
+      </div>
+
+      <!-- 3-Line Lowercase Typing Viewport + Word Translation Popover -->
+      <div class="relative glass-card border border-slate-800 rounded-3xl p-7">
+        <div class="font-mono text-2xl leading-[2.3] tracking-wide select-text">
           <span class="text-emerald-400">she has already </span>
-          <span class="text-rose-400 bg-rose-500/25 underline decoration-rose-500 font-bold px-0.5 rounded">x</span>
-          <span class="text-emerald-400">ompleted </span>
-          <span class="text-white border-b-2 border-emerald-400 pb-0.5 animate-pulse bg-emerald-500/20 px-0.5 rounded">t</span>
-          <span class="text-slate-500">his difficult engineering report on time and the lead architect has verified all database schema changes with the entire team</span>
+          <span class="relative inline-block px-1 rounded bg-cyan-500/20 text-cyan-200 underline decoration-cyan-400/60">completed
+            <!-- Floating WordPopover -->
+            <span class="absolute left-0 -top-24 w-64 p-3 rounded-2xl bg-slate-950 border border-cyan-500/40 shadow-2xl text-left font-sans z-20">
+              <span class="flex items-center justify-between text-xs mb-1">
+                <strong class="text-white text-sm">completed</strong>
+                <span class="font-mono text-[11px] text-cyan-400">/kəmˈpliːtɪd/</span>
+              </span>
+              <span class="block text-xs text-slate-300 mb-1.5">завершила, выполнила (V3)</span>
+              <span class="inline-block text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">+ В личный словарь</span>
+            </span>
+          </span>
+          <span class="text-emerald-400"> the entire design </span>
+          <span class="bg-emerald-500/30 border-b-2 border-emerald-400 text-white px-0.5 rounded-sm">p</span><span class="text-slate-400">roject and sent the updated prototype to the team before the weekly review meeting started</span>
         </div>
-
-        <!-- Unfixed errors hint -->
-        <div class="mt-2 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 rounded-xl flex items-center space-x-2">
-          <span>⚠️ Нажмите <strong>Backspace ⌫</strong>, чтобы стереть красную букву «x» и исправить опечатку.</span>
-        </div>
-
-        <!-- Finger guidance alert -->
-        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800/80">
-          <div class="flex items-center space-x-2">
-            <span class="text-slate-500">Следующий символ:</span>
-            <span class="font-mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-slate-800 border border-slate-700">A</span>
-            <span class="text-emerald-400 font-medium">← Левый мизинец (A-zone)</span>
-          </div>
-          <div class="text-[11px] text-slate-500">Кликните на любое слово для перевода и произношения</div>
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400">
+          <span>Подсказка: выделите любое слово мышью для мгновенного перевода и транскрипции</span>
+          <span class="text-rose-400 font-medium">🔊 Мягкий звук при опечатке включён</span>
         </div>
       </div>
 
-      <!-- Virtual Keyboard with Color-Coded 8 Finger Zones -->
-      <div class="p-6 rounded-3xl bg-slate-900 border border-slate-800">
-        <!-- Finger Zones Legend -->
-        <div class="flex items-center justify-center gap-4 mb-4 text-[11px] font-medium flex-wrap">
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>Л. Мизинец</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>Л. Безымянный</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>Л. Средний</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Л. Указательный</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>П. Указательный</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>П. Средний</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>П. Безымянный</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>П. Мизинец</span>
+      <!-- Cyber-Glass Keyboard + 8 Finger Zones + Anatomical Hands -->
+      <div class="glass-card border border-slate-800 rounded-3xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold text-pink-300 bg-pink-500/15 border border-pink-500/30 px-3 py-1 rounded-full">
+            Активный палец: Правый мизинец → клавиша [ P ]
+          </span>
+          <span class="text-xs text-slate-400">Режим: Cyber-Glass Руки (F / J homing bars)</span>
         </div>
 
-        <!-- Keyboard Keys Grid -->
-        <div class="max-w-4xl mx-auto space-y-2 font-mono text-xs select-none">
-          <!-- Row 1: Numbers -->
-          <div class="flex justify-center gap-1.5">
-            <div class="finger-pinky-l border w-10 h-10 rounded-lg flex items-center justify-center">`</div>
-            <div class="finger-pinky-l border w-10 h-10 rounded-lg flex items-center justify-center">1</div>
-            <div class="finger-ring-l border w-10 h-10 rounded-lg flex items-center justify-center">2</div>
-            <div class="finger-mid-l border w-10 h-10 rounded-lg flex items-center justify-center">3</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">4</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">5</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">6</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">7</div>
-            <div class="finger-mid-r border w-10 h-10 rounded-lg flex items-center justify-center">8</div>
-            <div class="finger-ring-r border w-10 h-10 rounded-lg flex items-center justify-center">9</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">0</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">-</div>
-            <div class="finger-pinky-r border w-14 h-10 rounded-lg flex items-center justify-center text-[10px]">Backspace</div>
+        <!-- Keyboard Rows -->
+        <div class="relative max-w-3xl mx-auto space-y-1.5 font-mono text-xs select-none">
+          <div class="grid grid-cols-10 gap-1.5">
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-pinky-l">q</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-ring-l">w</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-mid-l">e</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-index-l">r</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-index-l">t</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-index-r">y</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-index-r">u</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-mid-r">i</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-ring-r">o</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-pinky-r key-active font-bold">p</div>
           </div>
-
-          <!-- Row 2: QWERTY -->
-          <div class="flex justify-center gap-1.5">
-            <div class="finger-pinky-l border w-14 h-10 rounded-lg flex items-center justify-center text-[10px]">Tab</div>
-            <div class="finger-pinky-l border w-10 h-10 rounded-lg flex items-center justify-center">Q</div>
-            <div class="finger-ring-l border w-10 h-10 rounded-lg flex items-center justify-center">W</div>
-            <div class="finger-mid-l border w-10 h-10 rounded-lg flex items-center justify-center">E</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">R</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">T</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">Y</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">U</div>
-            <div class="finger-mid-r border w-10 h-10 rounded-lg flex items-center justify-center">I</div>
-            <div class="finger-ring-r border w-10 h-10 rounded-lg flex items-center justify-center">O</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">P</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">[</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">]</div>
+          <div class="grid grid-cols-10 gap-1.5 px-4">
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-pinky-l">a</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-ring-l">s</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-mid-l">d</div>
+            <div class="h-10 rounded-lg border flex flex-col items-center justify-center finger-index-l"><span>f</span><span class="w-3 h-0.5 bg-emerald-400 rounded-full mt-0.5"></span></div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-index-l">g</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-index-r">h</div>
+            <div class="h-10 rounded-lg border flex flex-col items-center justify-center finger-index-r"><span>j</span><span class="w-3 h-0.5 bg-cyan-400 rounded-full mt-0.5"></span></div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-mid-r">k</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-ring-r">l</div>
+            <div class="h-10 rounded-lg border flex items-center justify-center finger-pinky-r">;</div>
           </div>
-
-          <!-- Row 3: ASDF (A is ACTIVE) -->
-          <div class="flex justify-center gap-1.5">
-            <div class="finger-pinky-l border w-16 h-10 rounded-lg flex items-center justify-center text-[10px]">Caps</div>
-            <!-- ACTIVE KEY A -->
-            <div class="finger-pinky-l border w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base key-active">A</div>
-            <div class="finger-ring-l border w-10 h-10 rounded-lg flex items-center justify-center">S</div>
-            <div class="finger-mid-l border w-10 h-10 rounded-lg flex items-center justify-center">D</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">F</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">G</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">H</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">J</div>
-            <div class="finger-mid-r border w-10 h-10 rounded-lg flex items-center justify-center">K</div>
-            <div class="finger-ring-r border w-10 h-10 rounded-lg flex items-center justify-center">L</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">;</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">'</div>
-            <div class="finger-pinky-r border w-16 h-10 rounded-lg flex items-center justify-center text-[10px]">Enter</div>
+          <div class="flex justify-center pt-1">
+            <div class="w-64 h-9 rounded-lg border flex items-center justify-center finger-thumb text-[11px] uppercase tracking-widest">space</div>
           </div>
-
-          <!-- Row 4: ZXCV -->
-          <div class="flex justify-center gap-1.5">
-            <div class="finger-pinky-l border w-20 h-10 rounded-lg flex items-center justify-center text-[10px]">Shift</div>
-            <div class="finger-pinky-l border w-10 h-10 rounded-lg flex items-center justify-center">Z</div>
-            <div class="finger-ring-l border w-10 h-10 rounded-lg flex items-center justify-center">X</div>
-            <div class="finger-mid-l border w-10 h-10 rounded-lg flex items-center justify-center">C</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">V</div>
-            <div class="finger-index-l border w-10 h-10 rounded-lg flex items-center justify-center">B</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">N</div>
-            <div class="finger-index-r border w-10 h-10 rounded-lg flex items-center justify-center">M</div>
-            <div class="finger-mid-r border w-10 h-10 rounded-lg flex items-center justify-center">,</div>
-            <div class="finger-ring-r border w-10 h-10 rounded-lg flex items-center justify-center">.</div>
-            <div class="finger-pinky-r border w-10 h-10 rounded-lg flex items-center justify-center">/</div>
-            <div class="finger-pinky-r border w-20 h-10 rounded-lg flex items-center justify-center text-[10px]">Shift</div>
-          </div>
-
-          <!-- Row 5: Space -->
-          <div class="flex justify-center gap-1.5">
-            <div class="finger-thumb border w-64 h-10 rounded-lg flex items-center justify-center text-[10px]">Space (Большие пальцы)</div>
+          <!-- Cyber-Glass Hand Overlay Indicator -->
+          <div class="mt-2 flex items-center justify-center gap-6 text-[11px] text-slate-400">
+            <span>✋ Левая рука: Home Row (a s d f)</span>
+            <span>🤚 Правая рука: мизинец тянется к [P] с неоновым свечением</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- STATE 3: LOADING STATE -->
-    <div id="state-loading" class="hidden max-w-lg mx-auto text-center space-y-6 p-10 rounded-3xl bg-slate-900 border border-slate-800">
-      <div class="relative w-16 h-16 mx-auto">
-        <div class="w-16 h-16 rounded-full border-4 border-slate-800 border-t-emerald-400 animate-spin"></div>
-        <div class="absolute inset-0 flex items-center justify-center font-mono text-xs text-emerald-400 font-bold">AI</div>
+    <!-- 3. LOADING STATE -->
+    <section id="state-loading" class="hidden max-w-2xl mx-auto py-14 text-center space-y-5">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center animate-pulse">
+        <div class="w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
       </div>
-      <div>
-        <h3 class="text-xl font-bold text-white mb-2">Генерация адаптивного урока...</h3>
-        <p class="text-xs text-slate-400">Модель подбирает предложения уровня B1 с повышенной плотностью ваших слабых букв: <span class="font-mono text-emerald-400">[R, T, P]</span></p>
+      <h2 class="text-xl font-bold text-white">Загружаем уроки и анализируем слабые клавиши...</h2>
+      <p class="text-sm text-slate-400">Синхронизация с ASP.NET Core Minimal API (`/api/topics`, `/api/stats`)</p>
+      <div class="grid grid-cols-3 gap-4 pt-4">
+        <div class="h-28 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse"></div>
+        <div class="h-28 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse"></div>
+        <div class="h-28 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse"></div>
       </div>
-      <!-- Skeleton Progress -->
-      <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-        <div class="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full w-2/3 animate-pulse"></div>
-      </div>
-    </div>
+    </section>
 
-    <!-- STATE 4: SUCCESS / RESULT STATE -->
-    <div id="state-success" class="hidden max-w-2xl mx-auto space-y-6">
-      <div class="text-center">
-        <div class="inline-block p-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xl mb-3">🏆</div>
-        <h2 class="text-3xl font-extrabold text-white mb-1">Отличная работа!</h2>
-        <p class="text-xs text-slate-400">Урок по теме «Present Perfect vs Past Simple» завершён.</p>
-      </div>
-
-      <!-- Stats Scoreboard -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-          <div class="text-xs text-slate-500 font-medium mb-1">СКОРОСТЬ</div>
-          <div class="text-4xl font-extrabold text-emerald-400 font-mono">72 <span class="text-sm font-normal text-slate-400">WPM</span></div>
-          <div class="text-[11px] text-emerald-500/80 mt-1">↑ +4 WPM к рекорду</div>
-        </div>
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-          <div class="text-xs text-slate-500 font-medium mb-1">ТОЧНОСТЬ</div>
-          <div class="text-4xl font-extrabold text-cyan-400 font-mono">97.8%</div>
-          <div class="text-[11px] text-slate-400 mt-1">Всего 2 опечатки</div>
-        </div>
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-          <div class="text-xs text-slate-500 font-medium mb-1">ВРЕМЯ</div>
-          <div class="text-4xl font-extrabold text-white font-mono">01:42</div>
-          <div class="text-[11px] text-slate-400 mt-1">10 предложений</div>
-        </div>
-      </div>
-
-      <!-- Weak Keys Analysis -->
-      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-        <div class="flex justify-between items-center text-xs">
-          <span class="font-semibold text-white">Проблемные клавиши сессии</span>
-          <span class="text-slate-500">Добавлено в адаптивный трекер</span>
-        </div>
-        <div class="flex gap-2">
-          <div class="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 font-mono text-xs flex items-center gap-2">
-            <span class="font-bold text-sm">P</span> 2 ошибки (точность 82%)
+    <!-- 4. SUCCESS / RESULT STATE (SHOWN BEFORE QUIZ!) -->
+    <section id="state-success" class="hidden max-w-4xl mx-auto space-y-5">
+      <div class="glass-card border border-emerald-500/35 rounded-3xl p-7 relative overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 mb-2">
+              🎉 Печать завершена • Лёгкие хлопушки + приятный аккорд (или фанфара и салют при рекорде)
+            </span>
+            <h2 class="text-2xl font-extrabold text-white">Отличная сессия! Статистика перед тестом</h2>
           </div>
-          <div class="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-xs flex items-center gap-2">
-            <span class="font-bold text-sm">R</span> 1 ошибка (точность 91%)
+          <span class="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+            🏆 Новый рекорд WPM!
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
+            <div class="text-xs text-slate-400 mb-1">Скорость</div>
+            <div class="text-3xl font-extrabold font-mono text-emerald-400">72</div>
+            <div class="text-[11px] text-slate-500">WPM</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
+            <div class="text-xs text-slate-400 mb-1">Точность</div>
+            <div class="text-3xl font-extrabold font-mono text-cyan-400">98%</div>
+            <div class="text-[11px] text-slate-500">Ошибок: 2</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
+            <div class="text-xs text-slate-400 mb-1">Время</div>
+            <div class="text-3xl font-extrabold font-mono text-white">41.2s</div>
+            <div class="text-[11px] text-slate-500">3 предложения</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-center">
+            <div class="text-xs text-slate-400 mb-1">Проблемные</div>
+            <div class="text-2xl font-extrabold font-mono text-amber-300 pt-1">p, r</div>
+            <div class="text-[11px] text-slate-500">AI-трекинг</div>
           </div>
         </div>
+
+        <!-- AI Error & Bigram Analysis -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-cyan-500/25 mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-bold text-cyan-300 mb-1">✨ AI-разбор опечаток и биграмм</div>
+            <p class="text-xs text-slate-300">Чаще всего сбивался переход <code class="font-mono text-amber-300">pr</code> и клавиша <code class="font-mono text-amber-300">p</code> (правый мизинец). Рекомендуем короткий спринт восстановления.</p>
+          </div>
+          <button onclick="showState('input')" class="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-semibold">
+            ⚡ Спринт на ошибки
+          </button>
+        </div>
+
+        <!-- Primary CTA -> Quiz -->
+        <div class="flex flex-wrap gap-3">
+          <button onclick="showState('quiz')" class="flex-1 min-w-[220px] py-3 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/25">
+            Перейти к тесту по грамматике →
+          </button>
+          <button onclick="showState('default')" class="py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm">
+            К выбору уроков
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. QUIZ STATE WITH SOUNDS + DUAL WRONG/CORRECT EXPLANATION -->
+    <section id="state-quiz" class="hidden max-w-3xl mx-auto space-y-5">
+      <div class="flex items-center justify-between">
+        <button onclick="showState('success')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-xs text-slate-200">← Назад к статистике</button>
+        <span class="text-xs font-mono text-emerald-400">Вопрос 2 / 4 • Present Perfect vs Past Simple</span>
       </div>
 
-      <!-- Action Buttons with Double-Submit Prevention -->
-      <div class="flex gap-3">
-        <button class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition">Повторить урок</button>
-        <button id="save-stats-btn" class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs shadow-lg shadow-emerald-500/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-          Следующий урок →
+      <div class="glass-card border border-slate-800 rounded-3xl p-6 space-y-5">
+        <div>
+          <div class="text-xs text-slate-400 mb-2">Выберите правильный вариант (клик по любому слову показывает перевод):</div>
+          <h3 class="text-xl font-bold text-white">She ____ in London since 2019.</h3>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3.5 rounded-xl border border-rose-500/60 bg-rose-500/15 text-rose-200 text-sm font-semibold flex items-center justify-between">
+            <span>A. lived</span>
+            <span class="text-xs">✕ Выбрано</span>
+          </div>
+          <div class="p-3.5 rounded-xl border border-emerald-500/60 bg-emerald-500/15 text-emerald-200 text-sm font-semibold flex items-center justify-between">
+            <span>B. has lived</span>
+            <span class="text-xs">✓ Верно</span>
+          </div>
+          <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500 text-sm">C. is living</div>
+          <div class="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-500 text-sm">D. live</div>
+        </div>
+
+        <!-- Dual Feedback Card on Wrong Answer -->
+        <div class="rounded-2xl border border-slate-700/80 overflow-hidden text-xs">
+          <div class="p-4 bg-rose-500/10 border-b border-rose-500/20">
+            <div class="font-bold text-rose-300 mb-1">🔊 Мягкий сигнал ошибки • Почему «lived» не подходит:</div>
+            <p class="text-slate-300">Past Simple («lived») описывает полностью завершённое действие в прошлом и не сочетается с маркером «since 2019», который связывает прошлое с настоящим.</p>
+          </div>
+          <div class="p-4 bg-emerald-500/10">
+            <div class="font-bold text-emerald-300 mb-1">✓ Почему «has lived» — правильный вариант:</div>
+            <p class="text-slate-300">С предлогом «since» используется Present Perfect (have/has + V3): действие началось в 2019 году и продолжается до сих пор. (При верном выборе звучит звонкий аккорд успеха.)</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. KARAOKE & MUSIC CLIPS STATE -->
+    <section id="state-karaoke" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <button onclick="showState('default')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-xs text-slate-200">← Назад</button>
+        <div class="flex gap-2 text-xs">
+          <span class="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold">Queen — We Are The Champions (185s)</span>
+          <span class="px-3 py-1 rounded-lg bg-slate-900 text-slate-400 border border-slate-800">Coldplay — The Scientist (265s)</span>
+          <span class="px-3 py-1 rounded-lg bg-slate-900 text-slate-400 border border-slate-800">The Beatles — Yesterday (126s)</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- YouTube Player + Synced Lyrics -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="aspect-video rounded-3xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center text-center p-6">
+            <div class="w-14 h-14 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xl mb-3">▶</div>
+            <div class="text-sm font-bold text-white">YouTube Clip Player + Dual-Clock 60-FPS Sync</div>
+            <div class="text-xs text-slate-400 mt-1">Точные LRC-таймкоды с lrclib.net, синхронизированные с хронометражем клипа</div>
+          </div>
+          <div class="glass-card border border-slate-800 rounded-3xl p-5 space-y-2.5 text-center">
+            <div class="text-sm text-slate-500">I've paid my dues, time after time</div>
+            <div class="text-xl font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl py-3 px-4">
+              I've done my sentence, but committed no crime
+            </div>
+            <div class="text-sm text-slate-400">And bad mistakes, I've made a few</div>
+          </div>
+        </div>
+
+        <!-- Expanded Grammar & AI Meaning Panel -->
+        <div class="lg:col-span-5 glass-card border border-slate-800 rounded-3xl p-5 space-y-4">
+          <div class="flex gap-2 text-xs">
+            <span class="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold">Разбор правил песни</span>
+            <span class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300">Смысл от AI</span>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800">
+              <div class="font-mono text-emerald-400 font-bold mb-1">I've paid / I've done / I've made</div>
+              <div class="text-slate-300">Present Perfect (have + V3) передаёт накопленный жизненный опыт героя к настоящему моменту.</div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800">
+              <div class="font-mono text-cyan-400 font-bold mb-1">keep on fighting</div>
+              <div class="text-slate-300">Фразовый глагол «keep on + V-ing» выражает настойчивое продолжение действия несмотря на трудности.</div>
+            </div>
+          </div>
+          <button onclick="showState('input')" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs">
+            ⌨️ Тренировать слепую печать этой песни
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ERROR & EMPTY STATES -->
+    <section id="state-error" class="hidden max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 py-8">
+      <div class="glass-card border border-rose-500/40 rounded-3xl p-6 text-center space-y-4">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-xl">⚠</div>
+        <h3 class="text-lg font-bold text-white">Ошибка соединения с сервером</h3>
+        <p class="text-xs text-slate-400">Не удалось загрузить темы с C# API (`http://localhost:5000/api/topics`). Проверьте сеть или повторите попытку.</p>
+        <button onclick="showState('loading')" class="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-semibold text-xs focus-visible:ring-2 focus-visible:ring-rose-300">
+          Повторить попытку
         </button>
       </div>
-    </div>
 
-    <!-- STATE 5: ERROR STATE -->
-    <div id="state-error" class="hidden max-w-md mx-auto p-8 rounded-3xl bg-slate-900 border border-rose-500/30 text-center space-y-4">
-      <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mx-auto">
-        ⚠️
+      <div class="glass-card border border-slate-800 rounded-3xl p-6 text-center space-y-4">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center text-xl">📭</div>
+        <h3 class="text-lg font-bold text-white">Пустое состояние (Нет данных)</h3>
+        <p class="text-xs text-slate-400">В личном словаре пока нет сохранённых слов или не найдено тем по выбранному фильтру.</p>
+        <button onclick="showState('default')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs">
+          Сбросить фильтр
+        </button>
       </div>
-      <div>
-        <h3 class="text-lg font-bold text-white mb-1">Не удалось подключиться к серверу</h3>
-        <p class="text-xs text-slate-400">Сервер ASP.NET Core API временно недоступен или произошла ошибка сети при сохранении результатов.</p>
-      </div>
-      <div class="pt-2 flex gap-3 justify-center">
-        <button class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">Продолжить оффлайн</button>
-        <button class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-black font-semibold text-xs transition focus-visible:ring-2 focus-visible:ring-rose-400">Повторить попытку</button>
-      </div>
-    </div>
+    </section>
 
   </main>
 
-  <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-    LinguaType Prototype • Разработано для Практики 8 (Курс AI-инструменты в жизни инженера, ИТМО)
-  </footer>
-
   <script>
-    function showState(stateName) {
-      const states = ['default', 'input', 'loading', 'success', 'error'];
-      states.forEach(s => {
-        const el = document.getElementById('state-' + s);
+    const states = ['default', 'input', 'loading', 'success', 'quiz', 'karaoke', 'error'];
+    function showState(active) {
+      states.forEach((s) => {
+        const panel = document.getElementById('state-' + s);
         const tab = document.getElementById('tab-' + s);
-        if (s === stateName) {
-          el.classList.remove('hidden');
-          tab.classList.add('bg-emerald-500', 'text-black', 'font-semibold', 'shadow');
-          tab.classList.remove('text-slate-400');
+        if (!panel || !tab) return;
+        if (s === active) {
+          panel.classList.remove('hidden');
+          tab.className = 'px-2.5 py-1.5 rounded-lg transition-all bg-emerald-500 text-slate-950 font-semibold shadow';
         } else {
-          el.classList.add('hidden');
-          tab.classList.remove('bg-emerald-500', 'text-black', 'font-semibold', 'shadow');
-          tab.classList.add('text-slate-400');
+          panel.classList.add('hidden');
+          tab.className = 'px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white';
         }
       });
     }
