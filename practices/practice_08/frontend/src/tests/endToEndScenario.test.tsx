@@ -72,27 +72,26 @@ describe('Criterion 11: Full End-to-End User Scenario', () => {
     fireEvent.keyDown(window, { key: 'h' })
     fireEvent.keyDown(window, { key: 'i' })
 
-    // 6. User reaches grammar quiz checkpoint!
-    await waitFor(() => {
-      expect(screen.getByTestId('topic-quiz-view')).toBeInTheDocument()
-    }, { timeout: 3000 })
-
-    // Click skip to proceed to victory scoreboard
-    const skipBtn = screen.getByTestId('skip-quiz-btn')
-    fireEvent.click(skipBtn)
-
-    // 7. User reaches victory result scoreboard!
+    // 6. User immediately sees victory result scoreboard & light celebration after typing!
     await waitFor(() => {
       expect(screen.getByTestId('success-result')).toBeInTheDocument()
     }, { timeout: 3000 })
 
-    expect(screen.getByText('Отличная работа!')).toBeInTheDocument()
     expect(screen.getByTestId('result-wpm')).toBeInTheDocument()
     expect(screen.getByTestId('result-accuracy')).toBeInTheDocument()
+    expect(screen.getByTestId('confetti-celebration')).toBeInTheDocument()
 
-    // 8. Click button to return to topics
-    const backBtn = screen.getByTestId('next-lesson-btn')
-    fireEvent.click(backBtn)
+    // 7. User proceeds from stats scoreboard to the grammar quiz checkpoint!
+    const startQuizBtn = screen.getByTestId('start-quiz-btn')
+    fireEvent.click(startQuizBtn)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('topic-quiz-view')).toBeInTheDocument()
+    }, { timeout: 3000 })
+
+    // 8. Click skip to return to topic selector
+    const skipBtn = screen.getByTestId('skip-quiz-btn')
+    fireEvent.click(skipBtn)
 
     await waitFor(() => {
       expect(screen.getByTestId('topic-selector')).toBeInTheDocument()

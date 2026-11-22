@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Trophy, ArrowRight, RotateCcw, AlertTriangle, CheckCircle2, Bot, Zap, Sparkles } from 'lucide-react'
+import { Trophy, ArrowRight, RotateCcw, AlertTriangle, CheckCircle2, Bot, Zap, Sparkles, BookOpen } from 'lucide-react'
 import type { SessionStats } from '../../types'
 import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
@@ -11,6 +11,7 @@ export interface SuccessResultProps {
   stats: SessionStats
   onRepeat: () => void
   onNext: () => Promise<void> | void
+  onStartQuiz?: () => void
   onOpenLeaderboard?: () => void
   onStartErrorSprint?: (weakKeys: string[], weakBigrams: string[]) => void
   isNewRecord?: boolean
@@ -21,6 +22,7 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
   stats,
   onRepeat,
   onNext,
+  onStartQuiz,
   onOpenLeaderboard,
   onStartErrorSprint,
   isNewRecord = false,
@@ -30,10 +32,12 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
   const weakBigrams = weakKeysService.getWeakBigrams(4)
   const sessionWeakKeys = stats.weakKeys || []
 
-  // Play sparkling victory chime when the user breaks their personal WPM record
+  // Play pleasant completion chime (or sparkling fanfare on new personal WPM record)
   useEffect(() => {
     if (isNewRecord) {
       soundService.playNewRecordFanfare()
+    } else {
+      soundService.playCompletionChime()
     }
   }, [isNewRecord])
 
@@ -72,8 +76,8 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
       className="max-w-2xl mx-auto space-y-5 animate-fade-in my-6"
       data-testid="success-result"
     >
-      {/* Party Poppers & Fireworks on New Speed Record */}
-      <ConfettiCelebration active={isNewRecord} />
+      {/* Light party poppers on completion; full poppers + fireworks on new WPM record */}
+      <ConfettiCelebration active={true} mode={isNewRecord ? 'record' : 'light'} />
 
       {/* Trophy & Congrats Header */}
       <div className="text-center space-y-2">
@@ -211,44 +215,61 @@ export const SuccessResult: React.FC<SuccessResultProps> = ({
       </Card>
 
       {/* Actions (Double-submit prevented) */}
-      <div className="flex flex-wrap gap-3">
-        <Button
-          onClick={onRepeat}
-          variant="secondary"
-          size="lg"
-          className="flex-1"
-          disabled={isSubmitting}
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Повторить урок</span>
-        </Button>
-
-        {onOpenLeaderboard && (
+      <div className="space-y-3">
+        {onStartQuiz && (
           <Button
-            onClick={onOpenLeaderboard}
-            variant="outline"
+            onClick={onStartQuiz}
+            variant="primary"
             size="lg"
-            className="flex-1 text-amber-400 border-amber-500/40 hover:bg-amber-500/10"
+            className="w-full"
             disabled={isSubmitting}
-            data-testid="view-leaderboard-btn"
+            data-testid="start-quiz-btn"
           >
-            <Trophy className="w-4 h-4 text-amber-400" />
-            <span>Лидерборд</span>
+            <BookOpen className="w-4 h-4" />
+            <span>Перейти к тесту по грамматике</span>
+            <ArrowRight className="w-4 h-4" />
           </Button>
         )}
 
-        <Button
-          onClick={handleNextClick}
-          variant="primary"
-          size="lg"
-          className="flex-1"
-          isLoading={isSubmitting}
-          disabled={isSubmitting}
-          data-testid="next-lesson-btn"
-        >
-          <span>К выбору уроков</span>
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={onRepeat}
+            variant="secondary"
+            size="lg"
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Повторить урок</span>
+          </Button>
+
+          {onOpenLeaderboard && (
+            <Button
+              onClick={onOpenLeaderboard}
+              variant="outline"
+              size="lg"
+              className="flex-1 text-amber-400 border-amber-500/40 hover:bg-amber-500/10"
+              disabled={isSubmitting}
+              data-testid="view-leaderboard-btn"
+            >
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span>Лидерборд</span>
+            </Button>
+          )}
+
+          <Button
+            onClick={handleNextClick}
+            variant={onStartQuiz ? 'secondary' : 'primary'}
+            size="lg"
+            className="flex-1"
+            isLoading={isSubmitting}
+            disabled={isSubmitting}
+            data-testid="next-lesson-btn"
+          >
+            <span>К выбору уроков</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

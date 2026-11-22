@@ -604,4 +604,22 @@ describe('Criterion 8: Component Rendering and User Interactions', () => {
     expect(screen.getByTestId('new-record-badge')).toHaveTextContent(/\+21 WPM/i)
     expect(screen.getByTestId('confetti-celebration')).toBeInTheDocument()
   })
+
+  it('TopicQuizView: wrong answer displays explanation for both wrong and correct options', () => {
+    const lesson = {
+      id: 'pres-perf',
+      title: 'present perfect vs past simple',
+      level: 'B1',
+      description: 'Test',
+      sentences: []
+    }
+    render(<TopicQuizView lesson={lesson} onComplete={vi.fn()} onSkip={vi.fn()} />)
+
+    // Option 1 ("completed") is wrong for question 1 (correct is option 0 "has completed")
+    fireEvent.click(screen.getByTestId('quiz-option-1'))
+
+    const feedback = screen.getByTestId('quiz-feedback-card')
+    expect(feedback).toHaveTextContent(/Почему «completed» не подходит/i)
+    expect(feedback).toHaveTextContent(/Правильный вариант — «has completed»/i)
+  })
 })

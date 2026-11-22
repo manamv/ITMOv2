@@ -5,6 +5,7 @@ import { QUIZ_BANKS, DEFAULT_QUIZ_QUESTIONS } from '../../data/quizBanks'
 import { WordPopover } from '../typing/WordPopover'
 import { useWordSelection } from '../../hooks/useWordSelection'
 import { normalizeEnglishWord } from '../../utils/dictionary'
+import { soundService } from '../../services/sound'
 
 interface TopicQuizViewProps {
   lesson: LessonData
@@ -36,7 +37,10 @@ export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
     setIsAnswered(true)
 
     if (index === currentQ.correctIndex) {
+      soundService.playQuizCorrect()
       setCorrectAnswersCount(prev => prev + 1)
+    } else {
+      soundService.playQuizWrong()
     }
   }
 
@@ -230,14 +234,53 @@ export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
           </div>
 
           {/* Rule Feedback & Next Button */}
-          {isAnswered && (
-            <div className="p-4 rounded-2xl bg-[#050810] border border-white/[0.08] space-y-3 animate-fade-in">
-              <div className="text-xs text-slate-300 leading-relaxed flex items-start space-x-2">
-                <Sparkles className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-white">Правило:</strong> {currentQ.ruleExplanation}
-                </span>
-              </div>
+          {isAnswered && selectedOption !== null && (
+            <div
+              className={`p-4 rounded-2xl border space-y-3 animate-fade-in ${
+                selectedOption === currentQ.correctIndex
+                  ? 'bg-emerald-500/[0.06] border-emerald-400/30'
+                  : 'bg-[#050810] border-rose-400/30'
+              }`}
+              data-testid="quiz-feedback-card"
+            >
+              {selectedOption === currentQ.correctIndex ? (
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-2 text-xs font-bold text-emerald-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Верно! Правильный вариант: «{currentQ.options[currentQ.correctIndex]}»</span>
+                  </div>
+                  <div className="text-xs text-slate-300 leading-relaxed flex items-start space-x-2 pl-6">
+                    <Sparkles className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="text-white">Правило:</strong> {currentQ.ruleExplanation}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {/* Why the chosen wrong option does not fit */}
+                  <div className="p-3 rounded-xl bg-rose-500/[0.08] border border-rose-400/25 space-y-1">
+                    <div className="flex items-center space-x-2 text-xs font-bold text-rose-300">
+                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>Почему «{currentQ.options[selectedOption]}» не подходит:</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed pl-6">
+                      Выбранная форма <strong className="text-rose-200 font-mono">«{currentQ.options[selectedOption]}»</strong> нарушает грамматическую конструкцию или временной маркер данного предложения и не согласуется с контекстом.
+                    </p>
+                  </div>
+
+                  {/* Why the correct option is right */}
+                  <div className="p-3 rounded-xl bg-emerald-500/[0.07] border border-emerald-400/25 space-y-1">
+                    <div className="flex items-center space-x-2 text-xs font-bold text-emerald-300">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Правильный вариант — «{currentQ.options[currentQ.correctIndex]}»:</span>
+                    </div>
+                    <p className="text-xs text-slate-200 leading-relaxed pl-6">
+                      <strong className="text-white">Правило:</strong> {currentQ.ruleExplanation}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end pt-1">
                 <button
@@ -245,7 +288,7 @@ export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
                   className="px-5 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 transition-all flex items-center space-x-1.5 cursor-pointer active:scale-[0.98]"
                   data-testid="quiz-next-btn"
                 >
-                  <span>{currentIndex + 1 < questions.length ? 'Следующий вопрос' : 'Посмотреть результат'}</span>
+                  <span>{currentIndex + 1 < questions.length ? 'Следующий вопрос' : 'Завершить тест'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -275,7 +318,7 @@ export const TopicQuizView: React.FC<TopicQuizViewProps> = ({
             className="px-6 py-3 rounded-2xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-sm shadow-xl shadow-sky-500/25 transition-all inline-flex items-center space-x-2 cursor-pointer active:scale-[0.98]"
             data-testid="quiz-finish-btn"
           >
-            <span>Перейти к итоговому скорборду скорости</span>
+            <span>Вернуться к выбору уроков</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

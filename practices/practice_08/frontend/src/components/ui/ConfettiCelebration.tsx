@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 
 interface ConfettiCelebrationProps {
   active: boolean
+  mode?: 'light' | 'record'
 }
 
 interface Particle {
@@ -25,7 +26,7 @@ const PALETTE = ['#38bdf8', '#fbbf24', '#34d399', '#a78bfa', '#fb7185', '#f8fafc
  * Lightweight 60-FPS Canvas Party Poppers (хлопушки) + Fireworks (салюты) overlay
  * triggered when the user beats their personal WPM speed record.
  */
-export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({ active }) => {
+export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({ active, mode = 'record' }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -51,21 +52,22 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({ active
     const particles: Particle[] = []
 
     // Launch side party poppers (хлопушки) from bottom-left and bottom-right
+    const popperCount = mode === 'light' ? 24 : 48
     const spawnPopper = (originX: number, dirX: number) => {
-      for (let i = 0; i < 48; i++) {
-        const speed = 7 + Math.random() * 11
+      for (let i = 0; i < popperCount; i++) {
+        const speed = (mode === 'light' ? 6 : 7) + Math.random() * (mode === 'light' ? 7 : 11)
         const angle = -Math.PI / 2 + dirX * (0.25 + Math.random() * 0.65)
         particles.push({
           x: originX,
           y: canvas.height - 20,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 3,
-          size: 5 + Math.random() * 6,
+          vy: Math.sin(angle) * speed - (mode === 'light' ? 1.5 : 3),
+          size: 5 + Math.random() * 5,
           color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
           rotation: Math.random() * Math.PI * 2,
           vRot: (Math.random() - 0.5) * 0.25,
           alpha: 1,
-          decay: 0.006 + Math.random() * 0.004,
+          decay: mode === 'light' ? 0.009 + Math.random() * 0.005 : 0.006 + Math.random() * 0.004,
           kind: 'confetti',
           gravity: 0.22
         })
@@ -99,19 +101,17 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({ active
     spawnPopper(30, 1)
     spawnPopper(canvas.width - 30, -1)
 
-    // Timed firework bursts
-    const t1 = window.setTimeout(() => {
-      spawnFirework(canvas.width * 0.28, canvas.height * 0.24)
-    }, 400)
-    const t2 = window.setTimeout(() => {
-      spawnFirework(canvas.width * 0.72, canvas.height * 0.22)
-    }, 950)
-    const t3 = window.setTimeout(() => {
-      spawnFirework(canvas.width * 0.5, canvas.height * 0.18)
-    }, 1500)
+    // Timed sky firework bursts only for full record celebration
+    const timers: number[] = []
+    if (mode === 'record') {
+      timers.push(window.setTimeout(() => spawnFirework(canvas.width * 0.28, canvas.height * 0.24), 400))
+      timers.push(window.setTimeout(() => spawnFirework(canvas.width * 0.72, canvas.height * 0.22), 950))
+      timers.push(window.setTimeout(() => spawnFirework(canvas.width * 0.5, canvas.height * 0.18), 1500))
+    }
 
     let rafId = 0
     const startTime = performance.now()
+    const minRunMs = mode === 'light' ? 400 : 1800
 
     const render = (now: number) => {
       if (!ctx) return
@@ -151,7 +151,7 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({ active
         ctx.restore()
       }
 
-      if (particles.length > 0 || now - startTime < 1800) {
+      if (particles.length > 0 || now - startTime < minRunMs) {
         rafId = requestAnimationFrame(render)
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -162,12 +162,10 @@ export const ConfettiCelebration: React.FC<ConfettiCelebrationProps> = ({ active
 
     return () => {
       cancelAnimationFrame(rafId)
-      clearTimeout(t1)
-      clearTimeout(t2)
-      clearTimeout(t3)
+      timers.forEach(clearTimeout)
       window.removeEventListener('resize', resize)
     }
-  }, [active])
+  }, [active, mode])
 
   if (!active) return null
 

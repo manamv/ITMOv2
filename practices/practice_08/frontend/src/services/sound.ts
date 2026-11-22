@@ -173,6 +173,77 @@ class SoundService {
   }
 
   /**
+   * Pleasant gentle completion chime after finishing a typing exercise
+   */
+  playCompletionChime() {
+    this.playNotes([
+      { freq: 523.25, delay: 0, dur: 0.22, type: 'sine', vol: 0.055 }, // C5
+      { freq: 659.25, delay: 0.09, dur: 0.24, type: 'sine', vol: 0.055 }, // E5
+      { freq: 783.99, delay: 0.18, dur: 0.42, type: 'triangle', vol: 0.06 } // G5
+    ])
+  }
+
+  /**
+   * Crisp uplifting chime for a correct quiz answer
+   */
+  playQuizCorrect() {
+    this.playNotes([
+      { freq: 659.25, delay: 0, dur: 0.14, type: 'sine', vol: 0.06 }, // E5
+      { freq: 880.0, delay: 0.075, dur: 0.26, type: 'sine', vol: 0.065 } // A5
+    ])
+  }
+
+  /**
+   * Soft distinct descending tone for an incorrect quiz answer
+   */
+  playQuizWrong() {
+    this.playNotes([
+      { freq: 277.18, delay: 0, dur: 0.14, type: 'triangle', vol: 0.055 }, // C#4
+      { freq: 196.0, delay: 0.1, dur: 0.22, type: 'sine', vol: 0.06 } // G3
+    ])
+  }
+
+  private playNotes(
+    notes: Array<{ freq: number; delay: number; dur: number; type: OscillatorType; vol: number }>
+  ) {
+    try {
+      if (typeof window === 'undefined') return
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      if (!AudioCtx) return
+
+      if (!this.audioContext) {
+        this.audioContext = new AudioCtx()
+      }
+      const ctx = this.audioContext
+      if (ctx.state === 'suspended') {
+        ctx.resume()
+      }
+
+      const now = ctx.currentTime
+      notes.forEach(n => {
+        const start = now + n.delay
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = n.type
+        osc.frequency.setValueAtTime(n.freq, start)
+
+        gain.gain.setValueAtTime(0.0001, start)
+        gain.gain.linearRampToValueAtTime(n.vol, start + 0.012)
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + n.dur)
+
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.start(start)
+        osc.stop(start + n.dur + 0.02)
+      })
+    } catch {
+      // Safe fallback in environments without Web Audio API
+    }
+  }
+
+  /**
    * Pleasant sparkling chime arpeggio when the user beats their personal WPM record
    */
   playNewRecordFanfare() {

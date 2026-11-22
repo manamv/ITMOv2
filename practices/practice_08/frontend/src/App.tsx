@@ -148,7 +148,7 @@ export function App() {
       setTimeout(() => setUnlockedToast(null), 5000)
     }
 
-    setPracticeMode('QUIZ')
+    setPracticeMode('RESULT')
   }
 
   // Add word to vocabulary
@@ -346,9 +346,9 @@ export function App() {
                 {practiceMode === 'QUIZ' && currentLesson && (
                   <TopicQuizView
                     lesson={currentLesson}
-                    onComplete={() => setPracticeMode('RESULT')}
-                    onSkip={() => setPracticeMode('RESULT')}
-                    onBack={handleBackFromTyping}
+                    onComplete={() => setPracticeMode('TOPICS')}
+                    onSkip={() => setPracticeMode('TOPICS')}
+                    onBack={() => setPracticeMode('RESULT')}
                   />
                 )}
 
@@ -357,6 +357,7 @@ export function App() {
                     stats={lastStats}
                     onRepeat={() => setPracticeMode('TYPING')}
                     onNext={() => setPracticeMode('TOPICS')}
+                    onStartQuiz={() => setPracticeMode('QUIZ')}
                     onOpenLeaderboard={() => setActiveTab('LEADERBOARD')}
                     isNewRecord={isNewSpeedRecord}
                     previousBestWpm={previousBestWpm}
