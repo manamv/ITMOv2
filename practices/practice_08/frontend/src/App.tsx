@@ -324,6 +324,8 @@ export function App() {
                       topics={topics}
                       onSelectTopic={handleSelectTopic}
                       onSelectAdaptive={handleSelectAdaptive}
+                      statsSummary={statsSummary}
+                      onOpenMusic={() => setActiveTab('MUSIC')}
                     />
                   )
                 )}
