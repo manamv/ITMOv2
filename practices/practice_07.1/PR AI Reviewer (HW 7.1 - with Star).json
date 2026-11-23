@@ -91,7 +91,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const comment = $('GitHub Webhook').first().json.body.comment.body;\nconst currentPr = Number($('GitHub Webhook').first().json.body.issue.number);\nconst tableRows = $('Check Data Table').all();\n\nconst requestedModel = comment.includes('/make_other_ai_review') ? 'gpt-5-security' : 'gpt-5';\n\nconst isAlreadyReviewed = tableRows.some(row => \n  Number(row.json.pr_id) === currentPr && row.json.model === requestedModel\n);\n\nif (isAlreadyReviewed) {\n  return [];\n}\n\nreturn [{ json: { pr_id: currentPr, model: requestedModel } }];"
+        "jsCode": "const comment = $('GitHub Webhook').first().json.body.comment.body;\nconst currentPr = Number($('GitHub Webhook').first().json.body.issue.number);\nconst tableRows = $('Check Data Table').all();\n\n// Which model is requested by the command (stored in the table for the audit trail).\nconst requestedModel = comment.includes('/make_other_ai_review') ? 'gpt-5-security' : 'gpt-5';\n\n// Deduplication is by PR id only: a PR that was already reviewed by ANY model is never reviewed again.\nconst isAlreadyReviewed = tableRows.some(row => Number(row.json.pr_id) === currentPr);\n\nreturn [{ json: { pr_id: currentPr, model: requestedModel, skip: isAlreadyReviewed } }];"
       },
       "id": "d52d625f-bba0-432f-9c61-5a29aa670d7e",
       "name": "Deduplication Check",
@@ -123,7 +123,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        880,
+        1100,
         128
       ],
       "credentials": {
@@ -164,7 +164,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1104,
+        1324,
         128
       ],
       "credentials": {
@@ -183,7 +183,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1328,
+        1548,
         128
       ]
     },
@@ -216,7 +216,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1552,
+        1772,
         128
       ]
     },
@@ -247,7 +247,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1792,
+        2012,
         0
       ]
     },
@@ -278,7 +278,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1792,
+        2012,
         224
       ]
     },
@@ -311,7 +311,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2048,
+        2268,
         128
       ],
       "credentials": {
@@ -369,8 +369,53 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1,
       "position": [
-        2288,
+        2508,
         128
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-skip",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1f0c7d2-5b7e-4f10-9a52-7e1d6c0b2a01",
+      "name": "Already Reviewed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        892,
+        128
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b2e1d8e3-6c8f-4a21-8b63-8f2e7d1c3b02",
+      "name": "Skip: PR already reviewed",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1112,
+        -32
       ]
     }
   ],
@@ -413,7 +458,7 @@
       "main": [
         [
           {
-            "node": "Get PR Details (Commit SHA)",
+            "node": "Already Reviewed?",
             "type": "main",
             "index": 0
           }
@@ -498,6 +543,24 @@
         [
           {
             "node": "Save to Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Already Reviewed?": {
+      "main": [
+        [
+          {
+            "node": "Skip: PR already reviewed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get PR Details (Commit SHA)",
             "type": "main",
             "index": 0
           }
