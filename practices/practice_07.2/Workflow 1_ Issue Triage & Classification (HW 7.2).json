@@ -143,9 +143,18 @@
                       "operation": "lt"
                     },
                     "id": "dd051b72-d25b-438e-a55f-c428c97e1126"
+                  },
+                  {
+                    "id": "cond-unknown",
+                    "leftValue": "={{ ['bug','task','feature'].includes($json.type) }}",
+                    "rightValue": false,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
                   }
                 ],
-                "combinator": "and"
+                "combinator": "or"
               }
             },
             {
