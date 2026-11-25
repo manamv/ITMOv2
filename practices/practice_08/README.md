@@ -7,8 +7,8 @@
 
 ## 📦 Репозиторий с исходным кодом фронтенда, бэкенда и клиентскими тестами
 
-* 👉 **[https://github.com/manamv/linguatype](https://github.com/manamv/linguatype)** — полный исходный код приложения (`frontend/`, `backend/`, `docker-compose.yml`, 36 клиентских тестов Vitest + React Testing Library и полная история коммитов разработки).
-* 👉 **[GitHub Actions CI/CD Pipeline (автозапуск 36 тестов, сборка .NET 10, Docker E2E и публикация в GHCR)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)** — [![LinguaType CI/CD Pipeline](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)
+* 👉 **[https://github.com/manamv/linguatype](https://github.com/manamv/linguatype)** — полный исходный код приложения (`frontend/`, `backend/`, `docker-compose.yml`, 47 клиентских тестов Vitest + React Testing Library и полная история коммитов разработки).
+* 👉 **[GitHub Actions CI/CD Pipeline (автозапуск 47 тестов, сборка .NET 10, Docker E2E и публикация в GHCR)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)** — [![LinguaType CI/CD Pipeline](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)
 * В данной папке `practices/practice_08` собраны все отчётные артефакты для проверки: задание `ASSIGNMENT.md`, локальный интерактивный прототип `design/mockup.html`, документация промптов и вклада AI `design/PROMPTS_AND_AI_CONTRIBUTION.md`, скриншоты всех состояний `design/screenshots/` и SDD-спецификации `specs/`.
 
 ---
@@ -42,7 +42,7 @@
 3. **Озвучивает правильное произношение и тактильные события:** Web Speech API (диктор) + Web Audio API (мягкий звук опечатки, приятный аккорд завершения, фанфара рекорда с хлопушками/салютами, разные звуки для верного и неверного ответа в квизе).
 4. **Обучает грамматике и контексту (`Печать → Статистика → Тест`):** каждое слово в тексте, тесте и караоке кликабельно (перевод + IPA), а после статистики открывается квиз (64+ вопроса) с двойным разбором при ошибке (почему выбранный вариант неверен и почему правильный верен).
 5. **Адаптируется под слабые клавиши (AI-разбор ошибок и биграмм):** фиксирует опечатки, строит тепловую карту (Heatmap) клавиатуры, график WPM и запускает спринт восстановления в один клик.
-6. **Синхронизированное караоке по музыкальным клипам:** YouTube-плеер с точными LRC-таймкодами (`lrclib.net`), 60-FPS синхронизацией, разбором правил песни и AI-анализом смысла.
+6. **Масштабируемый каталог клипов по уровням CEFR (14 треков A2–C1) и 3 интерактивных режима:** группировка песен по уровням (`A2`, `B1`, `B2`, `C1`), поиск, YouTube-плеер с точными LRC-таймкодами (`lrclib.net`), **Караоке**, **Ритм-печать**, **Диктант (авто-пауза)**, разбор правил песни, AI-анализ смысла и лёгкий GPU-снегопад на *Wham! — Last Christmas*.
 
 ---
 
@@ -78,7 +78,7 @@ docker compose up --build
 * **API бэкенда:** `http://localhost:5000` (проксируется автоматически)
 
 ```bash
-# Запуск всех 36 тестов в изолированном Linux-контейнере:
+# Запуск всех 47 тестов в изолированном Linux-контейнере:
 docker compose run --rm tests
 ```
 
@@ -118,26 +118,28 @@ npm test
 | **3. Состояние загрузки (`Loading`)** | ![Loading State](design/screenshots/06_loading_state.png) |
 | **4. Статистика, хлопушки и AI-разбор перед тестом (`Success`)** | ![Success Scoreboard](design/screenshots/07_success_scoreboard.png) |
 | **5. Квиз с двойным разбором ошибки и звуками** | ![Quiz Dual Feedback](design/screenshots/08_quiz_dual_feedback.png) |
-| **6. Караоке по музыкальным клипам (YouTube + LRC)** | ![Karaoke Clips](design/screenshots/03_karaoke_clips.png) |
-| **7. Пустое состояние (`Empty State`)** | ![Empty State](design/screenshots/05_empty_state.png) |
-| **8. Состояние ошибки с `Retry` (`Error State`)** | ![Error State](design/screenshots/04_error_state.png) |
+| **6. Каталог клипов по уровням CEFR + Last Christmas со снегопадом** | ![Karaoke Clips & CEFR Catalog](design/screenshots/03_karaoke_clips.png) |
+| **7. Музыкальный диктант (авто-пауза) и Ритм-печать** | ![Music Auto-Pause Dictation](design/screenshots/09_music_dictation_mode.png) |
+| **8. Пустое состояние (`Empty State`)** | ![Empty State](design/screenshots/05_empty_state.png) |
+| **9. Состояние ошибки с `Retry` (`Error State`)** | ![Error State](design/screenshots/04_error_state.png) |
 
 ---
 
-## 🧪 Результат запуска клиентских тестов (36 из 36 успешно)
+## 🧪 Результат запуска клиентских тестов (47 из 47 успешно)
 
 ```text
- RUN  v5.1.1 D:/3sem/vibecoding/ITMOv2/practices/practice_08/frontend
+ RUN  v5.1.1 D:/linguatype/frontend
 
- ✓ src/tests/uiStates.test.tsx (4 tests) 236ms
- ✓ src/tests/endToEndScenario.test.tsx (1 test) 385ms
- ✓ src/tests/doubleSubmit.test.tsx (2 tests) 653ms
- ✓ src/tests/componentsAndInteractions.test.tsx (25 tests) 1171ms
- ✓ src/tests/formValidation.test.tsx (4 tests) 1483ms
+ ✓ src/tests/uiStates.test.tsx (4 tests) 273ms
+ ✓ src/tests/endToEndScenario.test.tsx (1 test) 440ms
+ ✓ src/tests/doubleSubmit.test.tsx (2 tests) 672ms
+ ✓ src/tests/formValidation.test.tsx (4 tests) 1555ms
+ ✓ src/tests/componentsAndInteractions.test.tsx (26 tests) 1624ms
+ ✓ src/tests/musicCatalogAndDesignSystem.test.tsx (10 tests) 1759ms
 
- Test Files  5 passed (5)
-      Tests  36 passed (36)
-   Duration  5.72s
+ Test Files  6 passed (6)
+      Tests  47 passed (47)
+   Duration  5.88s
 ```
 
 ---
