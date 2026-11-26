@@ -20,26 +20,25 @@
 
 ```bash
 make pr-open                 # создаёт ветку, 3 файла (3 блока кода) и PR → запомнить номер N
-make review-other PR=N       # критерий 1 и 4: /make_other_ai_review
+make review-main PR=N        # основная модель (GPT-5) + сохранение (N, gpt-5) в Data Table
+make review-other PR=N       # критерий 1 и 4: /make_other_ai_review — сравнение второй модели на том же PR!
 make table-hint              # подсказка, что показать в Data Table (критерий 2)
-make review-main PR=N        # критерий 3: повторный /make_ai_review — ревью НЕ запускается
+make review-main PR=N        # критерий 3: повторный /make_ai_review — ревью НЕ запускается (Skip)
 make show-comments PR=N      # сколько точечных комментариев оставлено (критерий 4)
 ```
 
 | # | Критерий (баллы) | Что запускаю | Ожидаемый результат | Где показываю |
 |---|---|---|---|---|
 | 1 | `/make_other_ai_review` → ревью второй моделью, результат в PR (**2**) | `make review-other PR=N` | В PR появились комментарии с заголовком «🤖 **Модель 2 (Security Audit)** ревью блока» | Вкладка PR + n8n → Executions (зелёный запуск, ветка `Model 2`) |
-| 2 | Data Table, id PR сохранён после ревью (**2**) | открыть таблицу после шага 1 | В `reviewed_prs` одна строка: `pr_id = N`, `model = gpt-5-security` | n8n → Data Tables → `reviewed_prs` |
-| 3 | Повторный `/make_ai_review` не запускает ревью (**3**) | `make review-main PR=N` | Новый Execution: дошёл до `Already Reviewed?` → ветка **true** → `Skip: PR already reviewed`; нод `Get PR Diff` / `Model` / `Post Inline Review Comment` **нет** (серые); новых комментариев в PR нет | n8n → Executions (последний запуск) |
-| 4 ★ | Точечные комментарии к каждому блоку (**5**) | уже сделано шагом 1 | Под каждым файлом/хунком diff свой inline-комментарий на конкретной строке (на вкладке *Files changed*) | PR → Files changed; `make show-comments PR=N` |
-
-Если нужно показать **основную модель** тоже: на *другом* новом PR — `make pr-open` → `make review-main PR=M` (заголовок «Основная модель (GPT-5)»).
+| 2 | Data Table, id PR сохранён после ревью (**2**) | открыть таблицу после шага 1 | В `reviewed_prs` строки: `(pr_id = N, model = gpt-5)` и `(pr_id = N, model = gpt-5-security)` | n8n → Data Tables → `reviewed_prs` |
+| 3 | Повторный `/make_ai_review` не запускает ревью (**3**) | `make review-main PR=N` (повторно) | Новый Execution: дошёл до `Already Reviewed?` → ветка **true** → `Skip: PR already reviewed`; нод `Get PR Diff` / `Model` / `Post Inline Review Comment` **нет** (серые); новых комментариев в PR нет | n8n → Executions (последний запуск) |
+| 4 ★ | Точечные комментарии к каждому блоку (**5**) | уже сделано шагами 1–2 | Под каждым файлом/хунком diff свой inline-комментарий на конкретной строке (на вкладке *Files changed*) | PR → Files changed; `make show-comments PR=N` |
 
 ## 2. Что говорить ревьюверу
 
 - **Выбор модели.** Нода `Choose Model (1 or 2)` проверяет, содержит ли текст комментария `/make_other_ai_review`: да → ветка `Model 2: Security Auditor` (другой системный промпт — аудит безопасности), нет → `Model 1: openai/gpt-5` (общее ревью). Результаты отличаются фокусом: основная модель описывает суть и риски, вторая — уязвимости/валидацию/надёжность.
 - **Где хранится состояние.** Data Table `reviewed_prs` (`pr_id`, `model`). Ноды `Check Data Table` → `Deduplication Check` читают таблицу, `Save to Data Table` пишет строку один раз за запуск (`Execute Once`), а не по разу на каждый блок.
-- **Решение «запускать или нет».** `Deduplication Check` сравнивает номер PR **только по `pr_id`**: если PR уже ревьюила *любая* модель — флаг `skip = true`, `Already Reviewed?` уводит в `Skip: PR already reviewed`. Поэтому `/make_ai_review` после `/make_other_ai_review` (и наоборот) повторно не запускается.
+- **Решение «запускать или нет».** `Deduplication Check` проверяет пару **`(pr_id, model)`**: каждая модель может проревьюить PR не более одного раза. Это позволяет сравнить результаты двух моделей на одном PR, при этом повторный `/make_ai_review` (и повторный `/make_other_ai_review`) получает `skip = true` и уходит в `Skip: PR already reviewed`.
 - **Что при повторном `/make_ai_review`.** Webhook срабатывает, запуск в Executions есть, но кончается на `Skip` — ревью и комментарии не создаются.
 - **★ Точечные комментарии.** `Split Diff Into Blocks` режет diff по `diff --git` (файл) и `@@ -a,b +c,d @@` (хунк), считает номер новой строки `c + число добавленных/контекстных строк` и берёт последнюю добавленную строку хунка. Каждый блок уходит в модель отдельно и публикуется через `POST /pulls/{n}/comments` с `commit_id`, `path`, `line`, `side=RIGHT` — то есть привязан к строке кода.
 
@@ -59,4 +58,4 @@ make show-comments PR=N      # сколько точечных коммента�
 - Скриншоты Executions и Data Table — лежат в этой папке (`Снимок экрана 2026-11-19 *.png`); **после перепрошивки сценария (см. ниже) переснимите шаги 1–3**.
 - Ссылка на тестовый PR — вывод `make pr-open`.
 
-> **Что изменено перед защитой.** Раньше дедупликация шла по паре (PR, модель): `/make_ai_review` после `/make_other_ai_review` запустил бы ревью повторно, а в таблицу писалась строка на каждый блок. Теперь — по одному `pr_id`, одна строка за запуск и явная ветка `Skip: PR already reviewed` для наглядности в Executions.
+> **Что изменено перед защитой.** Дедупликация идёт по паре `(pr_id, model)`: каждая модель ревьюит PR не более одного раза (удобно сравнить ответы двух моделей на одном PR, при этом повторный `/make_ai_review` или `/make_other_ai_review` уходит в ветку `Skip: PR already reviewed`), а `Save to Data Table` пишет одну строку за запуск (`Execute Once`).

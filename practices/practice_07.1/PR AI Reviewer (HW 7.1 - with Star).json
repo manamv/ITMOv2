@@ -91,7 +91,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const comment = $('GitHub Webhook').first().json.body.comment.body;\nconst currentPr = Number($('GitHub Webhook').first().json.body.issue.number);\nconst tableRows = $('Check Data Table').all();\n\n// Which model is requested by the command (stored in the table for the audit trail).\nconst requestedModel = comment.includes('/make_other_ai_review') ? 'gpt-5-security' : 'gpt-5';\n\n// Deduplication is by PR id only: a PR that was already reviewed by ANY model is never reviewed again.\nconst isAlreadyReviewed = tableRows.some(row => Number(row.json.pr_id) === currentPr);\n\nreturn [{ json: { pr_id: currentPr, model: requestedModel, skip: isAlreadyReviewed } }];"
+        "jsCode": "const comment = $('GitHub Webhook').first().json.body.comment.body;\nconst currentPr = Number($('GitHub Webhook').first().json.body.issue.number);\nconst tableRows = $('Check Data Table').all();\n\n// Which model is requested by the command (stored in the table for the audit trail).\nconst requestedModel = comment.includes('/make_other_ai_review') ? 'gpt-5-security' : 'gpt-5';\n\n// Deduplication is by (pr_id, model): each model reviews a PR at most once,\n// so both models can be compared on the same PR while blocking repeat runs.\nconst isAlreadyReviewed = tableRows.some(\n  row => Number(row.json.pr_id) === currentPr && String(row.json.model || '') === requestedModel\n);\n\nreturn [{ json: { pr_id: currentPr, model: requestedModel, skip: isAlreadyReviewed } }];"
       },
       "id": "d52d625f-bba0-432f-9c61-5a29aa670d7e",
       "name": "Deduplication Check",
