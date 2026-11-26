@@ -54,7 +54,7 @@ make show-comments PR=N      # сколько точечных коммента�
 
 ## 4. Артефакты для сдачи
 
-- Экспорт: [`workflow_7_1.json`](./workflow_7_1.json) (то же в `workflow.json` и `PR AI Reviewer (HW 7.1 - with Star).json`).
+- Экспорт: [`workflow_7_1.json`](./workflow_7_1.json).
 - Скриншоты Executions и Data Table — лежат в этой папке (`Снимок экрана 2026-11-19 *.png`); **после перепрошивки сценария (см. ниже) переснимите шаги 1–3**.
 - Ссылка на тестовый PR — вывод `make pr-open`.
 
