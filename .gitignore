@@ -167,6 +167,15 @@ student_solutions/
 *.temp
 ~$*.pptx
 
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+
+# .NET / C#
+bin/
+obj/
+
 # Папки с точкой (исключая необходимые)
 !.github/
 !.cursor/
