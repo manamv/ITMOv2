@@ -7,8 +7,8 @@
 
 ## 📦 Репозиторий с исходным кодом фронтенда, бэкенда и клиентскими тестами
 
-* 👉 **[https://github.com/manamv/linguatype](https://github.com/manamv/linguatype)** — полный исходный код приложения (`frontend/`, `backend/`, `docker-compose.yml`, 47 клиентских тестов Vitest + React Testing Library и полная история коммитов разработки).
-* 👉 **[GitHub Actions CI/CD Pipeline (автозапуск 47 тестов, сборка .NET 10, Docker E2E и публикация в GHCR)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)** — [![LinguaType CI/CD Pipeline](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)
+* 👉 **[https://github.com/manamv/linguatype](https://github.com/manamv/linguatype)** — полный исходный код приложения (`frontend/`, `backend/`, `docker-compose.yml`, 56 клиентских тестов Vitest + React Testing Library и полная история коммитов разработки).
+* 👉 **[GitHub Actions CI/CD Pipeline (автозапуск 56 тестов, сборка .NET 10, Docker E2E и публикация в GHCR)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)** — [![LinguaType CI/CD Pipeline](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/manamv/linguatype/actions/workflows/ci-cd.yml)
 * В данной папке `practices/practice_08` собраны все отчётные артефакты для проверки: задание `ASSIGNMENT.md`, локальный интерактивный прототип `design/mockup.html`, документация промптов и вклада AI `design/PROMPTS_AND_AI_CONTRIBUTION.md`, скриншоты всех состояний `design/screenshots/` и SDD-спецификации `specs/`.
 
 ---
@@ -78,7 +78,7 @@ docker compose up --build
 * **API бэкенда:** `http://localhost:5000` (проксируется автоматически)
 
 ```bash
-# Запуск всех 47 тестов в изолированном Linux-контейнере:
+# Запуск всех 56 тестов в изолированном Linux-контейнере:
 docker compose run --rm tests
 ```
 
@@ -125,7 +125,7 @@ npm test
 
 ---
 
-## 🧪 Результат запуска клиентских тестов (47 из 47 успешно)
+## 🧪 Результат запуска клиентских тестов (56 из 56 успешно)
 
 ```text
  RUN  v5.1.1 D:/linguatype/frontend
@@ -135,10 +135,10 @@ npm test
  ✓ src/tests/doubleSubmit.test.tsx (2 tests) 672ms
  ✓ src/tests/formValidation.test.tsx (4 tests) 1555ms
  ✓ src/tests/componentsAndInteractions.test.tsx (26 tests) 1624ms
- ✓ src/tests/musicCatalogAndDesignSystem.test.tsx (10 tests) 1759ms
+ ✓ src/tests/musicCatalogAndDesignSystem.test.tsx (19 tests) 1759ms
 
  Test Files  6 passed (6)
-      Tests  47 passed (47)
+      Tests  56 passed (56)
    Duration  5.88s
 ```
 
